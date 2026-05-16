@@ -1,127 +1,105 @@
 #pragma once
 /// @file igd.hpp
-/// @brief Inverted Generational Distance (IGD) quality indicator.
-/// Measures both convergence and diversity of an approximation set.
+/// @brief Inverted Generational Distance (IGD) indicator.
+///
+/// Reference: jMetal
+///   jmetal-core/src/main/java/org/uma/jmetal/qualityindicator/impl/InvertedGenerationalDistance.java
+///
+/// IGD measures the average distance from each point in the reference front
+/// to its closest point in the approximated front. Lower is better.
 
+#include <ea/core/population.hpp>
 #include <vector>
 #include <cmath>
-#include <algorithm>
-#include <ea/core/population.hpp>
+#include <limits>
 
 namespace ea {
 
-/// Compute Inverted Generational Distance between an approximation set and a reference front.
-/// IGD = (1/|P*|) * sum_{p in P*} min_{a in A} dist(p, a)
-/// Lower is better. Requires a well-distributed reference front P*.
-/// @param approximation The approximation set (population with evaluated objectives)
-/// @param reference_front Vector of reference points (each a vector of objectives)
-/// @return IGD value
-inline double compute_igd(const Population& approximation,
-                          const std::vector<std::vector<double>>& reference_front) {
-    if (reference_front.empty() || approximation.pop_size == 0) return 0.0;
-
+/// Compute Euclidean distance between two objective vectors.
+inline double euclidean_distance(const std::vector<double>& a,
+                                  const std::vector<double>& b) {
     double sum = 0.0;
-    int n_obj = approximation.n_obj;
+    for (size_t i = 0; i < a.size(); ++i) {
+        double diff = a[i] - b[i];
+        sum += diff * diff;
+    }
+    return std::sqrt(sum);
+}
 
-    for (const auto& ref_point : reference_front) {
-        double min_dist = std::numeric_limits<double>::max();
-        for (int i = 0; i < approximation.pop_size; ++i) {
-            double dist = 0.0;
-            for (int o = 0; o < n_obj; ++o) {
-                double diff = approximation.objective(i, o) - ref_point[o];
-                dist += diff * diff;
-            }
-            min_dist = std::min(min_dist, std::sqrt(dist));
-        }
-        sum += min_dist;
+/// Find the minimum distance from a point to any point in a front.
+inline double distance_to_closest(const std::vector<double>& point,
+                                   const std::vector<std::vector<double>>& front) {
+    double min_dist = std::numeric_limits<double>::infinity();
+    for (const auto& f : front) {
+        double dist = euclidean_distance(point, f);
+        if (dist < min_dist) min_dist = dist;
+    }
+    return min_dist;
+}
+
+/// Inverted Generational Distance indicator.
+///
+/// @param pop            Population containing the approximated front
+/// @param indices        Indices of individuals in the approximated front
+/// @param reference_front Reference Pareto front
+/// @param p              Power parameter (default 2.0 for Euclidean)
+/// @return IGD value (lower is better)
+inline double igd(const Population& pop,
+                  const std::vector<int>& indices,
+                  const std::vector<std::vector<double>>& reference_front,
+                  double p = 2.0) {
+    if (reference_front.empty() || indices.empty()) return 0.0;
+
+    // Extract front points from population
+    std::vector<std::vector<double>> front;
+    front.reserve(indices.size());
+    for (int idx : indices) {
+        std::vector<double> point(pop.n_obj);
+        for (int o = 0; o < pop.n_obj; ++o) point[o] = pop.objective(idx, o);
+        front.push_back(point);
     }
 
+    double sum = 0.0;
+    for (const auto& ref_point : reference_front) {
+        double min_dist = distance_to_closest(ref_point, front);
+        sum += std::pow(min_dist, p);
+    }
+
+    sum = std::pow(sum, 1.0 / p);
     return sum / static_cast<double>(reference_front.size());
 }
 
-/// Compute Generational Distance between an approximation set and a reference front.
-/// GD = (1/|A|) * sqrt(sum_{a in A} min_{p in P*} dist(a, p)^2)
-/// @param approximation The approximation set
-/// @param reference_front Vector of reference points
-/// @return GD value
-inline double compute_gd(const Population& approximation,
-                          const std::vector<std::vector<double>>& reference_front) {
-    if (reference_front.empty() || approximation.pop_size == 0) return 0.0;
+/// IGD from two vector fronts.
+inline double igd(const std::vector<std::vector<double>>& front,
+                  const std::vector<std::vector<double>>& reference_front,
+                  double p = 2.0) {
+    if (reference_front.empty() || front.empty()) return 0.0;
 
-    int n_obj = approximation.n_obj;
     double sum = 0.0;
-
-    for (int i = 0; i < approximation.pop_size; ++i) {
-        double min_dist = std::numeric_limits<double>::max();
-        for (const auto& ref_point : reference_front) {
-            double dist = 0.0;
-            for (int o = 0; o < n_obj; ++o) {
-                double diff = approximation.objective(i, o) - ref_point[o];
-                dist += diff * diff;
-            }
-            min_dist = std::min(min_dist, dist);
-        }
-        sum += min_dist;
+    for (const auto& ref_point : reference_front) {
+        double min_dist = distance_to_closest(ref_point, front);
+        sum += std::pow(min_dist, p);
     }
 
-    return std::sqrt(sum) / static_cast<double>(approximation.pop_size);
+    sum = std::pow(sum, 1.0 / p);
+    return sum / static_cast<double>(reference_front.size());
 }
 
-/// Compute Spread (Δ) indicator for 2-objective problems.
-/// Measures how well-distributed the approximation set is along the Pareto front.
-/// Δ = (d_f + d_l + sum |d_i - d_avg|) / (d_f + d_l + (n-1)*d_avg)
-/// @param approximation The approximation set (must be 2 objectives)
-/// @param reference_front Vector of reference points (for extreme points)
-/// @return Spread value (0 = perfect distribution)
-inline double compute_spread(const Population& approximation,
-                              const std::vector<std::vector<double>>& reference_front) {
-    if (approximation.n_obj != 2 || approximation.pop_size < 2) return 0.0;
+struct IGDIndicator {
+    double p = 2.0;
 
-    int n = approximation.pop_size;
-
-    // Find extreme points in reference front
-    double f1_min_ref = std::numeric_limits<double>::max();
-    double f2_min_ref = std::numeric_limits<double>::max();
-    for (const auto& pt : reference_front) {
-        f1_min_ref = std::min(f1_min_ref, pt[0]);
-        f2_min_ref = std::min(f2_min_ref, pt[1]);
+    double compute(this IGDIndicator& self,
+                   const Population& pop,
+                   const std::vector<int>& indices,
+                   const std::vector<std::vector<double>>& reference_front) {
+        return igd(pop, indices, reference_front, self.p);
     }
 
-    // Sort approximation by first objective
-    std::vector<int> sorted(n);
-    std::iota(sorted.begin(), sorted.end(), 0);
-    std::sort(sorted.begin(), sorted.end(), [&](int a, int b) {
-        return approximation.objective(a, 0) < approximation.objective(b, 0);
-    });
-
-    // Distance to extreme points
-    double df = std::sqrt(std::pow(approximation.objective(sorted[0], 0) - f1_min_ref, 2) +
-                           std::pow(approximation.objective(sorted[0], 1) - 0, 2));
-    double dl = std::sqrt(std::pow(approximation.objective(sorted[n-1], 0) - 0, 2) +
-                           std::pow(approximation.objective(sorted[n-1], 1) - f2_min_ref, 2));
-
-    // Consecutive distances
-    std::vector<double> distances(n - 1);
-    double sum_dist = 0.0;
-    for (int i = 0; i < n - 1; ++i) {
-        double d = 0.0;
-        for (int o = 0; o < 2; ++o) {
-            double diff = approximation.objective(sorted[i+1], o) - approximation.objective(sorted[i], o);
-            d += diff * diff;
-        }
-        distances[i] = std::sqrt(d);
-        sum_dist += distances[i];
+    double compute(this IGDIndicator& self,
+                   const std::vector<std::vector<double>>& front,
+                   const std::vector<std::vector<double>>& reference_front) {
+        return igd(front, reference_front, self.p);
     }
-
-    double d_avg = sum_dist / (n - 1);
-    if (d_avg < 1e-14) return 0.0;
-
-    double sum_dev = 0.0;
-    for (double d : distances) {
-        sum_dev += std::abs(d - d_avg);
-    }
-
-    return (df + dl + sum_dev) / (df + dl + (n - 1) * d_avg);
-}
+};
 
 } // namespace ea

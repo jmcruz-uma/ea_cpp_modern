@@ -23,6 +23,7 @@ struct BestSolutionSelection {
     /// @return Index of the best individual
     int select(this BestSolutionSelection& self, Population& pop,
                const std::vector<int>& ranks) {
+        (void)self;
         if (pop.pop_size == 0) return -1;
 
         int best_idx = 0;

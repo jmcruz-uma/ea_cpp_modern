@@ -70,8 +70,11 @@ int main() {
         reference_front.push_back({f1, f2});
     }
 
-    double igd = ea::compute_igd(pop, reference_front);
-    std::cout << "\nIGD: " << igd << std::endl;
+    // Compute IGD using all individuals in population
+    std::vector<int> all_indices(pop.pop_size);
+    std::iota(all_indices.begin(), all_indices.end(), 0);
+    double igd_val = ea::igd(pop, all_indices, reference_front);
+    std::cout << "\nIGD: " << igd_val << std::endl;
 
     // Write final front to file
     std::ofstream ofs("zdt1_front.csv");
@@ -83,8 +86,8 @@ int main() {
     std::cout << "Front written to zdt1_front.csv" << std::endl;
 
     // Success criteria: IGD should be < 0.1 for a reasonable run
-    bool success = igd < 0.1;
-    std::cout << "\nTest " << (success ? "PASSED" : "FAILED") << " (IGD=" << igd << ", threshold=0.1)" << std::endl;
+    bool success = igd_val < 0.1;
+    std::cout << "\nTest " << (success ? "PASSED" : "FAILED") << " (IGD=" << igd_val << ", threshold=0.1)" << std::endl;
 
     return success ? 0 : 1;
 }
