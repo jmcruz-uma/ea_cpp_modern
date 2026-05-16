@@ -59,6 +59,10 @@
 
 // Algorithms
 #include <ea/algorithm/nsga2.hpp>
+#include <ea/algorithm/moead.hpp>
 #include <ea/algorithm/spea2.hpp>
 #include <ea/algorithm/smsemoa.hpp>
 #include <ea/algorithm/gde3.hpp>
+
+// Aggregation utilities
+#include <ea/util/aggregation.hpp>

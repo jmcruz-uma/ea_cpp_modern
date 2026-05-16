@@ -1,5 +1,0 @@
-if(EXISTS "/root/.openclaw/workspace/projects/ea-cpp/build/ea_tests[1]_tests.cmake")
-  include("/root/.openclaw/workspace/projects/ea-cpp/build/ea_tests[1]_tests.cmake")
-else()
-  add_test(ea_tests_NOT_BUILT ea_tests_NOT_BUILT)
-endif()

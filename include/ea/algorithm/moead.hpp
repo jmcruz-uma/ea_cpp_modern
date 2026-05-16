@@ -30,6 +30,7 @@
 #include <limits>
 #include <fstream>
 #include <sstream>
+#include <string>
 
 namespace ea {
 
@@ -127,9 +128,11 @@ struct MOEAD {
         self.evals_ = n;
 
         // Scratch population for offspring (single offspring per subproblem per iteration)
-        Population offspring(1, dim, n_obj, pop.encoding, pop.n_const);
-        offspring.lower_bounds = pop.lower_bounds;
-        offspring.upper_bounds = pop.upper_bounds;
+        // We need at least 2 slots for arity-2 crossover operators (SBX writes 2 children)
+        // And up to what DE crossover needs. Use a scratch population with enough room.
+        Population scratch(std::max(4, CX::arity() + 1), dim, n_obj, pop.encoding, pop.n_const);
+        scratch.lower_bounds = pop.lower_bounds;
+        scratch.upper_bounds = pop.upper_bounds;
 
         // Main loop
         while (self.evals_ < self.max_evals) {
@@ -145,32 +148,59 @@ struct MOEAD {
                 // Parent selection
                 auto parents = self.parent_selection(sub_problem_id, neighbor_type, n, T);
 
-                // Create offspring via crossover + mutation
-                // Copy first parent to offspring slot 0 as base
-                for (int j = 0; j < dim; ++j) {
-                    offspring.gene(0, j) = pop.gene(parents[0], j);
+                // Copy parents to scratch population positions
+                for (size_t p = 0; p < parents.size(); ++p) {
+                    for (int j = 0; j < dim; ++j) {
+                        scratch.gene(static_cast<int>(p), j) = pop.gene(parents[p], j);
+                    }
+                    std::copy_n(pop.objectives_ptr(parents[p]), n_obj,
+                                scratch.objectives_ptr(static_cast<int>(p)));
+                    scratch.set_evaluated(static_cast<int>(p), true);
                 }
 
-                // Apply crossover: use two parents from selection
-                self.crossover.apply(pop, parents[0], parents[1], 0);
-
-                // Apply mutation on offspring (copy back from pop position 0)
-                for (int j = 0; j < dim; ++j) {
-                    offspring.gene(0, j) = pop.gene(0, j);
+                // Apply crossover on scratch (writes child at child_start)
+                // For SBX: arity()=2, writes to child_start and child_start+1
+                // We only need child_start=0 (single offspring for MOEA/D)
+                if constexpr (CX::arity() == 2) {
+                    // Two-parent crossover: apply to first two parents in scratch
+                    self.crossover.apply(scratch, 0, 1, 0);
+                } else if constexpr (CX::arity() == 4) {
+                    // DE-style: needs 4 parents (target + 3 for difference vectors)
+                    // But we may only have 2-3 parents selected.
+                    // For MOEA/D with DE, typically use: target + 2 random from neighborhood
+                    // Simplified: use parents[0]=target, parents[1]=r1, parents[2]=r2
+                    // Need a 4th parent, duplicate one
+                    if (parents.size() >= 3) {
+                        // Copy parent 3 to scratch position 3 if needed
+                        if (parents.size() == 3) {
+                            for (int j = 0; j < dim; ++j) {
+                                scratch.gene(3, j) = scratch.gene(2, j);
+                            }
+                        }
+                        const int parent_indices[4] = {0, 1, 2, 3};
+                        self.crossover.apply(scratch, parent_indices, 4, 0, 0);
+                    } else {
+                        // Not enough parents for DE — copy parent 0 as-is
+                        // (child already copied at position 0)
+                    }
                 }
-                self.mutation.apply(offspring, 0);
+
+                // Apply mutation on scratch position 0 (the primary child)
+                self.mutation.apply(scratch, 0);
 
                 // Evaluate offspring
-                problem(offspring, 0);
-                offspring.set_evaluated(0, true);
+                if (!scratch.evaluated(0)) {
+                    problem(scratch, 0);
+                    scratch.set_evaluated(0, true);
+                }
                 self.evals_++;
 
                 // Update ideal and nadir points
-                self.update_ideal_point(offspring, 0);
-                self.update_nadir_point(offspring, 0);
+                self.update_ideal_point(scratch, 0);
+                self.update_nadir_point(scratch, 0);
 
                 // Update neighborhood
-                self.update_neighborhood(pop, offspring, sub_problem_id, neighbor_type, n, T);
+                self.update_neighborhood(pop, scratch, sub_problem_id, neighbor_type, n, T);
             }
         }
     }
@@ -194,6 +224,7 @@ private:
         } else if (n_obj == 3) {
             // Simplex lattice with H divisions where C(H+2,2) ≈ n
             int H = static_cast<int>(std::sqrt(2.0 * n)) - 1;
+            if (H < 1) H = 1;
             int count = 0;
             for (int i = 0; i <= H && count < n; ++i) {
                 for (int j = 0; j <= H - i && count < n; ++j) {
@@ -439,19 +470,6 @@ private:
                 break;
             }
         }
-    }
-
-    // ============================================================
-    // Result extraction
-    // ============================================================
-
-public:
-    /// Get the current population (after run completes).
-    /// This is a convenience method — the population is modified in-place by run().
-    std::vector<int> get_subproblem_indices(this auto& self, int n) {
-        std::vector<int> indices(n);
-        std::iota(indices.begin(), indices.end(), 0);
-        return indices;
     }
 };
 
