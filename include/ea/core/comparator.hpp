@@ -40,10 +40,13 @@ inline Dominance compare_dominance(const Population& pop, int a, int b) {
 }
 
 /// Compute crowding distances for a set of individuals (for NSGA-II).
-/// Modifies the crowding_distance field stored externally.
+/// Matches jMetal's CrowdingDistanceDensityEstimator exactly:
+/// - Normalized by (max_obj - min_obj) per objective
+/// - Boundary solutions get infinite distance
+/// - Distances are assigned to the correct individuals (not sorted positions)
 /// @param pop Population
 /// @param indices Indices of individuals in the front
-/// @param crowding_dist Output crowding distances (same size as indices)
+/// @param crowding_dist Output crowding distances indexed by individual position in `indices`
 inline void compute_crowding_distance(const Population& pop,
                                        const std::vector<int>& indices,
                                        std::vector<double>& crowding_dist) {
@@ -51,34 +54,52 @@ inline void compute_crowding_distance(const Population& pop,
     crowding_dist.assign(n, 0.0);
 
     if (n <= 2) {
-        // Boundary solutions get infinite distance
-        for (int i = 0; i < n; ++i) {
+        for (int i = 0; i < n; ++i)
             crowding_dist[i] = std::numeric_limits<double>::infinity();
-        }
         return;
     }
 
     for (int o = 0; o < pop.n_obj; ++o) {
-        // Sort by objective o
+        // Sort indices by objective o
         std::vector<int> sorted(indices);
         std::sort(sorted.begin(), sorted.end(),
             [&pop, o](int a, int b) {
                 return pop.objective(a, o) < pop.objective(b, o);
             });
 
-        // Boundary: infinite distance
-        crowding_dist[0] = std::numeric_limits<double>::infinity();
-
         double f_min = pop.objective(sorted[0], o);
         double f_max = pop.objective(sorted[n - 1], o);
+
+        if (f_min == f_max) continue;
+
         double range = f_max - f_min;
 
-        if (range < 1e-12) continue; // Avoid division by zero
+        // Boundary solutions: find their position in `indices` and set to infinity
+        // sorted[0] is the individual with min objective, sorted[n-1] with max
+        int idx_min = sorted[0];
+        int idx_max = sorted[n - 1];
 
+        // Map individual index back to position in `indices` array
+        for (int pos = 0; pos < n; ++pos) {
+            if (indices[pos] == idx_min || indices[pos] == idx_max) {
+                crowding_dist[pos] = std::numeric_limits<double>::infinity();
+            }
+        }
+
+        // Intermediate solutions: add normalized distance
         for (int i = 1; i < n - 1; ++i) {
             double f_prev = pop.objective(sorted[i - 1], o);
             double f_next = pop.objective(sorted[i + 1], o);
-            crowding_dist[i] += (f_next - f_prev) / range;
+            double distance = (f_next - f_prev) / range;
+
+            // Find position of sorted[i] in `indices`
+            int individual = sorted[i];
+            for (int pos = 0; pos < n; ++pos) {
+                if (indices[pos] == individual) {
+                    crowding_dist[pos] += distance;
+                    break;
+                }
+            }
         }
     }
 }
