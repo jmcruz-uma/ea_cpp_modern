@@ -14,9 +14,17 @@
 // Operators — Crossover
 #include <ea/operator/crossover/sbx.hpp>
 #include <ea/operator/crossover/blx_alpha.hpp>
+#include <ea/operator/crossover/blx_alpha_beta.hpp>
+#include <ea/operator/crossover/arithmetic.hpp>
+#include <ea/operator/crossover/whole_arithmetic.hpp>
+#include <ea/operator/crossover/laplace.hpp>
 #include <ea/operator/crossover/de.hpp>
+#include <ea/operator/crossover/parent_centric.hpp>
 #include <ea/operator/crossover/pmx.hpp>
 #include <ea/operator/crossover/cycle.hpp>
+#include <ea/operator/crossover/edge_recombination.hpp>
+#include <ea/operator/crossover/oxd.hpp>
+#include <ea/operator/crossover/position_based.hpp>
 #include <ea/operator/crossover/uniform.hpp>
 
 // Operators — Mutation
@@ -24,8 +32,13 @@
 #include <ea/operator/mutation/bit_flip.hpp>
 #include <ea/operator/mutation/swap.hpp>
 #include <ea/operator/mutation/inversion.hpp>
+#include <ea/operator/mutation/insert.hpp>
+#include <ea/operator/mutation/scramble.hpp>
 #include <ea/operator/mutation/uniform.hpp>
 #include <ea/operator/mutation/non_uniform.hpp>
+#include <ea/operator/mutation/power_law.hpp>
+#include <ea/operator/mutation/levy_flight.hpp>
+#include <ea/operator/mutation/simple_random.hpp>
 
 // Operators — Selection
 #include <ea/operator/selection/binary_tournament.hpp>
@@ -34,7 +47,7 @@
 
 // Operators — Replacement
 #include <ea/operator/replacement/mu_plus_lambda.hpp>
-#include <ea/operator/replacement/nsga2_replacement.hpp>
+#include <ea/operator/replacement/mu_comma_lambda.hpp>
 
 // Problems
 #include <ea/problem/zdt.hpp>
@@ -42,7 +55,3 @@
 
 // Algorithms
 #include <ea/algorithm/nsga2.hpp>
-
-// Indicators
-// TODO: #include <ea/indicator/hypervolume.hpp>
-// TODO: #include <ea/indicator/igd.hpp>

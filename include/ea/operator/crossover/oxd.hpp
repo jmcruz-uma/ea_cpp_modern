@@ -51,8 +51,8 @@ struct OXDCrossover {
         }
 
         // Repair offspring
-        repair_child(pop, parent_a, parent_b, child_start, cp1, cp2);
-        repair_child(pop, parent_b, parent_a, child_start + 1, cp1, cp2);
+        self.repair_child(pop, parent_a, parent_b, child_start, cp1, cp2);
+        self.repair_child(pop, parent_b, parent_a, child_start + 1, cp1, cp2);
 
         pop.set_evaluated(child_start, false);
         pop.set_evaluated(child_start + 1, false);
@@ -60,7 +60,7 @@ struct OXDCrossover {
 
 private:
     /// Repair a child to ensure it contains a valid permutation.
-    void repair_child(Population& pop, int parent, int other_parent,
+    void repair_child(this OXDCrossover&, Population& pop, int parent, int other_parent,
                       int child_idx, int cp1, int cp2) {
         int dim = pop.dim;
 

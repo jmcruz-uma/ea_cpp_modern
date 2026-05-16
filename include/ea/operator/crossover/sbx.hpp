@@ -22,7 +22,13 @@ struct SBXCrossover {
     static constexpr int arity() { return 2; }
     static constexpr Encoding encoding() { return Encoding::Real; }
 
-    /// Apply SBX crossover. Produces 2 children starting at child_start.
+    /// Apply SBX crossover on the given population.
+    /// Parents at indices parent_a and parent_b.
+    /// Children written to indices child_start and child_start+1.
+    /// 
+    /// Note: child indices can be the same as parent indices — the caller
+    /// must ensure parents are copied to child positions before calling this
+    /// if crossover should not modify parents in-place.
     void apply(this SBXCrossover& self, Population& pop,
                int parent_a, int parent_b, int child_start) {
         auto& rng = Random::instance();
@@ -31,7 +37,14 @@ struct SBXCrossover {
             double p1 = pop.gene(parent_a, j);
             double p2 = pop.gene(parent_b, j);
 
-            if (std::abs(p1 - p2) < 1e-14 || !rng.coin_flip(self.crossover_probability)) {
+            if (std::abs(p1 - p2) < 1e-14) {
+                // Parents are identical at this gene — copy directly
+                pop.gene(child_start, j) = p1;
+                pop.gene(child_start + 1, j) = p2;
+                continue;
+            }
+
+            if (!rng.coin_flip(self.crossover_probability)) {
                 // No crossover — copy parents to children
                 pop.gene(child_start, j) = p1;
                 pop.gene(child_start + 1, j) = p2;

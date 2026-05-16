@@ -41,9 +41,9 @@ struct PositionBasedCrossover {
         }
 
         // Build child 1: selected positions from parent_a, rest from parent_b
-        build_child(pop, parent_a, parent_b, child_start, rng);
+        self.build_child(pop, parent_a, parent_b, child_start, rng);
         // Build child 2: selected positions from parent_b, rest from parent_a
-        build_child(pop, parent_b, parent_a, child_start + 1, rng);
+        self.build_child(pop, parent_b, parent_a, child_start + 1, rng);
 
         pop.set_evaluated(child_start, false);
         pop.set_evaluated(child_start + 1, false);
@@ -51,7 +51,7 @@ struct PositionBasedCrossover {
 
 private:
     /// Build a child using position-based crossover from two parents.
-    void build_child(Population& pop, int parent_from, int parent_to,
+    void build_child(this PositionBasedCrossover&, Population& pop, int parent_from, int parent_to,
                      int child_idx, Random& rng) {
         int dim = pop.dim;
 
