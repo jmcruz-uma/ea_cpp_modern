@@ -53,5 +53,9 @@
 #include <ea/problem/zdt.hpp>
 #include <ea/problem/dtlz.hpp>
 
+// Indicators
+#include <ea/indicator/hypervolume.hpp>
+#include <ea/indicator/igd.hpp>
+
 // Algorithms
 #include <ea/algorithm/nsga2.hpp>
