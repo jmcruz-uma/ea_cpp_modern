@@ -59,3 +59,6 @@
 
 // Algorithms
 #include <ea/algorithm/nsga2.hpp>
+#include <ea/algorithm/spea2.hpp>
+#include <ea/algorithm/smsemoa.hpp>
+#include <ea/algorithm/gde3.hpp>
