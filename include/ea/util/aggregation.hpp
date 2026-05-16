@@ -9,6 +9,7 @@
 /// - org.uma.jmetal.util.aggregationfunction.impl.Tschebyscheff
 /// - org.uma.jmetal.util.aggregationfunction.impl.PenaltyBoundaryIntersection
 
+#include <cstdint>
 #include <cmath>
 #include <algorithm>
 #include <string_view>
