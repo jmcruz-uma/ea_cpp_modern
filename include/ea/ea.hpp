@@ -59,10 +59,16 @@
 
 // Algorithms
 #include <ea/algorithm/nsga2.hpp>
+#include <ea/algorithm/nsga3.hpp>
 #include <ea/algorithm/moead.hpp>
 #include <ea/algorithm/spea2.hpp>
 #include <ea/algorithm/smsemoa.hpp>
 #include <ea/algorithm/gde3.hpp>
+#include <ea/algorithm/smpso.hpp>
+#include <ea/algorithm/agemoea.hpp>
+#include <ea/algorithm/paes.hpp>
+#include <ea/algorithm/mocell.hpp>
 
-// Aggregation utilities
+// Util
 #include <ea/util/aggregation.hpp>
+#include <ea/util/adaptive_grid.hpp>
