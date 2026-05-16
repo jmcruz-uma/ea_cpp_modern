@@ -70,7 +70,8 @@ TEST(NewAlgorithms, SMPSORunsOnZDT1) {
     smpso.max_evals = 500;
     smpso.archive_size = 30;
     
-    smpso.run(pop, zdt1);
+    auto problem = [&zdt1](Population& p, int idx) { zdt1.evaluate(p, idx); };
+    smpso.run(pop, problem);
     
     // Archive or population should have evaluated individuals
     bool any_evaluated = false;
@@ -101,7 +102,8 @@ TEST(NewAlgorithms, AGEMOEARunsOnZDT1) {
     agemoea.crossover.distribution_index = 20.0;
     agemoea.mutation.distribution_index = 20.0;
     
-    agemoea.run(pop, zdt1);
+    auto problem = [&zdt1](Population& p, int idx) { zdt1.evaluate(p, idx); };
+    agemoea.run(pop, problem);
     
     for (int i = 0; i < pop.pop_size; ++i) {
         EXPECT_TRUE(pop.evaluated(i));
@@ -124,7 +126,8 @@ TEST(NewAlgorithms, PAESRunsOnZDT1) {
     paes.archive_size = 30;
     paes.mutation.distribution_index = 20.0;
     
-    paes.run(pop, zdt1);
+    auto problem = [&zdt1](Population& p, int idx) { zdt1.evaluate(p, idx); };
+    paes.run(pop, problem);
     
     // Result should be in archive (copied to pop)
     EXPECT_GT(pop.pop_size, 0);
@@ -153,7 +156,8 @@ TEST(NewAlgorithms, MOCellRunsOnZDT1) {
     mocell.crossover.distribution_index = 20.0;
     mocell.mutation.distribution_index = 20.0;
     
-    mocell.run(pop, zdt1);
+    auto problem = [&zdt1](Population& p, int idx) { zdt1.evaluate(p, idx); };
+    mocell.run(pop, problem);
     
     EXPECT_GT(pop.pop_size, 0);
     for (int i = 0; i < pop.pop_size; ++i) {

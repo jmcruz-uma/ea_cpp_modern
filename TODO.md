@@ -7,123 +7,72 @@
 - [x] Concepts (concepts.hpp)
 - [x] Comparator (comparator.hpp) — dominance, crowding distance, fast NDS
 - [x] Random (random.hpp) — thread-safe, batch generation
-- [x] ARCHITECTURE.md
 
 ## ✅ Phase 1: Core Operators
-### Crossover (continuous) — 13 total
-- [x] SBXCrossover
-- [x] BLXAlphaCrossover
-- [x] BLXAlphaBetaCrossover
-- [x] ArithmeticCrossover
-- [x] WholeArithmeticCrossover
-- [x] LaplaceCrossover
-- [x] DifferentialEvolutionCrossover (with DE variants: RAND/BEST/RAND-TO-BEST + BIN/EXP)
-- [x] ParentCentricCrossover (UNDX)
+### Crossover — 21 total
+- [x] SBX, BLX-α, BLX-αβ, Arithmetic, WholeArithmetic
+- [x] Laplace, DE (6 variants), ParentCentric/UNDX
+- [x] PMX, Cycle, ERX, OXD, PositionBased, Uniform
+- [x] FuzzyRecombination, IntegerSBX, HUX, Composite
+- [x] SinglePoint, TwoPoint, NPoint
 
-### Crossover (permutation) — 6 total
-- [x] PMXCrossover
-- [x] CycleCrossover
-- [x] EdgeRecombinationCrossover
-- [x] OXDCrossover
-- [x] PositionBasedCrossover
-- [x] UniformCrossover
+### Mutation — 17 total
+- [x] Polynomial, BitFlip, Swap, Inversion, Insert, Scramble
+- [x] Uniform, NonUniform, PowerLaw, LevyFlight, SimpleRandom
+- [x] CDG, Displacement, SimpleInversion, GroupedPolynomial
+- [x] LinkedPolynomial, IntegerPolynomial
 
-### Mutation — 11 total
-- [x] PolynomialMutation
-- [x] BitFlipMutation
-- [x] SwapMutation
-- [x] InversionMutation
-- [x] InsertMutation
-- [x] ScrambleMutation
-- [x] UniformMutation
-- [x] NonUniformMutation
-- [x] PowerLawMutation
-- [x] LevyFlightMutation
-- [x] SimpleRandomMutation
+### Selection — 8 total
+- [x] BinaryTournament, NaryTournament, Random
+- [x] RankingAndCrowding, BestSolution, NaryRandom
+- [x] DifferentialEvolution, SpatialSpreadDeviation
 
-### Selection — 6 total
-- [x] BinaryTournamentSelection
-- [x] NaryTournamentSelection
-- [x] RandomSelection
-- [x] RankingAndCrowdingSelection
-- [x] BestSolutionSelection
-- [x] NaryRandomSelection
+### Replacement — 4 total
+- [x] MuPlusLambda, MuCommaLambda, NSGAII, NSGAIII
 
-### Replacement — 3 total
-- [x] MuPlusLambdaReplacement
-- [x] MuCommaLambdaReplacement
-- [x] NSGAIIReplacement (environmental selection)
+## ✅ Phase 2: Algorithms — 9 total
+- [x] NSGA-II — tested with ZDT1 (IGD=0.004)
+- [x] NSGA-III — Das-Dennis reference points, niching
+- [x] MOEA/D — Tchebycheff, WeightedSum, PBI
+- [x] SPEA2 — strength fitness, archive truncation
+- [x] SMS-EMOA — hypervolume selection
+- [x] GDE3 — DE with NSGA-II replacement
+- [x] SMPSO — PSO with velocity constriction
+- [x] AGE-MOEA — adaptive geometry estimation
+- [x] PAES — (1+1)-ES with adaptive grid
+- [x] MOCell — cellular GA with archive feedback
 
-## ✅ Phase 2: Algorithms
-- [x] NSGA-II — functional, tested with ZDT1 (IGD=0.034)
-
-## ✅ Phase 3: Problems
+## ✅ Phase 3: Problems — 22 benchmarks
 - [x] ZDT1-6 (complete suite)
 - [x] DTLZ1-7 (complete suite)
+- [x] WFG1-9 (complete suite with all transformations)
 
 ## ✅ Phase 4: Quality Indicators
-- [x] Hypervolume (2D efficient, 3D+ naive)
+- [x] Hypervolume (WFG — 2D efficient, 3D+ recursive)
 - [x] IGD (Inverted Generational Distance)
 - [x] GD (Generational Distance)
 - [x] Spread (Δ)
 
-## 🔲 Phase 5: More Algorithms
-- [ ] NSGA-III
-- [ ] MOEA/D
-- [ ] SPEA2
-- [ ] SMPSO
-- [ ] AGE-MOEA
-- [ ] GDE3
-- [ ] SMS-EMOA
-- [ ] RVEA
-- [ ] PAES
-- [ ] MOCell
-- [ ] RandomSearch
+## ✅ Phase 5: Utilities
+- [x] ReferencePoint (Das-Dennis generation, two-layer)
+- [x] Aggregation (Tchebycheff, WeightedSum, PBI)
+- [x] AdaptiveGrid (for PAES)
 
-## 🔲 Phase 6: Remaining Operators from jMetal
-### Crossover
-- [ ] FuzzyRecombinationCrossover
-- [ ] IntegerSBXCrossover
-- [ ] HUXCrossover (binary)
-- [ ] CompositeCrossover
-- [ ] NullCrossover
-
-### Mutation
-- [ ] CDGMutation
-- [ ] GroupedPolynomialMutation
-- [ ] GroupedAndLinkedPolynomialMutation
-- [ ] LinkedPolynomialMutation
-- [ ] IntegerPolynomialMutation
-- [ ] IntegerSimpleRandomMutation
-- [ ] CharSequenceRandomMutation
-- [ ] CompositeMutation
-- [ ] NullMutation
+## 🔲 Phase 6: Remaining from jMetal
+### Algorithms
+- [ ] RandomSearch (trivial — just random generation + evaluation)
 
 ### Selection
-- [ ] DifferentialEvolutionSelection
-- [ ] SpatialSpreadDeviationSelection
-- [ ] RankingAndPreferenceSelection
-- [ ] RankingAndDirScoreSelection
-- [ ] BoltzmannSelection
-- [ ] TruncationSelection
-- [ ] StochasticUniversalSampling
-- [ ] NeighborhoodSelection
-- [ ] PopulationAndNeighborhoodSelection
+- [ ] BoltzmannSelection, TruncationSelection, StochasticUniversalSampling
+- [ ] RankingAndPreferenceSelection, RankingAndDirScoreSelection
 
 ### Replacement
-- [ ] NSGAIIIReplacement (reference point based)
-- [ ] AGEMOEAReplacement
-- [ ] SMSEMOAReplacement
-- [ ] RVEAReplacement
-- [ ] PairwiseReplacement
-- [ ] RandomReplacement
-- [ ] TournamentReplacement
-- [ ] SingleSolutionReplacement
+- [ ] RVEA, AGEMOEA, SMSEMOA specific replacements
+- [ ] PairwiseReplacement, RandomReplacement, TournamentReplacement
 
 ## 🔲 Phase 7: Infrastructure
 - [ ] JSON configuration → std::variant construction
 - [ ] Island model (from original ea-cpp)
 - [ ] Benchmarks vs jMetal (speed + energy)
-- [ ] WFG benchmark problems
 - [ ] More quality indicators (R2, Epsilon, AverageHausdorff)
 - [ ] Documentation
