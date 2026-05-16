@@ -1,78 +1,71 @@
-# TODO.md — ea-cpp Implementation Roadmap
+# ea-cpp TODO
 
-## ✅ Phase 0: Foundation
-- [x] CMakeLists.txt with C++23, GTest, benchmarks
-- [x] Population SoA (population.hpp)
-- [x] Encoding enum (encoding.hpp)
-- [x] Concepts (concepts.hpp)
-- [x] Comparator (comparator.hpp) — dominance, crowding distance, fast NDS
-- [x] Random (random.hpp) — thread-safe, batch generation
+## v0.1.0 ✅ (2026-05-16) — First stable release
 
-## ✅ Phase 1: Core Operators
-### Crossover — 21 total
-- [x] SBX, BLX-α, BLX-αβ, Arithmetic, WholeArithmetic
-- [x] Laplace, DE (6 variants), ParentCentric/UNDX
-- [x] PMX, Cycle, ERX, OXD, PositionBased, Uniform
-- [x] FuzzyRecombination, IntegerSBX, HUX, Composite
-- [x] SinglePoint, TwoPoint, NPoint
+- [x] Core: Population SoA, Encoding, Concepts, Comparators, Random
+- [x] Crossover: 21 operators (SBX, BLX-αβ, DE variants, PMX, ERX, Fuzzy, HUX, Composite, etc.)
+- [x] Mutation: 17 operators (Polynomial, BitFlip, Swap, Inversion, CDG, GroupedPolynomial, etc.)
+- [x] Selection: 8 operators (BinaryTournament, RankingAndCrowding, DifferentialEvolution, etc.)
+- [x] Replacement: 4 operators (MuPlusLambda, MuCommaLambda, NSGAII, NSGAIII)
+- [x] Algorithms: NSGA-II, NSGA-III, MOEA/D, SPEA2, SMS-EMOA, GDE3, SMPSO, AGE-MOEA, PAES, MOCell
+- [x] Problems: ZDT1-6, DTLZ1-7, WFG1-9
+- [x] Indicators: Hypervolume (WFG), IGD, GD, Spread
+- [x] Crowding distance bug fixed (matches jMetal exactly)
+- [x] SBX crossover matches jMetal exactly
+- [x] Benchmark: IGD parity with jMetal, 12x faster
 
-### Mutation — 17 total
-- [x] Polynomial, BitFlip, Swap, Inversion, Insert, Scramble
-- [x] Uniform, NonUniform, PowerLaw, LevyFlight, SimpleRandom
-- [x] CDG, Displacement, SimpleInversion, GroupedPolynomial
-- [x] LinkedPolynomial, IntegerPolynomial
+---
 
-### Selection — 8 total
-- [x] BinaryTournament, NaryTournament, Random
-- [x] RankingAndCrowding, BestSolution, NaryRandom
-- [x] DifferentialEvolution, SpatialSpreadDeviation
+## v0.2.0 — Robustez y corrección
 
-### Replacement — 4 total
-- [x] MuPlusLambda, MuCommaLambda, NSGAII, NSGAIII
+- [ ] PolynomialMutation: aceptar probabilidad explícita (no solo auto 1/dim)
+- [ ] NSGA-II: validar que pop_size sea par, error claro si no
+- [ ] Crowding distance: optimizar a O(n log n) con hashmap para poblaciones grandes (>10K)
+- [ ] Verificar GD y Spread contra implementación jMetal
+- [ ] Tests unitarios para cada operador (crossover, mutation, selection)
+- [ ] Test de regresión: IGD < 0.01 en ZDT1 con config estándar
 
-## ✅ Phase 2: Algorithms — 9 total
-- [x] NSGA-II — tested with ZDT1 (IGD=0.004)
-- [x] NSGA-III — Das-Dennis reference points, niching
-- [x] MOEA/D — Tchebycheff, WeightedSum, PBI
-- [x] SPEA2 — strength fitness, archive truncation
-- [x] SMS-EMOA — hypervolume selection
-- [x] GDE3 — DE with NSGA-II replacement
-- [x] SMPSO — PSO with velocity constriction
-- [x] AGE-MOEA — adaptive geometry estimation
-- [x] PAES — (1+1)-ES with adaptive grid
-- [x] MOCell — cellular GA with archive feedback
+## v0.3.0 — Algoritmos que faltan
 
-## ✅ Phase 3: Problems — 22 benchmarks
-- [x] ZDT1-6 (complete suite)
-- [x] DTLZ1-7 (complete suite)
-- [x] WFG1-9 (complete suite with all transformations)
+- [ ] RandomSearch (baseline de comparación)
+- [ ] RVEA (usa ReferencePoints existentes)
+- [ ] IBEA (usa Hypervolume existente)
+- [ ] MOEA/D-DE (variante con DifferentialEvolution)
+- [ ] SMS-EMOA: verificar contra jMetal
+- [ ] BinaryTournament2 (modificado, permite repetidos)
+- [ ] RandomSelection (para RandomSearch)
+- [ ] NeighborhoodSelection (para MOEA/D)
+- [ ] NaryTournament (generalización de binary)
 
-## ✅ Phase 4: Quality Indicators
-- [x] Hypervolume (WFG — 2D efficient, 3D+ recursive)
-- [x] IGD (Inverted Generational Distance)
-- [x] GD (Generational Distance)
-- [x] Spread (Δ)
+## v0.4.0 — Indicadores de calidad
 
-## ✅ Phase 5: Utilities
-- [x] ReferencePoint (Das-Dennis generation, two-layer)
-- [x] Aggregation (Tchebycheff, WeightedSum, PBI)
-- [x] AdaptiveGrid (for PAES)
+- [ ] Epsilon indicator (additive, Zitzler 2003)
+- [ ] R2 indicator (IGD-based, usa Tchebycheff existente)
+- [ ] Average Hausdorff distance (max(GD, IGD))
+- [ ] GD y Spread: verificación contra jMetal
 
-## 🔲 Phase 6: Remaining from jMetal
-### Algorithms
-- [ ] RandomSearch (trivial — just random generation + evaluation)
+## v0.5.0 — Benchmarking automatizado
 
-### Selection
-- [ ] BoltzmannSelection, TruncationSelection, StochasticUniversalSampling
-- [ ] RankingAndPreferenceSelection, RankingAndDirScoreSelection
+- [ ] Script: todos los algoritmos × todos los problemas × 30 runs → CSV
+- [ ] Métricas por run: IGD, GD, Spread, Hypervolume, tiempo
+- [ ] Comparación automática vs jMetal (misma config, mismas evaluaciones)
+- [ ] Tabla LaTeX/markdown generada lista para paper
+- [ ] CI: ejecutar benchmarks en push a main (GitHub Actions)
 
-### Replacement
-- [ ] RVEA, AGEMOEA, SMSEMOA specific replacements
-- [ ] PairwiseReplacement, RandomReplacement, TournamentReplacement
+## v0.6.0 — Runtime configuration
 
-## 🔲 Phase 7: Infrastructure
-- [ ] JSON configuration → std::variant construction
-- [ ] Island model (from original ea-cpp)
-- [ ] Benchmarks vs jMetal (speed + energy)
-- [ ] More quality indicators (R2, Epsilon, AverageHausdorff)
-- [ ] Documentation
+- [ ] Config struct con std::variant para crossover/mutation/selection
+- [ ] JSON config reader (nlohmann/json o similar)
+- [ ] Factory: JSON → algorithm configurado sin recompilar
+- [ ] CLI para sweeps de parámetros
+- [ ] Permite benchmarking masivo sin recompilar
+
+## v1.0.0 — Paper-ready
+
+- [ ] Island model (migración asíncrona, topología ring/torus)
+- [ ] Consumo eléctrico: medir joules con RAPL/perf
+- [ ] Escalabilidad: benchmarks 1K, 5K, 10K individuos
+- [ ] Problemas con restricciones: DTLZ constrained, SRN, TNK
+- [ ] Multi-objective >2 objetivos: DTLZ con 3 y 5 objetivos
+- [ ] Documentación API completa (Doxygen)
+- [ ] README con badges, instalación, ejemplos
