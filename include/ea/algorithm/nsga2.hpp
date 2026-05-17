@@ -11,6 +11,7 @@
 #include <ea/core/comparator.hpp>
 #include <ea/util/random.hpp>
 #include <ea/operator/replacement/nsga2_replacement.hpp>
+#include <iostream>
 #include <string_view>
 #include <vector>
 #include <algorithm>
@@ -42,6 +43,20 @@ struct NSGAII {
     /// @param problem Callable: void(Population&, int) — evaluates individual's objectives
     template<typename Problem>
     void run(this auto& self, Population& pop, Problem&& problem) {
+        // === Validate parameters ===
+        if (self.pop_size % 2 != 0) {
+            std::cerr << "[ea::NSGAII] Warning: pop_size must be even (got "
+                      << self.pop_size << "). Adjusting to "
+                      << (self.pop_size + 1) << ".\n";
+            self.pop_size += 1;
+        }
+        if (self.max_evals < self.pop_size) {
+            std::cerr << "[ea::NSGAII] Warning: max_evals (" << self.max_evals
+                      << ") must be >= pop_size (" << self.pop_size
+                      << "). Adjusting max_evals to " << self.pop_size << ".\n";
+            self.max_evals = self.pop_size;
+        }
+
         const int n = self.pop_size;
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;

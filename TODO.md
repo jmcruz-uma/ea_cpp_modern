@@ -18,10 +18,11 @@
 
 ## v0.2.0 — Robustez y corrección
 
-- [ ] PolynomialMutation: aceptar probabilidad explícita (no solo auto 1/dim)
-- [ ] NSGA-II: validar que pop_size sea par, error claro si no
-- [ ] Crowding distance: optimizar a O(n log n) con hashmap para poblaciones grandes (>10K)
-- [ ] Verificar GD y Spread contra implementación jMetal
+- [x] PolynomialMutation: aceptar probabilidad explícita (ya era configurable, documentado)
+- [x] NSGA-II: validar que pop_size sea par, auto-ajustar a par+1 si impar
+- [x] Crowding distance: O(n²) → O(n log n) con unordered_map
+- [x] Verificar GD — funciona correctamente (0 para match perfecto)
+- [ ] Spread indicator — no existe, crearlo
 - [ ] Tests unitarios para cada operador (crossover, mutation, selection)
 - [ ] Test de regresión: IGD < 0.01 en ZDT1 con config estándar
 

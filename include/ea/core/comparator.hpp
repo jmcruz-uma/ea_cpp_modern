@@ -6,6 +6,7 @@
 #include <cmath>
 #include <algorithm>
 #include <limits>
+#include <unordered_map>
 
 namespace ea {
 
@@ -44,6 +45,7 @@ inline Dominance compare_dominance(const Population& pop, int a, int b) {
 /// - Normalized by (max_obj - min_obj) per objective
 /// - Boundary solutions get infinite distance
 /// - Distances are assigned to the correct individuals (not sorted positions)
+/// - O(n log n) per objective thanks to unordered_map for index lookups
 /// @param pop Population
 /// @param indices Indices of individuals in the front
 /// @param crowding_dist Output crowding distances indexed by individual position in `indices`
@@ -57,6 +59,13 @@ inline void compute_crowding_distance(const Population& pop,
         for (int i = 0; i < n; ++i)
             crowding_dist[i] = std::numeric_limits<double>::infinity();
         return;
+    }
+
+    // Build index map: individual -> position in indices array (O(n))
+    std::unordered_map<int, int> pos_map;
+    pos_map.reserve(n * 2);
+    for (int pos = 0; pos < n; ++pos) {
+        pos_map[indices[pos]] = pos;
     }
 
     for (int o = 0; o < pop.n_obj; ++o) {
@@ -74,31 +83,22 @@ inline void compute_crowding_distance(const Population& pop,
 
         double range = f_max - f_min;
 
-        // Boundary solutions: find their position in `indices` and set to infinity
-        // sorted[0] is the individual with min objective, sorted[n-1] with max
-        int idx_min = sorted[0];
-        int idx_max = sorted[n - 1];
+        // Boundary: infinite distance (O(1) lookup)
+        auto it_min = pos_map.find(sorted[0]);
+        if (it_min != pos_map.end()) crowding_dist[it_min->second] = std::numeric_limits<double>::infinity();
 
-        // Map individual index back to position in `indices` array
-        for (int pos = 0; pos < n; ++pos) {
-            if (indices[pos] == idx_min || indices[pos] == idx_max) {
-                crowding_dist[pos] = std::numeric_limits<double>::infinity();
-            }
-        }
+        auto it_max = pos_map.find(sorted[n - 1]);
+        if (it_max != pos_map.end()) crowding_dist[it_max->second] = std::numeric_limits<double>::infinity();
 
-        // Intermediate solutions: add normalized distance
+        // Intermediate solutions (O(1) lookup each)
         for (int i = 1; i < n - 1; ++i) {
             double f_prev = pop.objective(sorted[i - 1], o);
             double f_next = pop.objective(sorted[i + 1], o);
             double distance = (f_next - f_prev) / range;
 
-            // Find position of sorted[i] in `indices`
-            int individual = sorted[i];
-            for (int pos = 0; pos < n; ++pos) {
-                if (indices[pos] == individual) {
-                    crowding_dist[pos] += distance;
-                    break;
-                }
+            auto it = pos_map.find(sorted[i]);
+            if (it != pos_map.end()) {
+                crowding_dist[it->second] += distance;
             }
         }
     }
@@ -145,7 +145,7 @@ inline std::vector<std::vector<int>> fast_non_dominated_sort(Population& pop) {
     }
 
     // Remove last empty front
-    if (!fronts.back().empty() == false) {
+    if (fronts.back().empty()) {
         fronts.pop_back();
     }
 
