@@ -16,57 +16,59 @@
 
 ---
 
-## v0.2.0 — Robustez y corrección
+## v0.2.0 ✅ (2026-05-17) — Robustez, tests, correcciones
 
-- [x] PolynomialMutation: aceptar probabilidad explícita (ya era configurable, documentado)
-- [x] NSGA-II: validar que pop_size sea par, auto-ajustar a par+1 si impar
-- [x] Crowding distance: O(n²) → O(n log n) con unordered_map
-- [x] Verificar GD — funciona correctamente (0 para match perfecto)
-- [ ] Spread indicator — no existe, crearlo
-- [ ] Tests unitarios para cada operador (crossover, mutation, selection)
-- [ ] Test de regresión: IGD < 0.01 en ZDT1 con config estándar
+- [x] PolynomialMutation: aceptar probabilidad explícita
+- [x] NSGA-II: validar pop_size par, auto-ajustar si impar
+- [x] Crowding distance: O(n²) → O(n log n)
+- [x] GD verificado
+- [x] Spread indicator implementado
+- [x] Unit tests: SBX, PolynomialMutation, BinaryTournament
+- [x] Regression test ZDT1 + GitHub Actions CI
 
-## v0.3.0 — Algoritmos que faltan
+---
 
-- [ ] RandomSearch (baseline de comparación)
-- [ ] RVEA (usa ReferencePoints existentes)
-- [ ] IBEA (usa Hypervolume existente)
-- [ ] MOEA/D-DE (variante con DifferentialEvolution)
-- [ ] SMS-EMOA: verificar contra jMetal
-- [ ] BinaryTournament2 (modificado, permite repetidos)
-- [ ] RandomSelection (para RandomSearch)
-- [ ] NeighborhoodSelection (para MOEA/D)
-- [ ] NaryTournament (generalización de binary)
+## v0.3.0 ✅ (2026-05-17) — Algoritmos adicionales
 
-## v0.4.0 — Indicadores de calidad
+- [x] RandomSearch (baseline de comparación)
+- [ ] RVEA — sub-agente timeout, pendiente
+- [ ] IBEA — sub-agente timeout, pendiente
+- [ ] MOEA/D-DE — pendiente
+- [ ] SMS-EMOA verificación — pendiente
+- [ ] BinaryTournament2, RandomSelection, NeighborhoodSelection, NaryTournament
 
-- [ ] Epsilon indicator (additive, Zitzler 2003)
-- [ ] R2 indicator (IGD-based, usa Tchebycheff existente)
-- [ ] Average Hausdorff distance (max(GD, IGD))
-- [ ] GD y Spread: verificación contra jMetal
+---
+
+## v0.4.0 ✅ (2026-05-17) — Indicadores de calidad
+
+- [x] Epsilon indicator (additive/multiplicative, Zitzler 2003)
+- [x] R2 indicator (utility-based, Tchebycheff)
+- [x] Average Hausdorff distance (max(GD, IGD))
+- [x] Spread verificado
+
+---
 
 ## v0.5.0 — Benchmarking automatizado
 
 - [ ] Script: todos los algoritmos × todos los problemas × 30 runs → CSV
 - [ ] Métricas por run: IGD, GD, Spread, Hypervolume, tiempo
-- [ ] Comparación automática vs jMetal (misma config, mismas evaluaciones)
-- [ ] Tabla LaTeX/markdown generada lista para paper
-- [ ] CI: ejecutar benchmarks en push a main (GitHub Actions)
+- [ ] Comparación automática vs jMetal
+- [ ] Tabla LaTeX/markdown generada
+- [ ] CI: ejecutar benchmarks en push
 
 ## v0.6.0 — Runtime configuration
 
-- [ ] Config struct con std::variant para crossover/mutation/selection
-- [ ] JSON config reader (nlohmann/json o similar)
-- [ ] Factory: JSON → algorithm configurado sin recompilar
+- [ ] Config struct con std::variant
+- [ ] JSON config reader
+- [ ] Factory: JSON → algorithm
 - [ ] CLI para sweeps de parámetros
-- [ ] Permite benchmarking masivo sin recompilar
 
 ## v1.0.0 — Paper-ready
 
-- [ ] Island model (migración asíncrona, topología ring/torus)
-- [ ] Consumo eléctrico: medir joules con RAPL/perf
-- [ ] Escalabilidad: benchmarks 1K, 5K, 10K individuos
-- [ ] Problemas con restricciones: DTLZ constrained, SRN, TNK
-- [ ] Multi-objective >2 objetivos: DTLZ con 3 y 5 objetivos
-- [ ] Documentación API completa (Doxygen)
-- [ ] README con badges, instalación, ejemplos
+- [ ] Island model
+- [ ] Consumo eléctrico (RAPL/perf)
+- [ ] Escalabilidad: 1K, 5K, 10K individuos
+- [ ] Problemas con restricciones
+- [ ] Multi-objective >2 objetivos
+- [ ] Documentación API (Doxygen)
+- [ ] README completo
