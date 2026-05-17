@@ -121,6 +121,23 @@ NSGA-II on ZDT1 with varying population sizes:
 
 Linear scaling confirmed for both frameworks.
 
+### 3.5 Energy Consumption (Estimated)
+
+Since RAPL (Running Average Power Limit) is not available on cloud VPS instances, we estimate energy consumption using the formula:
+
+```
+Energy = TDP × Utilization × Time
+```
+
+For AMD EPYC Rome (120W TDP, 30% estimated utilization during benchmark):
+
+| Framework | Time | Estimated Energy | Savings |
+|-----------|------|------------------|---------|
+| ea-cpp | 153 ms | 5.5 J | **12×** |
+| jMetal | 1831 ms | 65.9 J | — |
+
+**Note**: These are estimates. For precise measurements, RAPL-capable hardware is required.
+
 ---
 
 ## 4. Implementation Details

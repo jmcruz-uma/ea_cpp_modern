@@ -230,11 +230,34 @@ RandomSearch & Implemented & Baseline \\
 \end{tabular}
 \end{table}
 
-\section{Conclusion}
+\subsection{Energy Consumption (Estimated)}
+
+Since RAPL is not available on cloud VPS instances, we estimate energy consumption using:
+\begin{equation}
+    E = \text{TDP} \times \text{Utilization} \times \text{Time}
+\end{equation}
+
+For AMD EPYC Rome (120W TDP, 30\% estimated utilization):
+
+\begin{table}[h]
+\centering
+\caption{Energy consumption estimation}
+\label{tab:energy}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+\textbf{Framework} \u0026 \textbf{Time} \u0026 \textbf{Energy} \u0026 \textbf{Savings} \\
+\midrule
+ea-cpp \u0026 153 ms \u0026 5.5 J \u0026 \textbf{12$\times$} \\
+jMetal \u0026 1831 ms \u0026 65.9 J \u0026 --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textit{Note:} Estimates only. RAPL-capable hardware required for precise measurements.
 
 We demonstrate that modern C++23 can match the algorithmic quality of established Java frameworks while providing an order of magnitude performance improvement. Our zero-overhead architecture achieves this without sacrificing code clarity or composability.
 
-\textbf{Future work}: GPU acceleration via SYCL, distributed island models, energy consumption benchmarking.
+\textbf{Future work}: GPU acceleration via SYCL, distributed island models, energy consumption benchmarking with RAPL-capable hardware.
 
 \section*{References}
 
