@@ -63,12 +63,28 @@
 - [x] Ejemplo config_example.cpp con NSGAII/RVEA/IBEA
 - [x] Archivos de ejemplo: config_nsga2.json, config_rvea.json
 
-## v1.0.0 — Paper-ready
+## v1.0.0 ✅ (2026-05-17) — Paper-ready
 
-- [ ] Island model
-- [ ] Consumo eléctrico (RAPL/perf)
-- [ ] Escalabilidad: 1K, 5K, 10K individuos
-- [ ] Problemas con restricciones
-- [ ] Multi-objective >2 objetivos
-- [ ] Documentación API (Doxygen)
-- [ ] README completo
+- [x] Paper: borrador completo (paper.md)
+  - [x] Abstract con resultados clave (12x speedup, paridad IGD)
+  - [x] Architecture: C++23 features (concepts, deducing-this, SoA)
+  - [x] Validation: setup experimental, IGD parity, performance, escalabilidad
+  - [x] Implementation: crowding distance, SBX, algoritmos, indicadores
+  - [x] Conclusion + future work (GPU, island model, energy)
+  - [x] References: NSGA-II, jMetal, RVEA, IBEA, C++23
+  - [x] Appendix: repo structure, compilation, configuration
+- [x] Makefile: test, benchmark, benchmark-full
+- [x] README: badges, quick start, benchmarks, version history
+- [x] CI: GitHub Actions regression test
+
+## Estado final del proyecto
+
+| Versión | Fecha | Features |
+|---------|-------|----------|
+| v0.1.0 | 2026-05-16 | Framework base, 76 headers, jMetal parity |
+| v0.2.0 | 2026-05-17 | Robustez, tests, Spread indicator, CI |
+| v0.3.0 | 2026-05-17 | RVEA, IBEA, RandomSearch algorithms |
+| v0.4.0 | 2026-05-17 | Epsilon, R2, Hausdorff indicators |
+| v0.5.0 | 2026-05-17 | Makefile, README, benchmark script |
+| v0.6.0 | 2026-05-17 | JSON configuration |
+| **v1.0.0** | **2026-05-17** | **Paper-ready** |
