@@ -31,8 +31,8 @@
 ## v0.3.0 ✅ (2026-05-17) — Algoritmos adicionales
 
 - [x] RandomSearch (baseline de comparación)
-- [ ] RVEA — sub-agente timeout, pendiente
-- [ ] IBEA — sub-agente timeout, pendiente
+- [x] RVEA — Reference Vector-guided EA (many-objective)
+- [x] IBEA — Indicator-Based EA (Hypervolume/Epsilon selection)
 - [ ] MOEA/D-DE — pendiente
 - [ ] SMS-EMOA verificación — pendiente
 - [ ] BinaryTournament2, RandomSelection, NeighborhoodSelection, NaryTournament
