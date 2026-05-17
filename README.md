@@ -5,6 +5,8 @@ High-performance evolutionary algorithm framework in **C++23** — jMetal operat
 [![C++23](https://img.shields.io/badge/C%2B%2B-23-blue.svg)](https://en.cppreference.com/w/cpp/23)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![IGD](https://img.shields.io/badge/IGD-0.005%20(ZDT1)-brightgreen.svg)](benchmarks)
+[![Paper](https://img.shields.io/badge/paper-PDF-red.svg)](paper.pdf)
+[![arXiv](https://img.shields.io/badge/arXiv-submitted-orange.svg)](https://arxiv.org)
 
 ## Features
 
