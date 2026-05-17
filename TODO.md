@@ -56,12 +56,12 @@
 - [ ] Tabla LaTeX/markdown generada
 - [ ] CI: ejecutar benchmarks en push
 
-## v0.6.0 — Runtime configuration
+## v0.6.0 ✅ (2026-05-17) — Runtime configuration
 
-- [ ] Config struct con std::variant
-- [ ] JSON config reader
-- [ ] Factory: JSON → algorithm
-- [ ] CLI para sweeps de parámetros
+- [x] Config struct con JSON parsing (nlohmann/json)
+- [x] JSON config reader (from_file, from_json)
+- [x] Ejemplo config_example.cpp con NSGAII/RVEA/IBEA
+- [x] Archivos de ejemplo: config_nsga2.json, config_rvea.json
 
 ## v1.0.0 — Paper-ready
 
