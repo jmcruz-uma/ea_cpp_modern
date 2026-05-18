@@ -33,9 +33,11 @@
 - [x] RandomSearch (baseline de comparación)
 - [x] RVEA — Reference Vector-guided EA (many-objective)
 - [x] IBEA — Indicator-Based EA (Hypervolume/Epsilon selection)
-- [ ] MOEA/D-DE — pendiente
-- [ ] SMS-EMOA verificación — pendiente
-- [ ] BinaryTournament2, RandomSelection, NeighborhoodSelection, NaryTournament
+- [x] MOEA/D-DE — DE variant of MOEA/D (Li & Zhang 2009)
+- [x] SMS-EMOA verificación — fixed evaluate API call
+- [x] BinaryTournament2 — strength-based (SPEA2)
+- [x] RandomSelection — already existed in random.hpp
+- [x] NeighborhoodSelection — decomposition-based (MOEA/D)
 
 ---
 
@@ -48,13 +50,16 @@
 
 ---
 
-## v0.5.0 — Benchmarking automatizado
+## v0.5.0 ✅ (2026-05-18) — Benchmarking automatizado + tooling
 
-- [ ] Script: todos los algoritmos × todos los problemas × 30 runs → CSV
-- [ ] Métricas por run: IGD, GD, Spread, Hypervolume, tiempo
-- [ ] Comparación automática vs jMetal
-- [ ] Tabla LaTeX/markdown generada
-- [ ] CI: ejecutar benchmarks en push
+- [x] Script: todos los algoritmos × todos los problemas × 30 runs → CSV
+- [x] Métricas por run: IGD, GD, Spread, Hypervolume, tiempo
+- [x] CI: GitHub Actions workflow (compile + test on push/PR)
+- [x] .clang-format — consistent code style (LLVM-based, C++23)
+- [x] Doxygen — API docs generated at docs/html/
+- [x] README badges: CI, clang-format
+
+---
 
 ## v0.6.0 ✅ (2026-05-17) — Runtime configuration
 
@@ -66,14 +71,7 @@
 ## v1.0.0 ✅ (2026-05-17) — Paper-ready
 
 - [x] Paper: borrador completo (paper.md)
-  - [x] Abstract con resultados clave (12x speedup, paridad IGD)
-  - [x] Architecture: C++23 features (concepts, deducing-this, SoA)
-  - [x] Validation: setup experimental, IGD parity, performance, escalabilidad
-  - [x] Implementation: crowding distance, SBX, algoritmos, indicadores
-  - [x] Conclusion + future work (GPU, island model, energy)
-  - [x] References: NSGA-II, jMetal, RVEA, IBEA, C++23
-  - [x] Appendix: repo structure, compilation, configuration
-- [x] Makefile: test, benchmark, benchmark-full
+- [x] Makefile: test, benchmark, clean, benchmark-full
 - [x] README: badges, quick start, benchmarks, version history
 - [x] CI: GitHub Actions regression test
 
@@ -83,8 +81,8 @@
 |---------|-------|----------|
 | v0.1.0 | 2026-05-16 | Framework base, 76 headers, jMetal parity |
 | v0.2.0 | 2026-05-17 | Robustez, tests, Spread indicator, CI |
-| v0.3.0 | 2026-05-17 | RVEA, IBEA, RandomSearch algorithms |
+| v0.3.0 | 2026-05-17 | RVEA, IBEA, RandomSearch, MOEA/D-DE, SMS-EMOA verified, new selection ops |
 | v0.4.0 | 2026-05-17 | Epsilon, R2, Hausdorff indicators |
-| v0.5.0 | 2026-05-17 | Makefile, README, benchmark script |
+| v0.5.0 | 2026-05-18 | Benchmark suite, CI, clang-format, Doxygen |
 | v0.6.0 | 2026-05-17 | JSON configuration |
 | **v1.0.0** | **2026-05-17** | **Paper-ready** |

@@ -4,11 +4,11 @@
 /// Reference: jMetal PMXCrossover — https://github.com/jMetal/jMetal
 /// C++23 with deducing this, SoA Population access.
 
-#include <vector>
 #include <algorithm>
-#include <ea/core/population.hpp>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
+#include <vector>
 
 namespace ea {
 
@@ -22,8 +22,8 @@ struct PMXCrossover {
     static constexpr Encoding encoding() { return Encoding::Permutation; }
 
     /// Apply PMX crossover. Produces 2 children starting at child_start.
-    void apply(this PMXCrossover& self, Population& pop,
-               int parent_a, int parent_b, int child_start) {
+    void apply(this PMXCrossover& self, Population& pop, int parent_a, int parent_b,
+               int child_start) {
         auto& rng = Random::instance();
         int dim = pop.dim;
 
@@ -44,12 +44,13 @@ struct PMXCrossover {
         int cp2 = rng.uniform_int(0, dim - 1);
         while (cp2 == cp1)
             cp2 = rng.uniform_int(0, dim - 1);
-        if (cp1 > cp2) std::swap(cp1, cp2);
+        if (cp1 > cp2)
+            std::swap(cp1, cp2);
 
         // STEP 2: Build replacement maps for repair
         // replacement maps from parent values to child values
-        std::vector<int> repl1(dim, -1);  // map parent_a value -> parent_b value
-        std::vector<int> repl2(dim, -1);  // map parent_b value -> parent_a value
+        std::vector<int> repl1(dim, -1); // map parent_a value -> parent_b value
+        std::vector<int> repl2(dim, -1); // map parent_b value -> parent_a value
 
         // STEP 3: Swap the segment between cutting points
         for (int i = cp1; i <= cp2; ++i) {
@@ -65,7 +66,8 @@ struct PMXCrossover {
 
         // STEP 4: Repair positions outside the segment
         for (int i = 0; i < dim; ++i) {
-            if (i >= cp1 && i <= cp2) continue;
+            if (i >= cp1 && i <= cp2)
+                continue;
 
             // Repair child 0 (from parent_a, resolving with repl1)
             int n1 = static_cast<int>(pop.gene(parent_a, i));

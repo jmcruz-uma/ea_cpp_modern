@@ -7,10 +7,10 @@
 /// - Same EPS, same probability logic, same ordering
 /// C++23 with deducing this.
 
-#include <cmath>
 #include <algorithm>
-#include <ea/core/population.hpp>
+#include <cmath>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 
 namespace ea {
@@ -24,7 +24,7 @@ namespace ea {
 /// - Child 1 uses lower bound scaling, child 2 uses upper bound scaling
 /// - No random swap needed (the asymmetry is inherent in the calculation)
 struct SBXCrossover {
-    double distribution_index = 20.0;  ///< Distribution index (η): higher = closer to parents
+    double distribution_index = 20.0;   ///< Distribution index (η): higher = closer to parents
     double crossover_probability = 0.9; ///< Probability of applying crossover
 
     static constexpr int arity() { return 2; }
@@ -33,8 +33,8 @@ struct SBXCrossover {
     /// Apply SBX crossover on the given population.
     /// Parents at indices parent_a and parent_b.
     /// Children written to indices child_start and child_start+1.
-    void apply(this SBXCrossover& self, Population& pop,
-               int parent_a, int parent_b, int child_start) {
+    void apply(this SBXCrossover& self, Population& pop, int parent_a, int parent_b,
+               int child_start) {
         auto& rng = Random::instance();
 
         for (int j = 0; j < pop.dim; ++j) {
@@ -77,7 +77,8 @@ struct SBXCrossover {
             if (rand <= (1.0 / alpha)) {
                 betaq1 = std::pow(rand * alpha, 1.0 / (self.distribution_index + 1.0));
             } else {
-                betaq1 = std::pow(1.0 / (2.0 - rand * alpha), 1.0 / (self.distribution_index + 1.0));
+                betaq1 =
+                    std::pow(1.0 / (2.0 - rand * alpha), 1.0 / (self.distribution_index + 1.0));
             }
 
             double c1 = 0.5 * ((y1 + y2) - betaq1 * (y2 - y1));
@@ -90,7 +91,8 @@ struct SBXCrossover {
             if (rand <= (1.0 / alpha)) {
                 betaq2 = std::pow(rand * alpha, 1.0 / (self.distribution_index + 1.0));
             } else {
-                betaq2 = std::pow(1.0 / (2.0 - rand * alpha), 1.0 / (self.distribution_index + 1.0));
+                betaq2 =
+                    std::pow(1.0 / (2.0 - rand * alpha), 1.0 / (self.distribution_index + 1.0));
             }
 
             double c2 = 0.5 * ((y1 + y2) + betaq2 * (y2 - y1));
@@ -100,7 +102,8 @@ struct SBXCrossover {
             c2 = std::clamp(c2, lower_bound, upper_bound);
 
             // Swap children with probability 0.5 (same as jMetal)
-            if (rng.coin_flip()) std::swap(c1, c2);
+            if (rng.coin_flip())
+                std::swap(c1, c2);
 
             pop.gene(child_start, j) = c1;
             pop.gene(child_start + 1, j) = c2;

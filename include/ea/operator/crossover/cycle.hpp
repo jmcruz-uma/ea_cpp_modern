@@ -4,11 +4,11 @@
 /// Reference: jMetal CycleCrossover — https://github.com/jMetal/jMetal
 /// C++23 with deducing this, SoA Population access.
 
-#include <vector>
 #include <algorithm>
-#include <ea/core/population.hpp>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
+#include <vector>
 
 namespace ea {
 
@@ -23,8 +23,8 @@ struct CycleCrossover {
     static constexpr Encoding encoding() { return Encoding::Permutation; }
 
     /// Apply Cycle crossover. Produces 2 children starting at child_start.
-    void apply(this CycleCrossover& self, Population& pop,
-               int parent_a, int parent_b, int child_start) {
+    void apply(this CycleCrossover& self, Population& pop, int parent_a, int parent_b,
+               int child_start) {
         auto& rng = Random::instance();
         int dim = pop.dim;
 

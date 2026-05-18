@@ -9,20 +9,20 @@
 /// - org.uma.jmetal.util.aggregationfunction.impl.Tschebyscheff
 /// - org.uma.jmetal.util.aggregationfunction.impl.PenaltyBoundaryIntersection
 
-#include <cstdint>
-#include <cmath>
 #include <algorithm>
-#include <string_view>
+#include <cmath>
+#include <cstdint>
 #include <stdexcept>
+#include <string_view>
 
 namespace ea {
 
 /// Type of aggregation function used in MOEA/D.
 /// PBI is also known as Penalty-based Boundary Intersection.
 enum class AggregationType : uint8_t {
-    WeightedSum,  ///< Weighted sum aggregation
-    Tchebycheff,  ///< Tchebycheff (minimax) aggregation
-    PBI,          ///< Penalty Boundary Intersection (not implemented yet)
+    WeightedSum, ///< Weighted sum aggregation
+    Tchebycheff, ///< Tchebycheff (minimax) aggregation
+    PBI,         ///< Penalty Boundary Intersection (not implemented yet)
 };
 
 /// Parse aggregation type from string.
@@ -48,8 +48,8 @@ constexpr AggregationType aggregation_type_from_string(std::string_view s) {
 /// Optionally normalizes using nadir point:
 /// value = (obj[i] - ideal[i]) / (nadir[i] - ideal[i] + epsilon)
 struct WeightedSum {
-    bool normalize = false;  ///< Whether to normalize using ideal/nadir points
-    double epsilon = 1e-6;   ///< Small value to avoid division by zero
+    bool normalize = false; ///< Whether to normalize using ideal/nadir points
+    double epsilon = 1e-6;  ///< Small value to avoid division by zero
 
     /// Compute weighted sum aggregation.
     /// @param obj Objective values (size n_obj)
@@ -57,8 +57,7 @@ struct WeightedSum {
     /// @param ideal Ideal point (size n_obj)
     /// @param nadir Nadir point (size n_obj), only used if normalize = true
     /// @param n_obj Number of objectives
-    double compute(this const WeightedSum& self,
-                   const double* obj, const double* weight,
+    double compute(this const WeightedSum& self, const double* obj, const double* weight,
                    const double* ideal, const double* nadir, int n_obj) {
         double sum = 0.0;
         for (int n = 0; n < n_obj; ++n) {
@@ -87,8 +86,8 @@ struct WeightedSum {
 /// If weight[i] == 0, the term becomes 0.0001 * diff (jMetal convention).
 /// Optionally normalizes using nadir point.
 struct Tchebycheff {
-    bool normalize = false;  ///< Whether to normalize using ideal/nadir points
-    double epsilon = 1e-6;     ///< Small value to avoid division by zero
+    bool normalize = false; ///< Whether to normalize using ideal/nadir points
+    double epsilon = 1e-6;  ///< Small value to avoid division by zero
 
     /// Compute Tchebycheff aggregation.
     /// @param obj Objective values (size n_obj)
@@ -96,8 +95,7 @@ struct Tchebycheff {
     /// @param ideal Ideal point (size n_obj)
     /// @param nadir Nadir point (size n_obj), only used if normalize = true
     /// @param n_obj Number of objectives
-    double compute(this const Tchebycheff& self,
-                   const double* obj, const double* weight,
+    double compute(this const Tchebycheff& self, const double* obj, const double* weight,
                    const double* ideal, const double* nadir, int n_obj) {
         double max_fun = -1.0e+30;
 
@@ -137,9 +135,9 @@ struct Tchebycheff {
 ///   d1 = |sum_i((obj[i] - ideal[i]) * weight[i]) / ||weight||
 ///   d2 = ||(obj - ideal) - d1 * (weight / ||weight||)||
 struct PenaltyBoundaryIntersection {
-    double theta = 5.0;      ///< Penalty parameter controlling diversity
-    bool normalize = false;  ///< Whether to normalize using ideal/nadir points
-    double epsilon = 1e-6;   ///< Small value to avoid division by zero
+    double theta = 5.0;     ///< Penalty parameter controlling diversity
+    bool normalize = false; ///< Whether to normalize using ideal/nadir points
+    double epsilon = 1e-6;  ///< Small value to avoid division by zero
 
     /// Compute PBI aggregation.
     /// @param obj Objective values (size n_obj)
@@ -147,9 +145,8 @@ struct PenaltyBoundaryIntersection {
     /// @param ideal Ideal point (size n_obj)
     /// @param nadir Nadir point (size n_obj), only used if normalize = true
     /// @param n_obj Number of objectives
-    double compute(this const PenaltyBoundaryIntersection& self,
-                   const double* obj, const double* weight,
-                   const double* ideal, const double* nadir, int n_obj) {
+    double compute(this const PenaltyBoundaryIntersection& self, const double* obj,
+                   const double* weight, const double* ideal, const double* nadir, int n_obj) {
         double d1 = 0.0;
         double d2 = 0.0;
         double nl = 0.0;
@@ -194,26 +191,25 @@ struct PenaltyBoundaryIntersection {
 struct AggregationFunction {
     AggregationType type = AggregationType::Tchebycheff;
     bool normalize = false;
-    double theta = 5.0;    ///< Only used for PBI
+    double theta = 5.0; ///< Only used for PBI
     double epsilon = 1e-6;
 
     /// Compute aggregation value for the given objective vector.
-    double compute(this const AggregationFunction& self,
-                   const double* obj, const double* weight,
+    double compute(this const AggregationFunction& self, const double* obj, const double* weight,
                    const double* ideal, const double* nadir, int n_obj) {
         switch (self.type) {
-            case AggregationType::WeightedSum: {
-                WeightedSum aggr{self.normalize, self.epsilon};
-                return aggr.compute(obj, weight, ideal, nadir, n_obj);
-            }
-            case AggregationType::Tchebycheff: {
-                Tchebycheff aggr{self.normalize, self.epsilon};
-                return aggr.compute(obj, weight, ideal, nadir, n_obj);
-            }
-            case AggregationType::PBI: {
-                PenaltyBoundaryIntersection aggr{self.theta, self.normalize, self.epsilon};
-                return aggr.compute(obj, weight, ideal, nadir, n_obj);
-            }
+        case AggregationType::WeightedSum: {
+            WeightedSum aggr{self.normalize, self.epsilon};
+            return aggr.compute(obj, weight, ideal, nadir, n_obj);
+        }
+        case AggregationType::Tchebycheff: {
+            Tchebycheff aggr{self.normalize, self.epsilon};
+            return aggr.compute(obj, weight, ideal, nadir, n_obj);
+        }
+        case AggregationType::PBI: {
+            PenaltyBoundaryIntersection aggr{self.theta, self.normalize, self.epsilon};
+            return aggr.compute(obj, weight, ideal, nadir, n_obj);
+        }
         }
         // unreachable
         return std::numeric_limits<double>::quiet_NaN();

@@ -13,12 +13,12 @@
 ///
 /// Bounds: [0, 1] for all variables.
 
-#include <ea/core/population.hpp>
-#include <ea/core/encoding.hpp>
-#include <span>
 #include <cmath>
-#include <vector>
+#include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <numeric>
+#include <span>
+#include <vector>
 
 namespace ea {
 
@@ -30,13 +30,15 @@ namespace ea {
 /// g(x) = 1 + 9/(n-1) * sum(x_i for i=2..n)
 /// h(f1, g) = 1 - sqrt(f1/g)
 struct ZDT1 {
-    int dim_ = 30; ///< Number of decision variables (default: 30)
+    int dim_ = 30;                     ///< Number of decision variables (default: 30)
     std::vector<double> lower_bounds_; ///< [dim] lower bounds
     std::vector<double> upper_bounds_; ///< [dim] upper bounds
 
-    ZDT1() : ZDT1(30) {}
+    ZDT1()
+        : ZDT1(30) {}
 
-    explicit ZDT1(int dim) : dim_(dim) {
+    explicit ZDT1(int dim)
+        : dim_(dim) {
         lower_bounds_.assign(dim_, 0.0);
         upper_bounds_.assign(dim_, 1.0);
     }
@@ -56,7 +58,8 @@ struct ZDT1 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 
 protected:
@@ -68,9 +71,7 @@ protected:
         return 1.0 + 9.0 / (dim_ - 1) * g;
     }
 
-    static double eval_h(double f1, double g) {
-        return 1.0 - std::sqrt(f1 / g);
-    }
+    static double eval_h(double f1, double g) { return 1.0 - std::sqrt(f1 / g); }
 };
 
 // ============================================================
@@ -84,9 +85,11 @@ struct ZDT2 {
     std::vector<double> lower_bounds_;
     std::vector<double> upper_bounds_;
 
-    ZDT2() : ZDT2(30) {}
+    ZDT2()
+        : ZDT2(30) {}
 
-    explicit ZDT2(int dim) : dim_(dim) {
+    explicit ZDT2(int dim)
+        : dim_(dim) {
         lower_bounds_.assign(dim_, 0.0);
         upper_bounds_.assign(dim_, 1.0);
     }
@@ -106,7 +109,8 @@ struct ZDT2 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 
 protected:
@@ -118,9 +122,7 @@ protected:
         return 1.0 + 9.0 / (dim_ - 1) * g;
     }
 
-    static double eval_h(double f1, double g) {
-        return 1.0 - std::pow(f1 / g, 2.0);
-    }
+    static double eval_h(double f1, double g) { return 1.0 - std::pow(f1 / g, 2.0); }
 };
 
 // ============================================================
@@ -134,9 +136,11 @@ struct ZDT3 {
     std::vector<double> lower_bounds_;
     std::vector<double> upper_bounds_;
 
-    ZDT3() : ZDT3(30) {}
+    ZDT3()
+        : ZDT3(30) {}
 
-    explicit ZDT3(int dim) : dim_(dim) {
+    explicit ZDT3(int dim)
+        : dim_(dim) {
         lower_bounds_.assign(dim_, 0.0);
         upper_bounds_.assign(dim_, 1.0);
     }
@@ -156,7 +160,8 @@ struct ZDT3 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 
 protected:
@@ -187,9 +192,11 @@ struct ZDT4 {
     std::vector<double> lower_bounds_;
     std::vector<double> upper_bounds_;
 
-    ZDT4() : ZDT4(10) {}
+    ZDT4()
+        : ZDT4(10) {}
 
-    explicit ZDT4(int dim) : dim_(dim) {
+    explicit ZDT4(int dim)
+        : dim_(dim) {
         lower_bounds_.reserve(dim_);
         upper_bounds_.reserve(dim_);
         lower_bounds_.push_back(0.0);
@@ -215,7 +222,8 @@ struct ZDT4 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 
 protected:
@@ -229,9 +237,7 @@ protected:
         return g + constant;
     }
 
-    static double eval_h(double f1, double g) {
-        return 1.0 - std::sqrt(f1 / g);
-    }
+    static double eval_h(double f1, double g) { return 1.0 - std::sqrt(f1 / g); }
 };
 
 // ============================================================
@@ -255,9 +261,11 @@ struct ZDT5 {
     std::vector<double> lower_bounds_;
     std::vector<double> upper_bounds_;
 
-    ZDT5() : ZDT5(11) {}
+    ZDT5()
+        : ZDT5(11) {}
 
-    explicit ZDT5(int dim) : dim_(dim) {
+    explicit ZDT5(int dim)
+        : dim_(dim) {
         bits_per_variable_.reserve(dim_);
         bits_per_variable_.push_back(30);
         for (int i = 1; i < dim_; ++i) {
@@ -283,18 +291,15 @@ struct ZDT5 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 
 protected:
     /// u(x) = bits * x  (maps [0,1] double to expected bit count)
-    double u(double x, int var_idx) const {
-        return bits_per_variable_[var_idx] * x;
-    }
+    double u(double x, int var_idx) const { return bits_per_variable_[var_idx] * x; }
 
-    double eval_v(double y) const {
-        return (y < 5.0) ? (2.0 + y) : 1.0;
-    }
+    double eval_v(double y) const { return (y < 5.0) ? (2.0 + y) : 1.0; }
 
     double eval_g(const Population& pop, int idx) const {
         double g = 0.0;
@@ -305,9 +310,7 @@ protected:
         return g;
     }
 
-    static double eval_h(double f1, double /*g*/) {
-        return 1.0 / f1;
-    }
+    static double eval_h(double f1, double /*g*/) { return 1.0 / f1; }
 };
 
 // ============================================================
@@ -323,9 +326,11 @@ struct ZDT6 {
     std::vector<double> lower_bounds_;
     std::vector<double> upper_bounds_;
 
-    ZDT6() : ZDT6(10) {}
+    ZDT6()
+        : ZDT6(10) {}
 
-    explicit ZDT6(int dim) : dim_(dim) {
+    explicit ZDT6(int dim)
+        : dim_(dim) {
         lower_bounds_.assign(dim_, 0.0);
         upper_bounds_.assign(dim_, 1.0);
     }
@@ -338,8 +343,7 @@ struct ZDT6 {
 
     void evaluate(Population& pop, int idx) const {
         double x1 = pop.gene(idx, 0);
-        double f1 = 1.0 - std::exp(-4.0 * x1)
-                        * std::pow(std::sin(6.0 * M_PI * x1), 6);
+        double f1 = 1.0 - std::exp(-4.0 * x1) * std::pow(std::sin(6.0 * M_PI * x1), 6);
         double g = eval_g(pop, idx);
         double h = eval_h(f1, g);
         pop.objective(idx, 0) = f1;
@@ -347,7 +351,8 @@ struct ZDT6 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 
 protected:
@@ -363,9 +368,7 @@ protected:
         return g;
     }
 
-    static double eval_h(double f1, double g) {
-        return 1.0 - std::pow(f1 / g, 2.0);
-    }
+    static double eval_h(double f1, double g) { return 1.0 - std::pow(f1 / g, 2.0); }
 };
 
 } // namespace ea

@@ -14,8 +14,8 @@
 
 #include <algorithm>
 #include <cmath>
-#include <ea/core/population.hpp>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 
 namespace ea {
@@ -23,9 +23,9 @@ namespace ea {
 /// Parent-Centric Crossover (UNDX) for real-valued encodings.
 /// Uses 3 parents to define a distribution from which 2 offspring are sampled.
 struct ParentCentricCrossover {
-    double zeta = 0.5;                ///< Spread along the line connecting parents
-    double eta = 0.35;                ///< Spread in orthogonal direction
-    double crossover_probability = 0.9; ///< Probability of applying crossover
+    double zeta = 0.5;                            ///< Spread along the line connecting parents
+    double eta = 0.35;                            ///< Spread in orthogonal direction
+    double crossover_probability = 0.9;           ///< Probability of applying crossover
     static constexpr double MIN_DISTANCE = 1e-10; ///< Minimum distance to avoid division by zero
 
     static constexpr int arity() { return 3; }
@@ -34,8 +34,8 @@ struct ParentCentricCrossover {
     /// Apply UNDX crossover. Produces 2 children starting at child_start.
     /// parent_a and parent_b define the primary axis; parent_c provides
     /// the orthogonal direction.
-    void apply(this auto& self, Population& pop,
-               int parent_a, int parent_b, int parent_c, int child_start) {
+    void apply(this auto& self, Population& pop, int parent_a, int parent_b, int parent_c,
+               int child_start) {
         auto& rng = Random::instance();
 
         // Copy parents as default

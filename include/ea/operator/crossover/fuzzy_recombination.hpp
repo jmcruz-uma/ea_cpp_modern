@@ -8,10 +8,10 @@
 /// Uses a fuzzy membership function to blend parent values, with alpha controlling
 /// the spread of the membership function.
 
-#include <cmath>
 #include <algorithm>
-#include <ea/core/population.hpp>
+#include <cmath>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 
 namespace ea {
@@ -20,13 +20,13 @@ namespace ea {
 /// Produces two children from two parents using fuzzy connectives.
 struct FuzzyRecombinationCrossover {
     double crossover_probability = 0.9; ///< Probability of applying crossover
-    double alpha = 1.0;                   ///< Spread of fuzzy membership function
+    double alpha = 1.0;                 ///< Spread of fuzzy membership function
 
     static constexpr int arity() { return 2; }
     static constexpr Encoding encoding() { return Encoding::Real; }
 
-    void apply(this FuzzyRecombinationCrossover& self, Population& pop,
-               int parent_a, int parent_b, int child_start) {
+    void apply(this FuzzyRecombinationCrossover& self, Population& pop, int parent_a, int parent_b,
+               int child_start) {
         auto& rng = Random::instance();
         constexpr double EPSILON = 1e-10;
 

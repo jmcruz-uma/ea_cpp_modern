@@ -6,10 +6,10 @@
 /// Applies standard SBX crossover and rounds the result to the nearest integer.
 /// The algorithm is identical to real-valued SBX but with integer bounds and rounding.
 
-#include <cmath>
 #include <algorithm>
-#include <ea/core/population.hpp>
+#include <cmath>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 
 namespace ea {
@@ -17,14 +17,14 @@ namespace ea {
 /// Integer SBX Crossover for integer encodings.
 /// Produces two children from two parents using SBX, then rounds to integers.
 struct IntegerSBXCrossover {
-    double distribution_index = 20.0;  ///< Distribution index (η)
+    double distribution_index = 20.0;   ///< Distribution index (η)
     double crossover_probability = 0.9; ///< Probability of applying crossover
 
     static constexpr int arity() { return 2; }
     static constexpr Encoding encoding() { return Encoding::Integer; }
 
-    void apply(this IntegerSBXCrossover& self, Population& pop,
-               int parent_a, int parent_b, int child_start) {
+    void apply(this IntegerSBXCrossover& self, Population& pop, int parent_a, int parent_b,
+               int child_start) {
         auto& rng = Random::instance();
         constexpr double EPS = 1.0e-14;
 
@@ -58,7 +58,8 @@ struct IntegerSBXCrossover {
             if (rand_val <= (1.0 / alpha_val)) {
                 betaq = std::pow(rand_val * alpha_val, 1.0 / (self.distribution_index + 1.0));
             } else {
-                betaq = std::pow(1.0 / (2.0 - rand_val * alpha_val), 1.0 / (self.distribution_index + 1.0));
+                betaq = std::pow(1.0 / (2.0 - rand_val * alpha_val),
+                                 1.0 / (self.distribution_index + 1.0));
             }
 
             double c1 = 0.5 * ((y1 + y2) - betaq * (y2 - y1));
@@ -70,7 +71,8 @@ struct IntegerSBXCrossover {
             if (rand_val <= (1.0 / alpha_val)) {
                 betaq = std::pow(rand_val * alpha_val, 1.0 / (self.distribution_index + 1.0));
             } else {
-                betaq = std::pow(1.0 / (2.0 - rand_val * alpha_val), 1.0 / (self.distribution_index + 1.0));
+                betaq = std::pow(1.0 / (2.0 - rand_val * alpha_val),
+                                 1.0 / (self.distribution_index + 1.0));
             }
 
             double c2 = 0.5 * (y1 + y2 + betaq * (y2 - y1));

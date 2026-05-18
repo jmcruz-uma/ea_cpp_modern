@@ -8,13 +8,13 @@
 /// (determined by bisections per dimension). When the archive is full, the most
 /// crowded hypercube's solution is removed.
 
-#include <ea/core/population.hpp>
-#include <ea/core/comparator.hpp>
-#include <ea/util/random.hpp>
-#include <vector>
 #include <algorithm>
 #include <cmath>
+#include <ea/core/comparator.hpp>
+#include <ea/core/population.hpp>
+#include <ea/util/random.hpp>
 #include <limits>
+#include <vector>
 
 namespace ea {
 
@@ -23,9 +23,9 @@ namespace ea {
 /// Template param: max_size — maximum number of archived solutions.
 /// For SoA, we store indices into an external population.
 struct AdaptiveGridArchive {
-    int max_size = 100;         ///< Maximum archive size
-    int bisections = 5;         ///< Number of bisections per objective dimension
-    int n_obj = 2;              ///< Number of objectives
+    int max_size = 100; ///< Maximum archive size
+    int bisections = 5; ///< Number of bisections per objective dimension
+    int n_obj = 2;      ///< Number of objectives
 
     // --- Grid state ---
     /// Stored individuals: each is a vector of objectives + individual info
@@ -36,11 +36,11 @@ struct AdaptiveGridArchive {
         int original_index = -1;        ///< Original population index (if applicable)
     };
 
-    std::vector<ArchivedIndividual> archive_;      ///< Archived non-dominated solutions
-    std::vector<double> grid_min_;                  ///< [n_obj] minimum objective values
-    std::vector<double> grid_max_;                  ///< [n_obj] maximum objective values
-    std::vector<int> grid_occupancy_;              ///< Number of individuals per grid cell
-    std::vector<int> grid_bisection_counts_;        ///< Number of bisections per objective
+    std::vector<ArchivedIndividual> archive_; ///< Archived non-dominated solutions
+    std::vector<double> grid_min_;            ///< [n_obj] minimum objective values
+    std::vector<double> grid_max_;            ///< [n_obj] maximum objective values
+    std::vector<int> grid_occupancy_;         ///< Number of individuals per grid cell
+    std::vector<int> grid_bisection_counts_;  ///< Number of bisections per objective
     int total_grid_cells_ = 0;
 
     // --- Constructor ---
@@ -59,8 +59,7 @@ struct AdaptiveGridArchive {
 
     /// Add an individual to the archive.
     /// Returns true if the individual was added (was non-dominated and improved diversity).
-    bool add(this auto& self,
-             const std::vector<double>& genes,
+    bool add(this auto& self, const std::vector<double>& genes,
              const std::vector<double>& objectives) {
         // Check dominance against all archived individuals
         bool dominated = false;
@@ -76,7 +75,8 @@ struct AdaptiveGridArchive {
             }
         }
 
-        if (dominated) return false;
+        if (dominated)
+            return false;
 
         // Remove all dominated individuals
         // Remove in reverse order to preserve indices
@@ -135,9 +135,7 @@ struct AdaptiveGridArchive {
     }
 
     /// Get genes of archived individual i.
-    const std::vector<double>& genes(this auto& self, int i) {
-        return self.archive_[i].genes;
-    }
+    const std::vector<double>& genes(this auto& self, int i) { return self.archive_[i].genes; }
 
     /// Get a random individual from the archive (for selection).
     int random_index(this auto& self) {
@@ -164,7 +162,8 @@ struct AdaptiveGridArchive {
 
     /// Compute density estimator (update grid).
     void compute_density_estimator(this auto& self) {
-        if (self.archive_.empty()) return;
+        if (self.archive_.empty())
+            return;
 
         // Update grid bounds
         for (int o = 0; o < self.n_obj; ++o) {
@@ -200,32 +199,38 @@ struct AdaptiveGridArchive {
 
 private:
     /// Compare two objective vectors for dominance.
-    Dominance compare_dominance(this auto&,
-                                 const std::vector<double>& a,
-                                 const std::vector<double>& b) {
+    Dominance compare_dominance(this auto&, const std::vector<double>& a,
+                                const std::vector<double>& b) {
         bool a_dominates_b = false;
         bool b_dominates_a = false;
         const int n = static_cast<int>(a.size());
         for (int o = 0; o < n; ++o) {
-            if (a[o] < b[o]) a_dominates_b = true;
-            else if (b[o] < a[o]) b_dominates_a = true;
-            if (a_dominates_b && b_dominates_a) return Dominance::Equal;
+            if (a[o] < b[o])
+                a_dominates_b = true;
+            else if (b[o] < a[o])
+                b_dominates_a = true;
+            if (a_dominates_b && b_dominates_a)
+                return Dominance::Equal;
         }
-        if (a_dominates_b && !b_dominates_a) return Dominance::Dominates;
-        if (b_dominates_a && !a_dominates_b) return Dominance::Dominated;
+        if (a_dominates_b && !b_dominates_a)
+            return Dominance::Dominates;
+        if (b_dominates_a && !a_dominates_b)
+            return Dominance::Dominated;
         return Dominance::Equal;
     }
 
     /// Find grid location (cell index) for a set of objectives.
     int find_grid_location(this auto& self, const std::vector<double>& objectives) {
-        if (self.archive_.empty()) return 0;
+        if (self.archive_.empty())
+            return 0;
         int location = 0;
         int multiplier = 1;
         const int cells_per_dim = static_cast<int>(std::pow(2, self.bisections));
 
         for (int o = 0; o < self.n_obj; ++o) {
             double range = self.grid_max_[o] - self.grid_min_[o];
-            if (range < 1e-14) range = 1e-14;
+            if (range < 1e-14)
+                range = 1e-14;
             double normalized = (objectives[o] - self.grid_min_[o]) / range;
             int grid_coord = static_cast<int>(normalized * cells_per_dim);
             grid_coord = std::clamp(grid_coord, 0, cells_per_dim - 1);
@@ -236,9 +241,8 @@ private:
     }
 
     /// Insert a new individual into the archive.
-    void insert_individual(this auto& self,
-                            const std::vector<double>& genes,
-                            const std::vector<double>& objectives) {
+    void insert_individual(this auto& self, const std::vector<double>& genes,
+                           const std::vector<double>& objectives) {
         ArchivedIndividual ind;
         ind.objectives = objectives;
         ind.genes = genes;
@@ -251,7 +255,8 @@ private:
 
     /// Remove an individual at the given archive index.
     void remove_individual(this auto& self, int idx) {
-        if (idx < 0 || idx >= static_cast<int>(self.archive_.size())) return;
+        if (idx < 0 || idx >= static_cast<int>(self.archive_.size()))
+            return;
         int loc = self.archive_[idx].grid_location;
         if (self.grid_location_valid(loc) && self.grid_occupancy_[loc] > 0) {
             self.grid_occupancy_[loc]--;
@@ -261,7 +266,8 @@ private:
 
     /// Remove one individual from the most crowded cell.
     void remove_from_most_crowded_cell(this auto& self) {
-        if (self.archive_.empty()) return;
+        if (self.archive_.empty())
+            return;
 
         int max_occupancy = -1;
         int target_loc = -1;
@@ -272,7 +278,8 @@ private:
             }
         }
 
-        if (target_loc < 0) return;
+        if (target_loc < 0)
+            return;
 
         // Find and remove one individual in that cell
         for (size_t i = 0; i < self.archive_.size(); ++i) {

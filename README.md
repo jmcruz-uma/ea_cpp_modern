@@ -7,6 +7,9 @@ High-performance evolutionary algorithm framework in **C++23** — jMetal operat
 [![IGD](https://img.shields.io/badge/IGD-0.005%20(ZDT1)-brightgreen.svg)](benchmarks)
 [![Paper](https://img.shields.io/badge/paper-PDF-red.svg)](paper.pdf)
 [![arXiv](https://img.shields.io/badge/arXiv-submitted-orange.svg)](https://arxiv.org)
+[![CI](https://github.com/elCanosail/ea-cpp/actions/workflows/ci.yml/badge.svg)](https://github.com/elCanosail/ea-cpp/actions/workflows/ci.yml)
+[![clang-format](https://img.shields.io/badge/clang--format-18-blue.svg)](.clang-format)
+[![clang-format](https://img.shields.io/badge/clang--format-18-blue.svg)](https://clang.llvm.org/docs/ClangFormat.html)
 
 ## Features
 

@@ -7,13 +7,13 @@
 /// This is useful as a baseline for comparison: any "real" EA should
 /// outperform RandomSearch on standard benchmarks.
 
-#include <ea/core/population.hpp>
+#include <algorithm>
 #include <ea/core/comparator.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 #include <iostream>
 #include <string_view>
 #include <vector>
-#include <algorithm>
 
 namespace ea {
 
@@ -34,12 +34,11 @@ struct RandomSearch {
     /// Run Random Search on the given population.
     /// @param pop Population with bounds set. Will be resized to pop_size.
     /// @param problem Callable: void(Population&, int) — evaluates individual's objectives
-    template<typename Problem>
-    void run(this auto& self, Population& pop, Problem&& problem) {
+    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
         if (self.max_evals < self.pop_size) {
             std::cerr << "[ea::RandomSearch] Warning: max_evals (" << self.max_evals
-                      << ") must be >= pop_size (" << self.pop_size
-                      << "). Adjusting max_evals to " << self.pop_size << ".\n";
+                      << ") must be >= pop_size (" << self.pop_size << "). Adjusting max_evals to "
+                      << self.pop_size << ".\n";
             self.max_evals = self.pop_size;
         }
 
@@ -48,7 +47,8 @@ struct RandomSearch {
         const int n = self.pop_size;
 
         // Ensure population is sized correctly
-        if (pop.pop_size != n) pop.resize(n);
+        if (pop.pop_size != n)
+            pop.resize(n);
 
         auto& rng = Random::instance();
         int evals = 0;

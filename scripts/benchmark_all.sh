@@ -1,60 +1,70 @@
-#!/usr/bin/env bash
-# benchmark_all.sh — Automated benchmark suite for ea-cpp
-# Runs all algorithms × all problems × N runs, generates CSV
-
+#!/bin/bash
+# benchmark_all.sh — Full benchmark suite for ea-cpp
+# Runs all algorithms × all problems × N runs → CSV
+# Usage: ./scripts/benchmark_all.sh [N_RUNS]
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-BUILD_DIR="/tmp/ea-cpp-benchmarks"
-RESULTS_DIR="$BUILD_DIR/results"
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-
-# Configuration
-RUNS=30
-POP_SIZE=100
-MAX_EVALS=25000
-DIM=30
+N_RUNS=${1:-30}
+BUILD_DIR="build"
+BENCHMARK="$BUILD_DIR/benchmark_fair"
+RESULTS_DIR="benchmarks/results"
+CSV="$RESULTS_DIR/benchmark_$(date +%Y%m%d_%H%M%S).csv"
 
 mkdir -p "$RESULTS_DIR"
 
+if [ ! -f "$BENCHMARK" ]; then
+    echo "Building benchmark binary..."
+    make "$BENCHMARK"
+fi
+
 echo "=== ea-cpp Benchmark Suite ==="
-echo "Timestamp: $TIMESTAMP"
-echo "Runs: $RUNS per (algorithm, problem) pair"
-echo "Population: $POP_SIZE, Evaluations: $MAX_EVALS, Dimensions: $DIM"
+echo "Runs per config: $N_RUNS"
+echo "Output: $CSV"
 echo ""
 
-# Compile all benchmark binaries
-echo "Compiling benchmark binaries..."
+# CSV header
+echo "algorithm,problem,pop_size,max_evals,run,igd,gd,spread,time_ms" > "$CSV"
 
-# NSGA-II benchmark
-g++-14 -std=c++23 -O2 -I "$PROJECT_DIR/include" "$PROJECT_DIR/examples/benchmark_fair.cpp" -o "$BUILD_DIR/bench_nsga2" -lm
+# Algorithms and problems to benchmark
+ALGORITHMS="NSGAII RVEA IBEA RandomSearch"
+PROBLEMS_2OBJ="ZDT1 ZDT2 ZDT3 ZDT6"
+PROBLEMS_3OBJ="DTLZ1 DTLZ2"
 
-# Copy other benchmarks if they exist
-for bench in benchmark_large test_random_search test_spread; do
-    if [ -f "$PROJECT_DIR/examples/${bench}.cpp" ]; then
-        echo "  Found: ${bench}.cpp"
-    fi
+for algo in $ALGORITHMS; do
+    for prob in $PROBLEMS_2OBJ; do
+        echo "Running $algo on $prob ($N_RUNS runs)..."
+        for run in $(seq 1 $N_RUNS); do
+            $BENCHMARK --algorithm "$algo" --problem "$prob" --runs 1 --csv >> "$CSV" 2>/dev/null || true
+        done
+    done
 done
 
-echo ""
-echo "Running benchmarks..."
-echo "algorithm,problem,IGD_mean,IGD_std,Time_mean,Time_std" > "$RESULTS_DIR/benchmark_results.csv"
-
-# Run NSGA-II on ZDT1
-echo "  NSGAII × ZDT1 ($RUNS runs)..."
-for ((i=1; i<=RUNS; i++)); do
-    "$BUILD_DIR/bench_nsga2" > /tmp/bench_out.txt 2>&1
-    IGD=$(grep "Mean IGD:" /tmp/bench_out.txt | awk '{print $3}')
-    IGD_STD=$(grep "Mean IGD:" /tmp/bench_out.txt | awk '{print $5}')
-    TIME=$(grep "Mean Time:" /tmp/bench_out.txt | awk '{print $3}')
-    TIME_STD=$(grep "Mean Time:" /tmp/bench_out.txt | awk '{print $5}')
-    echo "NSGAII,ZDT1,$IGD,$IGD_STD,$TIME,$TIME_STD" >> "$RESULTS_DIR/benchmark_results.csv"
+for algo in $ALGORITHMS; do
+    for prob in $PROBLEMS_3OBJ; do
+        echo "Running $algo on $prob ($N_RUNS runs)..."
+        for run in $(seq 1 $N_RUNS); do
+            $BENCHMARK --algorithm "$algo" --problem "$prob" --runs 1 --csv >> "$CSV" 2>/dev/null || true
+        done
+    done
 done
 
 echo ""
 echo "=== Results ==="
-cat "$RESULTS_DIR/benchmark_results.csv"
-
+echo "CSV: $CSV"
 echo ""
-echo "Results saved to: $RESULTS_DIR/benchmark_results.csv"
+# Print summary
+echo "Algorithm × Problem Summary (mean IGD ± std):"
+tail -n +2 "$CSV" | awk -F, '{
+    key=$1","$2
+    sum[key]+=$5
+    sumsq[key]+=$5*$5
+    count[key]++
+}
+END {
+    for (k in count) {
+        mean=sum[k]/count[k]
+        std=sqrt(sumsq[k]/count[k]-mean*mean)
+        printf "%-12s %-8s IGD=%.6f ± %.6f (n=%d)\n", \
+            substr(k,1,index(k,",")-1), substr(k,index(k,",")+1), mean, std, count[k]
+    }
+}' | sort

@@ -9,12 +9,12 @@
 /// structure with position variables (first M-1) and distance variables (remaining k).
 /// Bounds: [0, 1] for all variables.
 
-#include <ea/core/population.hpp>
-#include <ea/core/encoding.hpp>
-#include <span>
 #include <cmath>
-#include <vector>
+#include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <numeric>
+#include <span>
+#include <vector>
 
 namespace ea {
 
@@ -26,15 +26,19 @@ namespace ea {
 /// Default: 7 variables, 3 objectives.
 /// k = dim - num_obj + 1 distance variables.
 struct DTLZ1 {
-    int dim_ = 7;  ///< Number of decision variables
+    int dim_ = 7;   ///< Number of decision variables
     int n_obj_ = 3; ///< Number of objectives
     std::vector<double> lower_bounds_;
     std::vector<double> upper_bounds_;
 
-    DTLZ1() : DTLZ1(7, 3) {}
+    DTLZ1()
+        : DTLZ1(7, 3) {}
 
-    DTLZ1(int dim, int n_obj) : dim_(dim), n_obj_(n_obj) {
-        if (dim_ < n_obj_) dim_ = n_obj_; // k >= 1 required
+    DTLZ1(int dim, int n_obj)
+        : dim_(dim)
+        , n_obj_(n_obj) {
+        if (dim_ < n_obj_)
+            dim_ = n_obj_; // k >= 1 required
         lower_bounds_.assign(dim_, 0.0);
         upper_bounds_.assign(dim_, 1.0);
     }
@@ -69,7 +73,8 @@ struct DTLZ1 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 };
 
@@ -85,10 +90,14 @@ struct DTLZ2 {
     std::vector<double> lower_bounds_;
     std::vector<double> upper_bounds_;
 
-    DTLZ2() : DTLZ2(12, 3) {}
+    DTLZ2()
+        : DTLZ2(12, 3) {}
 
-    DTLZ2(int dim, int n_obj) : dim_(dim), n_obj_(n_obj) {
-        if (dim_ < n_obj_) dim_ = n_obj_;
+    DTLZ2(int dim, int n_obj)
+        : dim_(dim)
+        , n_obj_(n_obj) {
+        if (dim_ < n_obj_)
+            dim_ = n_obj_;
         lower_bounds_.assign(dim_, 0.0);
         upper_bounds_.assign(dim_, 1.0);
     }
@@ -121,7 +130,8 @@ struct DTLZ2 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 };
 
@@ -138,10 +148,14 @@ struct DTLZ3 {
     std::vector<double> lower_bounds_;
     std::vector<double> upper_bounds_;
 
-    DTLZ3() : DTLZ3(12, 3) {}
+    DTLZ3()
+        : DTLZ3(12, 3) {}
 
-    DTLZ3(int dim, int n_obj) : dim_(dim), n_obj_(n_obj) {
-        if (dim_ < n_obj_) dim_ = n_obj_;
+    DTLZ3(int dim, int n_obj)
+        : dim_(dim)
+        , n_obj_(n_obj) {
+        if (dim_ < n_obj_)
+            dim_ = n_obj_;
         lower_bounds_.assign(dim_, 0.0);
         upper_bounds_.assign(dim_, 1.0);
     }
@@ -175,7 +189,8 @@ struct DTLZ3 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 };
 
@@ -192,10 +207,14 @@ struct DTLZ4 {
     std::vector<double> lower_bounds_;
     std::vector<double> upper_bounds_;
 
-    DTLZ4() : DTLZ4(12, 3) {}
+    DTLZ4()
+        : DTLZ4(12, 3) {}
 
-    DTLZ4(int dim, int n_obj) : dim_(dim), n_obj_(n_obj) {
-        if (dim_ < n_obj_) dim_ = n_obj_;
+    DTLZ4(int dim, int n_obj)
+        : dim_(dim)
+        , n_obj_(n_obj) {
+        if (dim_ < n_obj_)
+            dim_ = n_obj_;
         lower_bounds_.assign(dim_, 0.0);
         upper_bounds_.assign(dim_, 1.0);
     }
@@ -229,7 +248,8 @@ struct DTLZ4 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 };
 
@@ -246,10 +266,14 @@ struct DTLZ5 {
     std::vector<double> lower_bounds_;
     std::vector<double> upper_bounds_;
 
-    DTLZ5() : DTLZ5(12, 3) {}
+    DTLZ5()
+        : DTLZ5(12, 3) {}
 
-    DTLZ5(int dim, int n_obj) : dim_(dim), n_obj_(n_obj) {
-        if (dim_ < n_obj_) dim_ = n_obj_;
+    DTLZ5(int dim, int n_obj)
+        : dim_(dim)
+        , n_obj_(n_obj) {
+        if (dim_ < n_obj_)
+            dim_ = n_obj_;
         lower_bounds_.assign(dim_, 0.0);
         upper_bounds_.assign(dim_, 1.0);
     }
@@ -290,7 +314,8 @@ struct DTLZ5 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 };
 
@@ -307,10 +332,14 @@ struct DTLZ6 {
     std::vector<double> lower_bounds_;
     std::vector<double> upper_bounds_;
 
-    DTLZ6() : DTLZ6(12, 3) {}
+    DTLZ6()
+        : DTLZ6(12, 3) {}
 
-    DTLZ6(int dim, int n_obj) : dim_(dim), n_obj_(n_obj) {
-        if (dim_ < n_obj_) dim_ = n_obj_;
+    DTLZ6(int dim, int n_obj)
+        : dim_(dim)
+        , n_obj_(n_obj) {
+        if (dim_ < n_obj_)
+            dim_ = n_obj_;
         lower_bounds_.assign(dim_, 0.0);
         upper_bounds_.assign(dim_, 1.0);
     }
@@ -350,7 +379,8 @@ struct DTLZ6 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 };
 
@@ -370,10 +400,14 @@ struct DTLZ7 {
     std::vector<double> lower_bounds_;
     std::vector<double> upper_bounds_;
 
-    DTLZ7() : DTLZ7(22, 3) {}
+    DTLZ7()
+        : DTLZ7(22, 3) {}
 
-    DTLZ7(int dim, int n_obj) : dim_(dim), n_obj_(n_obj) {
-        if (dim_ < n_obj_) dim_ = n_obj_;
+    DTLZ7(int dim, int n_obj)
+        : dim_(dim)
+        , n_obj_(n_obj) {
+        if (dim_ < n_obj_)
+            dim_ = n_obj_;
         lower_bounds_.assign(dim_, 0.0);
         upper_bounds_.assign(dim_, 1.0);
     }
@@ -409,7 +443,8 @@ struct DTLZ7 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 };
 

@@ -7,11 +7,11 @@
 /// For each bit position where parents differ, swap with probability 0.5.
 /// This ensures on average 50% of differing bits are exchanged.
 
-#include <vector>
 #include <algorithm>
-#include <ea/core/population.hpp>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
+#include <vector>
 
 namespace ea {
 
@@ -23,8 +23,8 @@ struct HUXCrossover {
     static constexpr int arity() { return 2; }
     static constexpr Encoding encoding() { return Encoding::Binary; }
 
-    void apply(this HUXCrossover& self, Population& pop,
-               int parent_a, int parent_b, int child_start) {
+    void apply(this HUXCrossover& self, Population& pop, int parent_a, int parent_b,
+               int child_start) {
         auto& rng = Random::instance();
 
         if (!rng.coin_flip(self.crossover_probability)) {

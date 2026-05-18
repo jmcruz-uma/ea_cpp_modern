@@ -8,22 +8,22 @@
 /// in that group are mutated using polynomial mutation. The grouping strategy
 /// is configurable via a callable that maps group index -> vector of variable indices.
 
-#include <cmath>
 #include <algorithm>
-#include <vector>
-#include <functional>
-#include <ea/core/population.hpp>
+#include <cmath>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
+#include <functional>
+#include <vector>
 
 namespace ea {
 
 /// Grouped Polynomial Mutation for real-valued encodings.
 /// Mutates all variables within a randomly selected group using polynomial mutation.
 struct GroupedPolynomialMutation {
-    double distribution_index = 20.0;                      ///< Distribution index (η)
-    int num_groups = 1;                                       ///< Number of variable groups
-    std::function<std::vector<int>(int)> group_fn;            ///< Maps group index -> variable indices
+    double distribution_index = 20.0;              ///< Distribution index (η)
+    int num_groups = 1;                            ///< Number of variable groups
+    std::function<std::vector<int>(int)> group_fn; ///< Maps group index -> variable indices
 
     static constexpr Encoding encoding() { return Encoding::Real; }
 
@@ -55,13 +55,15 @@ struct GroupedPolynomialMutation {
         double mut_pow = 1.0 / (self.distribution_index + 1.0);
 
         for (int var_idx : variable_indices) {
-            if (var_idx < 0 || var_idx >= pop.dim) continue;
+            if (var_idx < 0 || var_idx >= pop.dim)
+                continue;
 
             double y = pop.gene(idx, var_idx);
             double lb = pop.lower_bounds[var_idx];
             double ub = pop.upper_bounds[var_idx];
 
-            if (lb >= ub) continue;
+            if (lb >= ub)
+                continue;
 
             double delta1 = (y - lb) / (ub - lb);
             double delta2 = (ub - y) / (ub - lb);
@@ -70,11 +72,13 @@ struct GroupedPolynomialMutation {
 
             if (rnd <= 0.5) {
                 double xy = 1.0 - delta1;
-                double val = 2.0 * rnd + (1.0 - 2.0 * rnd) * std::pow(xy, self.distribution_index + 1.0);
+                double val =
+                    2.0 * rnd + (1.0 - 2.0 * rnd) * std::pow(xy, self.distribution_index + 1.0);
                 deltaq = std::pow(val, mut_pow) - 1.0;
             } else {
                 double xy = 1.0 - delta2;
-                double val = 2.0 * (1.0 - rnd) + 2.0 * (rnd - 0.5) * std::pow(xy, self.distribution_index + 1.0);
+                double val = 2.0 * (1.0 - rnd) +
+                             2.0 * (rnd - 0.5) * std::pow(xy, self.distribution_index + 1.0);
                 deltaq = 1.0 - std::pow(val, mut_pow);
             }
 

@@ -6,22 +6,21 @@
 ///
 /// Uses hypervolume contribution for environmental selection.
 
-#include <ea/core/population.hpp>
-#include <ea/core/comparator.hpp>
-#include <ea/indicator/hypervolume.hpp>
-#include <ea/util/random.hpp>
-#include <vector>
 #include <algorithm>
 #include <cmath>
+#include <ea/core/comparator.hpp>
+#include <ea/core/population.hpp>
+#include <ea/indicator/hypervolume.hpp>
+#include <ea/util/random.hpp>
 #include <limits>
+#include <vector>
 
 namespace ea {
 
 /// SMS-EMOA — Hypervolume-based selection MOEA.
 /// Each generation: create offspring, merge with population, remove individual
 /// with smallest hypervolume contribution.
-template<typename CX, typename MT>
-struct SMSEMOA {
+template <typename CX, typename MT> struct SMSEMOA {
     CX crossover;
     MT mutation;
 
@@ -31,12 +30,12 @@ struct SMSEMOA {
     static constexpr std::string_view name() { return "SMS-EMOA"; }
 
     /// Run SMS-EMOA.
-    template<typename Problem>
-    void run(this auto& self, Population& pop, Problem&& problem) {
+    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
 
-        if (pop.pop_size != self.pop_size) pop.resize(self.pop_size);
+        if (pop.pop_size != self.pop_size)
+            pop.resize(self.pop_size);
 
         // Evaluate initial population
         for (int i = 0; i < self.pop_size; ++i) {
@@ -89,10 +88,11 @@ struct SMSEMOA {
             self.mutation.apply(child, 0);
 
             // Evaluate offspring
-            problem(child, 0);
+            problem.evaluate(child, 0);
             child.set_evaluated(0, true);
             evals++;
-            if (evals >= self.max_evals) break;
+            if (evals >= self.max_evals)
+                break;
 
             // Update reference point if needed
             for (int o = 0; o < n_obj; ++o) {
@@ -126,12 +126,14 @@ struct SMSEMOA {
                     // Remove worst: shift everything after worst one position left
                     for (int i = worst; i < self.pop_size - 1; ++i) {
                         std::copy_n(combined.genes_ptr(i + 1), dim, combined.genes_ptr(i));
-                        std::copy_n(combined.objectives_ptr(i + 1), n_obj, combined.objectives_ptr(i));
+                        std::copy_n(combined.objectives_ptr(i + 1), n_obj,
+                                    combined.objectives_ptr(i));
                         combined.flags[i] = combined.flags[i + 1];
                     }
                     // Add offspring at the end
                     std::copy_n(child.genes_ptr(0), dim, combined.genes_ptr(self.pop_size - 1));
-                    std::copy_n(child.objectives_ptr(0), n_obj, combined.objectives_ptr(self.pop_size - 1));
+                    std::copy_n(child.objectives_ptr(0), n_obj,
+                                combined.objectives_ptr(self.pop_size - 1));
                     combined.flags[self.pop_size - 1] = child.flags[0];
                 }
             }
@@ -147,7 +149,8 @@ struct SMSEMOA {
     }
 
 private:
-    static void compute_reference_point(const Population& pop, std::vector<double>& ref_point, double margin) {
+    static void compute_reference_point(const Population& pop, std::vector<double>& ref_point,
+                                        double margin) {
         const int n_obj = pop.n_obj;
         for (int o = 0; o < n_obj; ++o) {
             double max_obj = -std::numeric_limits<double>::max();
@@ -158,7 +161,8 @@ private:
         }
     }
 
-    static int find_worst_by_hv_contribution(Population& combined, const std::vector<double>& ref_point) {
+    static int find_worst_by_hv_contribution(Population& combined,
+                                             const std::vector<double>& ref_point) {
         const int n = combined.pop_size;
         const int n_obj = combined.n_obj;
 
@@ -197,19 +201,19 @@ private:
                 } else if (i == 0) {
                     // Leftmost point: contribution = (f1_right - f1_this) * (ref[1] - f2_this)
                     double f1_right = combined.objective(sorted_front[i + 1], 0);
-                    contribution = (f1_right - combined.objective(sorted_front[i], 0))
-                                  * (ref_point[1] - combined.objective(sorted_front[i], 1));
+                    contribution = (f1_right - combined.objective(sorted_front[i], 0)) *
+                                   (ref_point[1] - combined.objective(sorted_front[i], 1));
                 } else if (i == sorted_front.size() - 1) {
                     // Rightmost point: contribution = (ref[0] - f1_this) * (f2_left - f2_this)
                     double f2_left = combined.objective(sorted_front[i - 1], 1);
-                    contribution = (ref_point[0] - combined.objective(sorted_front[i], 0))
-                                  * (f2_left - combined.objective(sorted_front[i], 1));
+                    contribution = (ref_point[0] - combined.objective(sorted_front[i], 0)) *
+                                   (f2_left - combined.objective(sorted_front[i], 1));
                 } else {
                     // Middle point
                     double f1_right = combined.objective(sorted_front[i + 1], 0);
                     double f2_left = combined.objective(sorted_front[i - 1], 1);
-                    contribution = (f1_right - combined.objective(sorted_front[i], 0))
-                                  * (f2_left - combined.objective(sorted_front[i], 1));
+                    contribution = (f1_right - combined.objective(sorted_front[i], 0)) *
+                                   (f2_left - combined.objective(sorted_front[i], 1));
                 }
 
                 if (contribution < min_contribution) {

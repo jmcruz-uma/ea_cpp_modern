@@ -6,10 +6,10 @@
 /// Applies polynomial mutation and then rounds the result to the nearest integer.
 /// Bounds are treated as integer values and the result is clamped and rounded.
 
-#include <cmath>
 #include <algorithm>
-#include <ea/core/population.hpp>
+#include <cmath>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 
 namespace ea {
@@ -18,7 +18,7 @@ namespace ea {
 /// Mutates using polynomial distribution, then rounds to nearest integer.
 struct IntegerPolynomialMutation {
     double distribution_index = 20.0; ///< Distribution index (η)
-    double mutation_rate = -1.0;       ///< Per-gene probability (-1 = 1/dim auto)
+    double mutation_rate = -1.0;      ///< Per-gene probability (-1 = 1/dim auto)
 
     static constexpr Encoding encoding() { return Encoding::Integer; }
 
@@ -28,14 +28,16 @@ struct IntegerPolynomialMutation {
         double mut_pow = 1.0 / (self.distribution_index + 1.0);
 
         for (int j = 0; j < pop.dim; ++j) {
-            if (!rng.coin_flip(rate)) continue;
+            if (!rng.coin_flip(rate))
+                continue;
 
             // Work with integer values
             double yd = pop.gene(idx, j);
             double yl = pop.lower_bounds[j];
             double yu = pop.upper_bounds[j];
 
-            if (yl >= yu) continue;
+            if (yl >= yu)
+                continue;
 
             double delta1 = (yd - yl) / (yu - yl);
             double delta2 = (yu - yd) / (yu - yl);
@@ -44,11 +46,13 @@ struct IntegerPolynomialMutation {
 
             if (rnd <= 0.5) {
                 double xy = 1.0 - delta1;
-                double val = 2.0 * rnd + (1.0 - 2.0 * rnd) * std::pow(xy, self.distribution_index + 1.0);
+                double val =
+                    2.0 * rnd + (1.0 - 2.0 * rnd) * std::pow(xy, self.distribution_index + 1.0);
                 deltaq = std::pow(val, mut_pow) - 1.0;
             } else {
                 double xy = 1.0 - delta2;
-                double val = 2.0 * (1.0 - rnd) + 2.0 * (rnd - 0.5) * std::pow(xy, self.distribution_index + 1.0);
+                double val = 2.0 * (1.0 - rnd) +
+                             2.0 * (rnd - 0.5) * std::pow(xy, self.distribution_index + 1.0);
                 deltaq = 1.0 - std::pow(val, mut_pow);
             }
 

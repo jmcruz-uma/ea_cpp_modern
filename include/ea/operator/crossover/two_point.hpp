@@ -7,8 +7,8 @@
 /// between parents to create offspring.
 
 #include <algorithm>
-#include <ea/core/population.hpp>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 
 namespace ea {
@@ -22,8 +22,8 @@ struct TwoPointCrossover {
     static constexpr Encoding encoding() { return Encoding::Binary; }
     // Also works for Real, Integer at runtime
 
-    void apply(this TwoPointCrossover& self, Population& pop,
-               int parent_a, int parent_b, int child_start) {
+    void apply(this TwoPointCrossover& self, Population& pop, int parent_a, int parent_b,
+               int child_start) {
         auto& rng = Random::instance();
 
         if (!rng.coin_flip(self.crossover_probability)) {

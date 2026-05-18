@@ -6,40 +6,39 @@
 ///
 /// Uses Strength Raw Fitness density estimator for environmental selection.
 
-#include <ea/core/population.hpp>
-#include <ea/core/comparator.hpp>
-#include <ea/util/random.hpp>
-#include <vector>
 #include <algorithm>
 #include <cmath>
+#include <ea/core/comparator.hpp>
+#include <ea/core/population.hpp>
+#include <ea/util/random.hpp>
 #include <limits>
+#include <vector>
 
 namespace ea {
 
 /// SPEA2 algorithm — Strength Pareto Evolutionary Algorithm 2.
 /// Maintains an external archive of non-dominated solutions.
 /// Uses strength-based fitness and k-th nearest neighbor density.
-template<typename CX, typename MT>
-struct SPEA2 {
+template <typename CX, typename MT> struct SPEA2 {
     CX crossover;
     MT mutation;
 
     int pop_size = 100;
-    int archive_size = 100;  // = pop_size for standard SPEA2
+    int archive_size = 100; // = pop_size for standard SPEA2
     int max_evals = 25000;
-    int k_nearest = 1;        // k for density estimation (default: 1)
+    int k_nearest = 1; // k for density estimation (default: 1)
 
     static constexpr std::string_view name() { return "SPEA2"; }
 
     /// Run SPEA2 on the given population.
-    template<typename Problem>
-    void run(this auto& self, Population& pop, Problem&& problem) {
+    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
         const int N = self.pop_size;
 
         // === Initialize population ===
-        if (pop.pop_size != N) pop.resize(N);
+        if (pop.pop_size != N)
+            pop.resize(N);
         for (int i = 0; i < N; ++i) {
             if (!pop.evaluated(i)) {
                 problem(pop, i);
@@ -117,7 +116,8 @@ struct SPEA2 {
                     problem(offspring, i);
                     offspring.set_evaluated(i, true);
                     evals++;
-                    if (evals >= self.max_evals) break;
+                    if (evals >= self.max_evals)
+                        break;
                 }
             }
 
@@ -150,7 +150,8 @@ private:
         std::vector<int> strength(n, 0);
         for (int i = 0; i < n; ++i) {
             for (int j = 0; j < n; ++j) {
-                if (i == j) continue;
+                if (i == j)
+                    continue;
                 if (compare_dominance(pop, i, j) == Dominance::Dominates) {
                     strength[i]++;
                 }
@@ -161,7 +162,8 @@ private:
         for (int i = 0; i < n; ++i) {
             double raw = 0.0;
             for (int j = 0; j < n; ++j) {
-                if (i == j) continue;
+                if (i == j)
+                    continue;
                 if (compare_dominance(pop, j, i) == Dominance::Dominates) {
                     raw += strength[j];
                 }
@@ -178,7 +180,8 @@ private:
             std::vector<double> distances;
             distances.reserve(n - 1);
             for (int j = 0; j < n; ++j) {
-                if (i == j) continue;
+                if (i == j)
+                    continue;
                 double dist = 0.0;
                 for (int o = 0; o < pop.n_obj; ++o) {
                     double diff = pop.objective(i, o) - pop.objective(j, o);
@@ -198,8 +201,8 @@ private:
 
     /// SPEA2 environmental selection: select best N solutions from union
     static int spea2_environmental_selection(const Population& union_pop,
-                                              const std::vector<double>& fitness,
-                                              Population& archive, int archive_size) {
+                                             const std::vector<double>& fitness,
+                                             Population& archive, int archive_size) {
         const int n = union_pop.pop_size;
         const int dim = union_pop.dim;
         const int n_obj = union_pop.n_obj;
@@ -220,9 +223,8 @@ private:
         if (static_cast<int>(nondominated.size()) < archive_size) {
             // Not enough non-dominated — fill with best dominated
             selected = nondominated;
-            std::sort(dominated.begin(), dominated.end(), [&](int a, int b) {
-                return fitness[a] < fitness[b];
-            });
+            std::sort(dominated.begin(), dominated.end(),
+                      [&](int a, int b) { return fitness[a] < fitness[b]; });
             int remaining = archive_size - static_cast<int>(selected.size());
             for (int i = 0; i < remaining && i < static_cast<int>(dominated.size()); ++i) {
                 selected.push_back(dominated[i]);
@@ -244,7 +246,8 @@ private:
                     int i = selected[si];
                     std::vector<double> distances;
                     for (size_t sj = 0; sj < selected.size(); ++sj) {
-                        if (si == sj) continue;
+                        if (si == sj)
+                            continue;
                         int j = selected[sj];
                         double dist = 0.0;
                         for (int o = 0; o < n_obj; ++o) {
@@ -285,8 +288,7 @@ private:
 
     /// Binary tournament selection based on SPEA2 fitness
     static int spea2_tournament(const Population& archive, int archive_count,
-                                 const std::vector<double>& fitness, int offset,
-                                 Random& rng) {
+                                const std::vector<double>& fitness, int offset, Random& rng) {
         int a = rng.uniform_int(0, archive_count - 1);
         int b = rng.uniform_int(0, archive_count - 1);
         // Lower fitness is better

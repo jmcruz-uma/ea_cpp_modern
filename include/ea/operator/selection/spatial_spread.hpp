@@ -9,17 +9,17 @@
 /// 1. Lower Pareto rank (better)
 /// 2. Higher spatial spread deviation (better diversity within rank)
 
-#include <vector>
 #include <algorithm>
 #include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
+#include <vector>
 
 namespace ea {
 
 /// Spatial Spread Deviation Selection.
 /// N-ary tournament selection preferring lower rank, then higher SSD.
 struct SpatialSpreadDeviationSelection {
-    int number_of_tournaments = 2;     ///< Tournament size (default = binary tournament)
+    int number_of_tournaments = 2; ///< Tournament size (default = binary tournament)
 
     /// Select mating pool using SSD-based tournament selection.
     /// @param pop              Population
@@ -27,12 +27,12 @@ struct SpatialSpreadDeviationSelection {
     /// @param ranks            Pareto rank of each individual (lower = better)
     /// @param spatial_spread   Spatial spread deviation of each individual (higher = better)
     void select(this SpatialSpreadDeviationSelection& self, Population& pop,
-                std::vector<int>& mating_pool,
-                const std::vector<int>& ranks,
+                std::vector<int>& mating_pool, const std::vector<int>& ranks,
                 const std::vector<double>& spatial_spread) {
         auto& rng = Random::instance();
         int n = pop.pop_size;
-        if (n <= 0) return;
+        if (n <= 0)
+            return;
 
         int pool_size = 2 * n;
         mating_pool.resize(pool_size);

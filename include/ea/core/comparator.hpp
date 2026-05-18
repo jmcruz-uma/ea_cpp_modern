@@ -2,9 +2,9 @@
 /// @file comparator.hpp
 /// @brief Dominance and crowding distance comparators for multi-objective optimization.
 
-#include <ea/core/population.hpp>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <ea/core/population.hpp>
 #include <limits>
 #include <unordered_map>
 
@@ -12,9 +12,9 @@ namespace ea {
 
 /// Pareto dominance comparison result.
 enum class Dominance : int8_t {
-    Dominates = -1,  ///< a dominates b
-    Equal = 0,       ///< a and b are non-dominated
-    Dominated = 1    ///< b dominates a
+    Dominates = -1, ///< a dominates b
+    Equal = 0,      ///< a and b are non-dominated
+    Dominated = 1   ///< b dominates a
 };
 
 /// Compare two individuals for Pareto dominance.
@@ -28,15 +28,20 @@ inline Dominance compare_dominance(const Population& pop, int a, int b) {
     for (int o = 0; o < pop.n_obj; ++o) {
         double fa = pop.objective(a, o);
         double fb = pop.objective(b, o);
-        if (fa < fb) a_dominates_b = true;
-        else if (fb < fa) b_dominates_a = true;
+        if (fa < fb)
+            a_dominates_b = true;
+        else if (fb < fa)
+            b_dominates_a = true;
 
         // Early exit: if both dominate in different objectives, they're non-dominated
-        if (a_dominates_b && b_dominates_a) return Dominance::Equal;
+        if (a_dominates_b && b_dominates_a)
+            return Dominance::Equal;
     }
 
-    if (a_dominates_b && !b_dominates_a) return Dominance::Dominates;
-    if (b_dominates_a && !a_dominates_b) return Dominance::Dominated;
+    if (a_dominates_b && !b_dominates_a)
+        return Dominance::Dominates;
+    if (b_dominates_a && !a_dominates_b)
+        return Dominance::Dominated;
     return Dominance::Equal;
 }
 
@@ -49,9 +54,8 @@ inline Dominance compare_dominance(const Population& pop, int a, int b) {
 /// @param pop Population
 /// @param indices Indices of individuals in the front
 /// @param crowding_dist Output crowding distances indexed by individual position in `indices`
-inline void compute_crowding_distance(const Population& pop,
-                                       const std::vector<int>& indices,
-                                       std::vector<double>& crowding_dist) {
+inline void compute_crowding_distance(const Population& pop, const std::vector<int>& indices,
+                                      std::vector<double>& crowding_dist) {
     const int n = static_cast<int>(indices.size());
     crowding_dist.assign(n, 0.0);
 
@@ -72,23 +76,24 @@ inline void compute_crowding_distance(const Population& pop,
         // Sort indices by objective o
         std::vector<int> sorted(indices);
         std::sort(sorted.begin(), sorted.end(),
-            [&pop, o](int a, int b) {
-                return pop.objective(a, o) < pop.objective(b, o);
-            });
+                  [&pop, o](int a, int b) { return pop.objective(a, o) < pop.objective(b, o); });
 
         double f_min = pop.objective(sorted[0], o);
         double f_max = pop.objective(sorted[n - 1], o);
 
-        if (f_min == f_max) continue;
+        if (f_min == f_max)
+            continue;
 
         double range = f_max - f_min;
 
         // Boundary: infinite distance (O(1) lookup)
         auto it_min = pos_map.find(sorted[0]);
-        if (it_min != pos_map.end()) crowding_dist[it_min->second] = std::numeric_limits<double>::infinity();
+        if (it_min != pos_map.end())
+            crowding_dist[it_min->second] = std::numeric_limits<double>::infinity();
 
         auto it_max = pos_map.find(sorted[n - 1]);
-        if (it_max != pos_map.end()) crowding_dist[it_max->second] = std::numeric_limits<double>::infinity();
+        if (it_max != pos_map.end())
+            crowding_dist[it_max->second] = std::numeric_limits<double>::infinity();
 
         // Intermediate solutions (O(1) lookup each)
         for (int i = 1; i < n - 1; ++i) {
@@ -116,7 +121,8 @@ inline std::vector<std::vector<int>> fast_non_dominated_sort(Population& pop) {
 
     for (int p = 0; p < n; ++p) {
         for (int q = 0; q < n; ++q) {
-            if (p == q) continue;
+            if (p == q)
+                continue;
             auto dom = compare_dominance(pop, p, q);
             if (dom == Dominance::Dominates) {
                 dominated_by[p].push_back(q);
@@ -155,11 +161,13 @@ inline std::vector<std::vector<int>> fast_non_dominated_sort(Population& pop) {
 /// Compute overall constraint violation for an individual.
 /// Returns the sum of constraint violations (negative values = feasible).
 inline double constraint_violation(const Population& pop, int idx) {
-    if (pop.n_const == 0) return 0.0;
+    if (pop.n_const == 0)
+        return 0.0;
     double violation = 0.0;
     for (int c = 0; c < pop.n_const; ++c) {
         double val = pop.constraint(idx, c);
-        if (val < 0.0) violation += val; // Only count violations
+        if (val < 0.0)
+            violation += val; // Only count violations
     }
     return violation;
 }

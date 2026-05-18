@@ -8,10 +8,10 @@
 /// GD measures the average distance from each point in the approximated front
 /// to its closest point in the reference front. Lower is better.
 
-#include <ea/core/population.hpp>
-#include <vector>
 #include <cmath>
+#include <ea/core/population.hpp>
 #include <limits>
+#include <vector>
 
 namespace ea {
 
@@ -22,18 +22,18 @@ namespace ea {
 /// @param reference_front Reference Pareto front
 /// @param p              Power parameter (default 2.0 for Euclidean)
 /// @return GD value (lower is better)
-inline double gd(const Population& pop,
-                 const std::vector<int>& indices,
-                 const std::vector<std::vector<double>>& reference_front,
-                 double p = 2.0) {
-    if (reference_front.empty() || indices.empty()) return 0.0;
+inline double gd(const Population& pop, const std::vector<int>& indices,
+                 const std::vector<std::vector<double>>& reference_front, double p = 2.0) {
+    if (reference_front.empty() || indices.empty())
+        return 0.0;
 
     // Extract front points from population
     std::vector<std::vector<double>> front;
     front.reserve(indices.size());
     for (int idx : indices) {
         std::vector<double> point(pop.n_obj);
-        for (int o = 0; o < pop.n_obj; ++o) point[o] = pop.objective(idx, o);
+        for (int o = 0; o < pop.n_obj; ++o)
+            point[o] = pop.objective(idx, o);
         front.push_back(point);
     }
 
@@ -47,7 +47,8 @@ inline double gd(const Population& pop,
                 dist += diff * diff;
             }
             dist = std::sqrt(dist);
-            if (dist < min_dist) min_dist = dist;
+            if (dist < min_dist)
+                min_dist = dist;
         }
         sum += std::pow(min_dist, p);
     }
@@ -58,9 +59,9 @@ inline double gd(const Population& pop,
 
 /// GD from two vector fronts.
 inline double gd(const std::vector<std::vector<double>>& front,
-                 const std::vector<std::vector<double>>& reference_front,
-                 double p = 2.0) {
-    if (reference_front.empty() || front.empty()) return 0.0;
+                 const std::vector<std::vector<double>>& reference_front, double p = 2.0) {
+    if (reference_front.empty() || front.empty())
+        return 0.0;
 
     double sum = 0.0;
     for (const auto& point : front) {
@@ -72,7 +73,8 @@ inline double gd(const std::vector<std::vector<double>>& front,
                 dist += diff * diff;
             }
             dist = std::sqrt(dist);
-            if (dist < min_dist) min_dist = dist;
+            if (dist < min_dist)
+                min_dist = dist;
         }
         sum += std::pow(min_dist, p);
     }
@@ -84,15 +86,12 @@ inline double gd(const std::vector<std::vector<double>>& front,
 struct GDIndicator {
     double p = 2.0;
 
-    double compute(this GDIndicator& self,
-                   const Population& pop,
-                   const std::vector<int>& indices,
+    double compute(this GDIndicator& self, const Population& pop, const std::vector<int>& indices,
                    const std::vector<std::vector<double>>& reference_front) {
         return gd(pop, indices, reference_front, self.p);
     }
 
-    double compute(this GDIndicator& self,
-                   const std::vector<std::vector<double>>& front,
+    double compute(this GDIndicator& self, const std::vector<std::vector<double>>& front,
                    const std::vector<std::vector<double>>& reference_front) {
         return gd(front, reference_front, self.p);
     }

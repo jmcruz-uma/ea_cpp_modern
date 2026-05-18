@@ -3,10 +3,10 @@
 /// @brief Random number generation utilities for EAs.
 /// Thread-safe, cache-friendly, with SIMD-friendly batch generation.
 
+#include <cmath>
+#include <cstdint>
 #include <random>
 #include <vector>
-#include <cstdint>
-#include <cmath>
 
 namespace ea {
 
@@ -28,9 +28,7 @@ public:
         return std::uniform_real_distribution<double>(lo, hi)(gen_);
     }
 
-    int uniform_int(int lo, int hi) {
-        return std::uniform_int_distribution<int>(lo, hi)(gen_);
-    }
+    int uniform_int(int lo, int hi) { return std::uniform_int_distribution<int>(lo, hi)(gen_); }
 
     /// Fill a range with uniform random values — SIMD-friendly bulk generation
     void uniform_batch(double* out, int n, double lo = 0.0, double hi = 1.0) {
@@ -41,8 +39,7 @@ public:
     }
 
     /// Fill a range with uniform random values within per-element bounds
-    void uniform_batch(double* out, int n,
-                       const double* lo, const double* hi) {
+    void uniform_batch(double* out, int n, const double* lo, const double* hi) {
         for (int i = 0; i < n; ++i) {
             out[i] = std::uniform_real_distribution<double>(lo[i], hi[i])(gen_);
         }
@@ -66,9 +63,8 @@ public:
         // Levy distribution: generate using Mantel's method
         double u = uniform(-0.5 * M_PI, 0.5 * M_PI);
         double v = uniform(0.0, 1.0);
-        return scale * std::sin(u) / std::pow(std::cos(u), 1.0 / 1.5)
-               * std::pow(std::cos((1.0 - 1.5) * u / (1.0 / 1.5)) / v,
-                          (1.5 - 1.0) / 1.0);
+        return scale * std::sin(u) / std::pow(std::cos(u), 1.0 / 1.5) *
+               std::pow(std::cos((1.0 - 1.5) * u / (1.0 / 1.5)) / v, (1.5 - 1.0) / 1.0);
     }
 
     // --- Permutation generation ---
@@ -82,15 +78,11 @@ public:
     }
 
     /// Shuffle a span in-place
-    void shuffle(std::span<int> s) {
-        std::shuffle(s.begin(), s.end(), gen_);
-    }
+    void shuffle(std::span<int> s) { std::shuffle(s.begin(), s.end(), gen_); }
 
     // --- Coin flip ---
 
-    bool coin_flip(double p = 0.5) {
-        return uniform() < p;
-    }
+    bool coin_flip(double p = 0.5) { return uniform() < p; }
 
     std::mt19937_64& engine() { return gen_; }
     Random() {
@@ -98,7 +90,7 @@ public:
         gen_.seed(rd());
     }
 
-    std::mt19937_64 gen_;  // Mersenne Twister 64-bit — fast, high quality
+    std::mt19937_64 gen_; // Mersenne Twister 64-bit — fast, high quality
 };
 
 } // namespace ea

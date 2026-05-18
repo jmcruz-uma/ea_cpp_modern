@@ -9,14 +9,14 @@
 /// instead of Pareto dominance. This allows it to handle many objectives better than
 /// dominance-based algorithms.
 
-#include <ea/core/population.hpp>
-#include <ea/core/comparator.hpp>
-#include <ea/util/random.hpp>
-#include <ea/indicator/hypervolume.hpp>
-#include <cmath>
-#include <vector>
 #include <algorithm>
+#include <cmath>
+#include <ea/core/comparator.hpp>
+#include <ea/core/population.hpp>
+#include <ea/indicator/hypervolume.hpp>
+#include <ea/util/random.hpp>
 #include <limits>
+#include <vector>
 
 namespace ea {
 
@@ -27,14 +27,13 @@ namespace ea {
 ///   ibea.pop_size = 100;
 ///   ibea.max_evals = 25000;
 ///   ibea.run(pop, problem);
-template<typename CX, typename MT>
-struct IBEA {
+template <typename CX, typename MT> struct IBEA {
     CX crossover;
     MT mutation;
 
     int pop_size = 100;
     int max_evals = 25000;
-    double kappa = 0.05;  ///< Scaling factor for indicator values
+    double kappa = 0.05; ///< Scaling factor for indicator values
 
     static constexpr std::string_view name() { return "IBEA"; }
 
@@ -43,7 +42,8 @@ struct IBEA {
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
 
-        if (pop.pop_size != n) pop.resize(n);
+        if (pop.pop_size != n)
+            pop.resize(n);
 
         // === Evaluate initial population ===
         for (int i = 0; i < n; ++i) {
@@ -68,12 +68,14 @@ struct IBEA {
 
                 for (int j = 0; j < dim; ++j) {
                     offspring.gene(i, j) = pop.gene(p1, j);
-                    if (i + 1 < n) offspring.gene(i + 1, j) = pop.gene(p2, j);
+                    if (i + 1 < n)
+                        offspring.gene(i + 1, j) = pop.gene(p2, j);
                 }
 
                 self.crossover.apply(offspring, i, (i + 1 < n) ? i + 1 : i, i);
                 self.mutation.apply(offspring, i);
-                if (i + 1 < n) self.mutation.apply(offspring, i + 1);
+                if (i + 1 < n)
+                    self.mutation.apply(offspring, i + 1);
             }
 
             // Evaluate offspring
@@ -82,7 +84,8 @@ struct IBEA {
                     problem(offspring, i);
                     offspring.set_evaluated(i, true);
                     evals++;
-                    if (evals >= self.max_evals) break;
+                    if (evals >= self.max_evals)
+                        break;
                 }
             }
 
@@ -110,13 +113,15 @@ struct IBEA {
             for (int i = 0; i < 2 * n; ++i) {
                 double sum_indicator = 0.0;
                 for (int j = 0; j < 2 * n; ++j) {
-                    if (i == j) continue;
+                    if (i == j)
+                        continue;
 
                     // Compute epsilon indicator value I(i, j)
                     double epsilon = std::numeric_limits<double>::lowest();
                     for (int o = 0; o < n_obj; ++o) {
                         double val = combined.objective(i, o) - combined.objective(j, o);
-                        if (val > epsilon) epsilon = val;
+                        if (val > epsilon)
+                            epsilon = val;
                     }
 
                     // Indicator value: -exp(-I(i,j) / kappa)
@@ -143,7 +148,8 @@ struct IBEA {
                     }
                 }
 
-                if (worst_idx < 0) break;
+                if (worst_idx < 0)
+                    break;
 
                 // Remove worst individual
                 removed[worst_idx] = true;
@@ -151,13 +157,15 @@ struct IBEA {
 
                 // Update fitness of remaining individuals
                 for (int i = 0; i < 2 * n; ++i) {
-                    if (removed[i] || i == worst_idx) continue;
+                    if (removed[i] || i == worst_idx)
+                        continue;
 
                     // Recompute indicator contribution from i to worst
                     double epsilon = std::numeric_limits<double>::lowest();
                     for (int o = 0; o < n_obj; ++o) {
                         double val = combined.objective(i, o) - combined.objective(worst_idx, o);
-                        if (val > epsilon) epsilon = val;
+                        if (val > epsilon)
+                            epsilon = val;
                     }
                     double indicator_value = -std::exp(-epsilon / self.kappa);
                     fitness[i] -= indicator_value;

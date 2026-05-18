@@ -8,10 +8,10 @@
 /// The mutation adds a perturbation deltaq = 0.5 * (rnd - 0.5) * (1 - rnd^(-delta))
 /// where delta controls the magnitude of the perturbation.
 
-#include <cmath>
 #include <algorithm>
-#include <ea/core/population.hpp>
+#include <cmath>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 
 namespace ea {
@@ -19,8 +19,8 @@ namespace ea {
 /// Constrained Differential Growth Mutation for real-valued encodings.
 /// Uses a power-law perturbation that is larger near the boundaries.
 struct CDGMutation {
-    double mutation_rate = -1.0;   ///< Per-gene probability (-1 = 1/dim auto)
-    double delta = 0.5;             ///< Perturbation scaling factor
+    double mutation_rate = -1.0; ///< Per-gene probability (-1 = 1/dim auto)
+    double delta = 0.5;          ///< Perturbation scaling factor
 
     static constexpr Encoding encoding() { return Encoding::Real; }
 
@@ -29,14 +29,16 @@ struct CDGMutation {
         double rate = self.mutation_rate < 0 ? 1.0 / pop.dim : self.mutation_rate;
 
         for (int j = 0; j < pop.dim; ++j) {
-            if (!rng.coin_flip(rate)) continue;
+            if (!rng.coin_flip(rate))
+                continue;
 
             double y = pop.gene(idx, j);
             double lb = pop.lower_bounds[j];
             double ub = pop.upper_bounds[j];
             double range = ub - lb;
 
-            if (range < 1e-14) continue;
+            if (range < 1e-14)
+                continue;
 
             double rnd = rng.uniform();
             double temp_delta = std::pow(rnd, -self.delta);

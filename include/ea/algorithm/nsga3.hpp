@@ -6,38 +6,37 @@
 ///
 /// Uses reference-point-based niching for environmental selection.
 
-#include <ea/core/population.hpp>
+#include <algorithm>
 #include <ea/core/comparator.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 #include <ea/util/reference_point.hpp>
-#include <vector>
-#include <algorithm>
 #include <numeric>
 #include <string_view>
+#include <vector>
 
 namespace ea {
 
 /// NSGA-III algorithm — many-objective optimization using reference points.
 /// Template parameters allow compile-time specialization.
-template<typename CX, typename MT>
-struct NSGAIII {
+template <typename CX, typename MT> struct NSGAIII {
     CX crossover;
     MT mutation;
 
     int pop_size = 100;
     int max_evals = 25000;
-    int divisions = 10;  ///< Das-Dennis divisions for reference point generation
+    int divisions = 10; ///< Das-Dennis divisions for reference point generation
 
     static constexpr std::string_view name() { return "NSGA-III"; }
 
     /// Run NSGA-III.
-    template<typename Problem>
-    void run(this auto& self, Population& pop, Problem&& problem) {
+    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
         const int n = self.pop_size;
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
 
-        if (pop.pop_size != n) pop.resize(n);
+        if (pop.pop_size != n)
+            pop.resize(n);
 
         // Generate reference points
         auto reference_points = generate_reference_points(n_obj, self.divisions);
@@ -79,7 +78,8 @@ struct NSGAIII {
             // === Selection (binary tournament by rank) ===
             std::vector<int> ranks(n, 0);
             for (int r = 0; r < static_cast<int>(fronts.size()); ++r) {
-                for (int idx : fronts[r]) ranks[idx] = r;
+                for (int idx : fronts[r])
+                    ranks[idx] = r;
             }
 
             std::vector<int> mating_pool(2 * n);
@@ -119,7 +119,8 @@ struct NSGAIII {
                     problem(offspring, i);
                     offspring.set_evaluated(i, true);
                     evals++;
-                    if (evals >= self.max_evals) break;
+                    if (evals >= self.max_evals)
+                        break;
                 }
             }
 
@@ -146,7 +147,8 @@ struct NSGAIII {
             }
 
             // Translate objectives (subtract ideal point)
-            std::vector<std::vector<double>> translated(combined.pop_size, std::vector<double>(n_obj));
+            std::vector<std::vector<double>> translated(combined.pop_size,
+                                                        std::vector<double>(n_obj));
             for (int i = 0; i < combined.pop_size; ++i) {
                 for (int o = 0; o < n_obj; ++o) {
                     translated[i][o] = combined.objective(i, o) - ideal[o];
@@ -170,9 +172,10 @@ struct NSGAIII {
                         cd_index[fi] = {front_cd[fi], front[fi]};
                     }
                     std::sort(cd_index.begin(), cd_index.end(),
-                        [](const auto& a, const auto& b) { return a.first > b.first; });
+                              [](const auto& a, const auto& b) { return a.first > b.first; });
 
-                    for (int fi = 0; fi < remaining && fi < static_cast<int>(cd_index.size()); ++fi) {
+                    for (int fi = 0; fi < remaining && fi < static_cast<int>(cd_index.size());
+                         ++fi) {
                         selected.push_back(cd_index[fi].second);
                     }
                     break;
@@ -202,8 +205,8 @@ private:
     }
 
     static void generate_recursive(std::vector<ReferencePoint>& points,
-                                    std::vector<double>& ref_point,
-                                    int n_obj, int divisions, int obj_idx, int remaining) {
+                                   std::vector<double>& ref_point, int n_obj, int divisions,
+                                   int obj_idx, int remaining) {
         if (obj_idx == n_obj - 1) {
             ref_point[obj_idx] = static_cast<double>(remaining) / divisions;
             ReferencePoint rp;

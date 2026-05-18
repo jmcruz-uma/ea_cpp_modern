@@ -4,12 +4,12 @@
 /// Reference: jMetal EdgeRecombinationCrossover — https://github.com/jMetal/jMetal
 /// C++23 with deducing this, SoA Population access.
 
-#include <vector>
 #include <algorithm>
-#include <limits>
-#include <ea/core/population.hpp>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
+#include <limits>
+#include <vector>
 
 namespace ea {
 
@@ -24,8 +24,8 @@ struct EdgeRecombinationCrossover {
     static constexpr Encoding encoding() { return Encoding::Permutation; }
 
     /// Apply Edge Recombination crossover. Produces 2 children starting at child_start.
-    void apply(this EdgeRecombinationCrossover& self, Population& pop,
-               int parent_a, int parent_b, int child_start) {
+    void apply(this EdgeRecombinationCrossover& self, Population& pop, int parent_a, int parent_b,
+               int child_start) {
         auto& rng = Random::instance();
         int dim = pop.dim;
 
@@ -52,8 +52,8 @@ struct EdgeRecombinationCrossover {
 
 private:
     /// Build a child using edge recombination from two parents.
-    void build_child(this EdgeRecombinationCrossover&, Population& pop, int parent_from, int parent_to,
-                     int child_idx, Random& rng) {
+    void build_child(this EdgeRecombinationCrossover&, Population& pop, int parent_from,
+                     int parent_to, int child_idx, Random& rng) {
         int dim = pop.dim;
 
         // Build edge map: for each value, store adjacent values from both parents
@@ -104,7 +104,8 @@ private:
                 }
             }
 
-            if (pos >= dim) break;
+            if (pos >= dim)
+                break;
 
             // Find next candidate
             const auto& neighbors = edge_map[current];
@@ -115,7 +116,8 @@ private:
                 int min_size = std::numeric_limits<int>::max();
                 std::vector<int> candidates;
                 for (int n : neighbors) {
-                    if (visited[n]) continue;
+                    if (visited[n])
+                        continue;
                     int n_size = static_cast<int>(edge_map[n].size());
                     if (n_size < min_size) {
                         min_size = n_size;
@@ -127,7 +129,8 @@ private:
                 }
 
                 if (!candidates.empty()) {
-                    next_val = candidates[rng.uniform_int(0, static_cast<int>(candidates.size()) - 1)];
+                    next_val =
+                        candidates[rng.uniform_int(0, static_cast<int>(candidates.size()) - 1)];
                 }
             }
 

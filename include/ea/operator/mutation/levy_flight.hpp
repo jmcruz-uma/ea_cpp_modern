@@ -3,10 +3,10 @@
 /// @brief Lévy Flight Mutation — heavy-tailed steps for global exploration.
 /// Reference: org.uma.jmetal.operator.mutation.impl.LevyFlightMutation
 
-#include <cmath>
 #include <algorithm>
-#include <ea/core/population.hpp>
+#include <cmath>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 
 namespace ea {
@@ -15,9 +15,9 @@ namespace ea {
 /// Uses the Mantegna algorithm for heavy-tailed step generation.
 /// Mostly small steps with occasional large jumps — good for escaping local optima.
 struct LevyFlightMutation {
-    double beta = 1.5;             ///< Lévy index (1 < beta <= 2)
-    double step_size = 0.01;       ///< Step scaling factor
-    double mutation_rate = -1.0;   ///< Per-gene probability (-1 = 1/dim auto)
+    double beta = 1.5;           ///< Lévy index (1 < beta <= 2)
+    double step_size = 0.01;     ///< Step scaling factor
+    double mutation_rate = -1.0; ///< Per-gene probability (-1 = 1/dim auto)
 
     static constexpr Encoding encoding() { return Encoding::Real; }
 
@@ -26,14 +26,16 @@ struct LevyFlightMutation {
         double rate = self.mutation_rate < 0 ? 1.0 / pop.dim : self.mutation_rate;
 
         for (int j = 0; j < pop.dim; ++j) {
-            if (!rng.coin_flip(rate)) continue;
+            if (!rng.coin_flip(rate))
+                continue;
 
             double y = pop.gene(idx, j);
             double lb = pop.lower_bounds[j];
             double ub = pop.upper_bounds[j];
             double range = ub - lb;
 
-            if (range < 1e-14) continue;
+            if (range < 1e-14)
+                continue;
 
             double levy_step = self.generate_levy_step(rng);
             double perturbation = levy_step * self.step_size * range;

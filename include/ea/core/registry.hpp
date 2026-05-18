@@ -19,53 +19,53 @@
 #include <ea/core/factory_types.hpp>
 
 // Crossover operators (2-parent standard signature)
-#include <ea/operator/crossover/sbx.hpp>
+#include <ea/operator/crossover/arithmetic.hpp>
 #include <ea/operator/crossover/blx_alpha.hpp>
 #include <ea/operator/crossover/blx_alpha_beta.hpp>
-#include <ea/operator/crossover/arithmetic.hpp>
-#include <ea/operator/crossover/whole_arithmetic.hpp>
-#include <ea/operator/crossover/laplace.hpp>
-#include <ea/operator/crossover/pmx.hpp>
 #include <ea/operator/crossover/cycle.hpp>
 #include <ea/operator/crossover/edge_recombination.hpp>
+#include <ea/operator/crossover/laplace.hpp>
 #include <ea/operator/crossover/oxd.hpp>
+#include <ea/operator/crossover/pmx.hpp>
 #include <ea/operator/crossover/position_based.hpp>
+#include <ea/operator/crossover/sbx.hpp>
 #include <ea/operator/crossover/uniform.hpp>
+#include <ea/operator/crossover/whole_arithmetic.hpp>
 
 // Mutation operators
-#include <ea/operator/mutation/polynomial.hpp>
 #include <ea/operator/mutation/bit_flip.hpp>
-#include <ea/operator/mutation/swap.hpp>
-#include <ea/operator/mutation/inversion.hpp>
 #include <ea/operator/mutation/insert.hpp>
-#include <ea/operator/mutation/scramble.hpp>
-#include <ea/operator/mutation/uniform.hpp>
-#include <ea/operator/mutation/non_uniform.hpp>
-#include <ea/operator/mutation/power_law.hpp>
+#include <ea/operator/mutation/inversion.hpp>
 #include <ea/operator/mutation/levy_flight.hpp>
+#include <ea/operator/mutation/non_uniform.hpp>
+#include <ea/operator/mutation/polynomial.hpp>
+#include <ea/operator/mutation/power_law.hpp>
+#include <ea/operator/mutation/scramble.hpp>
 #include <ea/operator/mutation/simple_random.hpp>
+#include <ea/operator/mutation/swap.hpp>
+#include <ea/operator/mutation/uniform.hpp>
 
 // Problems
-#include <ea/problem/zdt.hpp>
 #include <ea/problem/dtlz.hpp>
+#include <ea/problem/zdt.hpp>
 
 namespace ea::registry {
 
 // ============================================================
 // Crossover (2-parent standard signature)
 // ============================================================
-EA_REGISTER_CROSSOVER("sbx",                SBXCrossover);
-EA_REGISTER_CROSSOVER("blx_alpha",           BLXAlphaCrossover);
-EA_REGISTER_CROSSOVER("blx_alpha_beta",      BLXAlphaBetaCrossover);
-EA_REGISTER_CROSSOVER("arithmetic",          ArithmeticCrossover);
-EA_REGISTER_CROSSOVER("whole_arithmetic",     WholeArithmeticCrossover);
-EA_REGISTER_CROSSOVER("laplace",             LaplaceCrossover);
-EA_REGISTER_CROSSOVER("pmx",                 PMXCrossover);
-EA_REGISTER_CROSSOVER("cycle",               CycleCrossover);
-EA_REGISTER_CROSSOVER("edge_recombination",  EdgeRecombinationCrossover);
-EA_REGISTER_CROSSOVER("oxd",                 OXDCrossover);
-EA_REGISTER_CROSSOVER("position_based",       PositionBasedCrossover);
-EA_REGISTER_CROSSOVER("uniform_cx",           UniformCrossover);
+EA_REGISTER_CROSSOVER("sbx", SBXCrossover);
+EA_REGISTER_CROSSOVER("blx_alpha", BLXAlphaCrossover);
+EA_REGISTER_CROSSOVER("blx_alpha_beta", BLXAlphaBetaCrossover);
+EA_REGISTER_CROSSOVER("arithmetic", ArithmeticCrossover);
+EA_REGISTER_CROSSOVER("whole_arithmetic", WholeArithmeticCrossover);
+EA_REGISTER_CROSSOVER("laplace", LaplaceCrossover);
+EA_REGISTER_CROSSOVER("pmx", PMXCrossover);
+EA_REGISTER_CROSSOVER("cycle", CycleCrossover);
+EA_REGISTER_CROSSOVER("edge_recombination", EdgeRecombinationCrossover);
+EA_REGISTER_CROSSOVER("oxd", OXDCrossover);
+EA_REGISTER_CROSSOVER("position_based", PositionBasedCrossover);
+EA_REGISTER_CROSSOVER("uniform_cx", UniformCrossover);
 
 // Note: DECrossover and ParentCentricCrossover have non-standard
 // signatures (pointer-to-parents, 3-parent). They remain compile-time
@@ -74,17 +74,17 @@ EA_REGISTER_CROSSOVER("uniform_cx",           UniformCrossover);
 // ============================================================
 // Mutation
 // ============================================================
-EA_REGISTER_MUTATION("polynomial",           PolynomialMutation);
-EA_REGISTER_MUTATION("bit_flip",             BitFlipMutation);
-EA_REGISTER_MUTATION("swap",                 SwapMutation);
-EA_REGISTER_MUTATION("inversion",            InversionMutation);
-EA_REGISTER_MUTATION("insert",               InsertMutation);
-EA_REGISTER_MUTATION("scramble",            ScrambleMutation);
-EA_REGISTER_MUTATION("uniform_mt",           UniformMutation);
-EA_REGISTER_MUTATION("non_uniform",          NonUniformMutation);
-EA_REGISTER_MUTATION("power_law",           PowerLawMutation);
-EA_REGISTER_MUTATION("levy_flight",          LevyFlightMutation);
-EA_REGISTER_MUTATION("simple_random",        SimpleRandomMutation);
+EA_REGISTER_MUTATION("polynomial", PolynomialMutation);
+EA_REGISTER_MUTATION("bit_flip", BitFlipMutation);
+EA_REGISTER_MUTATION("swap", SwapMutation);
+EA_REGISTER_MUTATION("inversion", InversionMutation);
+EA_REGISTER_MUTATION("insert", InsertMutation);
+EA_REGISTER_MUTATION("scramble", ScrambleMutation);
+EA_REGISTER_MUTATION("uniform_mt", UniformMutation);
+EA_REGISTER_MUTATION("non_uniform", NonUniformMutation);
+EA_REGISTER_MUTATION("power_law", PowerLawMutation);
+EA_REGISTER_MUTATION("levy_flight", LevyFlightMutation);
+EA_REGISTER_MUTATION("simple_random", SimpleRandomMutation);
 
 // ============================================================
 // Problems

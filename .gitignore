@@ -1,4 +1,6 @@
 build/
 zdt1_front.csv
-build/
 *.csv
+Doxyfile.bak
+docs/html/
+docs/latex/

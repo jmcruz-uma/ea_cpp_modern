@@ -9,10 +9,10 @@
 /// is drawn once and used for all variables that are mutated (the "linked" aspect).
 /// This creates correlated perturbations across variables.
 
-#include <cmath>
 #include <algorithm>
-#include <ea/core/population.hpp>
+#include <cmath>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 
 namespace ea {
@@ -21,7 +21,7 @@ namespace ea {
 /// Uses a single shared random value for all mutated variables, creating correlated perturbations.
 struct LinkedPolynomialMutation {
     double distribution_index = 20.0; ///< Distribution index (η)
-    double mutation_rate = -1.0;       ///< Per-gene probability (-1 = 1/dim auto)
+    double mutation_rate = -1.0;      ///< Per-gene probability (-1 = 1/dim auto)
 
     static constexpr Encoding encoding() { return Encoding::Real; }
 
@@ -34,13 +34,15 @@ struct LinkedPolynomialMutation {
         double mut_pow = 1.0 / (self.distribution_index + 1.0);
 
         for (int j = 0; j < pop.dim; ++j) {
-            if (!rng.coin_flip(rate)) continue;
+            if (!rng.coin_flip(rate))
+                continue;
 
             double y = pop.gene(idx, j);
             double lb = pop.lower_bounds[j];
             double ub = pop.upper_bounds[j];
 
-            if (lb >= ub) continue;
+            if (lb >= ub)
+                continue;
 
             double delta1 = (y - lb) / (ub - lb);
             double delta2 = (ub - y) / (ub - lb);
@@ -48,11 +50,13 @@ struct LinkedPolynomialMutation {
 
             if (shared_rnd <= 0.5) {
                 double xy = 1.0 - delta1;
-                double val = 2.0 * shared_rnd + (1.0 - 2.0 * shared_rnd) * std::pow(xy, self.distribution_index + 1.0);
+                double val = 2.0 * shared_rnd +
+                             (1.0 - 2.0 * shared_rnd) * std::pow(xy, self.distribution_index + 1.0);
                 deltaq = std::pow(val, mut_pow) - 1.0;
             } else {
                 double xy = 1.0 - delta2;
-                double val = 2.0 * (1.0 - shared_rnd) + 2.0 * (shared_rnd - 0.5) * std::pow(xy, self.distribution_index + 1.0);
+                double val = 2.0 * (1.0 - shared_rnd) +
+                             2.0 * (shared_rnd - 0.5) * std::pow(xy, self.distribution_index + 1.0);
                 deltaq = 1.0 - std::pow(val, mut_pow);
             }
 

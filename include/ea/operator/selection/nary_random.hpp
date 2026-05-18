@@ -5,10 +5,10 @@
 /// Reference: jMetal
 ///   jmetal-core/src/main/java/org/uma/jmetal/operator/selection/impl/NaryRandomSelection.java
 
+#include <algorithm>
 #include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 #include <vector>
-#include <algorithm>
 
 namespace ea {
 
@@ -22,8 +22,7 @@ struct NaryRandomSelection {
     /// Select N random individuals into `selected`.
     /// @param pop      Population
     /// @param selected Output: selected individual indices (resized to n_solutions)
-    void select(this NaryRandomSelection& self, Population& pop,
-                std::vector<int>& selected) {
+    void select(this NaryRandomSelection& self, Population& pop, std::vector<int>& selected) {
         auto& rng = Random::instance();
         selected.resize(self.n_solutions);
 

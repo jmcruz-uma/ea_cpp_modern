@@ -7,22 +7,21 @@
 /// Uses geometry-based environmental selection to estimate the shape of the Pareto front
 /// and compute survival scores based on distance to a local geometry estimate.
 
-#include <ea/core/population.hpp>
-#include <ea/core/comparator.hpp>
-#include <ea/util/random.hpp>
-#include <vector>
 #include <algorithm>
-#include <numeric>
 #include <cmath>
+#include <ea/core/comparator.hpp>
+#include <ea/core/population.hpp>
+#include <ea/util/random.hpp>
 #include <limits>
+#include <numeric>
 #include <string_view>
+#include <vector>
 
 namespace ea {
 
 /// AGE-MOEA — Adaptive Geometry Estimation based MOEA.
 /// Template composition for crossover and mutation.
-template<typename CX, typename MT>
-struct AGEMOEA {
+template <typename CX, typename MT> struct AGEMOEA {
     CX crossover;
     MT mutation;
 
@@ -32,13 +31,13 @@ struct AGEMOEA {
     static constexpr std::string_view name() { return "AGE-MOEA"; }
 
     /// Run AGE-MOEA.
-    template<typename Problem>
-    void run(this auto& self, Population& pop, Problem&& problem) {
+    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
         const int n = self.pop_size;
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
 
-        if (pop.pop_size != n) pop.resize(n);
+        if (pop.pop_size != n)
+            pop.resize(n);
 
         // === Evaluate initial population ===
         for (int i = 0; i < n; ++i) {
@@ -99,10 +98,12 @@ struct AGEMOEA {
                     problem(offspring, i);
                     offspring.set_evaluated(i, true);
                     evals++;
-                    if (evals >= self.max_evals) break;
+                    if (evals >= self.max_evals)
+                        break;
                 }
             }
-            if (evals >= self.max_evals) break;
+            if (evals >= self.max_evals)
+                break;
 
             // === 3. Combine parent + offspring ===
             for (int i = 0; i < n; ++i) {
@@ -139,7 +140,8 @@ private:
         const int n_obj = pop.n_obj;
         const int n = pop.pop_size;
 
-        if (n <= target_size) return;
+        if (n <= target_size)
+            return;
 
         // Step 1: Fast non-dominated sort
         auto fronts = fast_non_dominated_sort(pop);
@@ -181,7 +183,7 @@ private:
             score_index.push_back({scores[i], critical_front[i]});
         }
         std::sort(score_index.begin(), score_index.end(),
-            [](const auto& a, const auto& b) { return a.first > b.first; });
+                  [](const auto& a, const auto& b) { return a.first > b.first; });
 
         int remaining = target_size - static_cast<int>(selected.size());
         for (int i = 0; i < remaining && i < static_cast<int>(score_index.size()); ++i) {
@@ -194,15 +196,14 @@ private:
 
     /// Estimate the geometry (shape) parameter p of the Pareto front.
     /// p = 1: linear, p = 2: convex, p > 2: more convex, p < 1: concave.
-    double estimate_geometry(this auto& self, Population& pop,
-                             const std::vector<int>& selected,
-                             const std::vector<int>& critical_front,
-                             int n_obj) {
+    double estimate_geometry(this auto& self, Population& pop, const std::vector<int>& selected,
+                             const std::vector<int>& critical_front, int n_obj) {
         // Combine selected + critical front for estimation
         std::vector<int> all_individuals = selected;
         all_individuals.insert(all_individuals.end(), critical_front.begin(), critical_front.end());
 
-        if (all_individuals.size() < 2) return 1.0;
+        if (all_individuals.size() < 2)
+            return 1.0;
 
         // Compute ideal and nadir points
         std::vector<double> ideal(n_obj, std::numeric_limits<double>::max());
@@ -221,7 +222,8 @@ private:
             double dist = 0.0;
             for (int o = 0; o < n_obj; ++o) {
                 double range = nadir[o] - ideal[o];
-                if (range < 1e-12) range = 1e-12;
+                if (range < 1e-12)
+                    range = 1e-12;
                 double normalized = (pop.objective(idx, o) - ideal[o]) / range;
                 dist += normalized * normalized;
             }
@@ -231,7 +233,8 @@ private:
 
         // Estimate p from average distance: closer to ideal = more convex (higher p)
         // Simple heuristic: p = 1 / avg_dist (closer = larger p)
-        if (avg_dist < 1e-12) return 1.0;
+        if (avg_dist < 1e-12)
+            return 1.0;
         double p = 1.0 / avg_dist;
         return std::clamp(p, 0.1, 10.0);
     }
@@ -239,8 +242,7 @@ private:
     /// Compute survival score for an individual based on geometry estimation.
     /// Uses the Minkowski distance with estimated p to measure contribution.
     double survival_score(this auto& self, Population& pop, int idx,
-                           const std::vector<int>& selected,
-                           int n_obj, double p) {
+                          const std::vector<int>& selected, int n_obj, double p) {
         if (selected.empty()) {
             return std::numeric_limits<double>::infinity();
         }
@@ -257,7 +259,8 @@ private:
         double dist = 0.0;
         for (int o = 0; o < n_obj; ++o) {
             double d = pop.objective(idx, o) - ideal[o];
-            if (d < 0) d = 0; // Shouldn't happen for ideal
+            if (d < 0)
+                d = 0; // Shouldn't happen for ideal
             dist += std::pow(d, p);
         }
         dist = std::pow(dist, 1.0 / p);
@@ -283,8 +286,7 @@ private:
     }
 
     /// Reorder population so selected individuals are in positions [0, selected.size()).
-    void reorder_population(this auto&, Population& pop,
-                            const std::vector<int>& selected) {
+    void reorder_population(this auto&, Population& pop, const std::vector<int>& selected) {
         Population temp(pop.pop_size, pop.dim, pop.n_obj, pop.encoding, pop.n_const);
         temp.lower_bounds = pop.lower_bounds;
         temp.upper_bounds = pop.upper_bounds;

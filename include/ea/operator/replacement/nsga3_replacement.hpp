@@ -9,14 +9,14 @@
 ///
 /// Reference: Deb & Jain, IEEE TEVC 2014.
 
-#include <ea/core/population.hpp>
-#include <ea/core/comparator.hpp>
-#include <ea/util/reference_point.hpp>
-#include <ea/util/random.hpp>
-#include <vector>
 #include <algorithm>
-#include <limits>
 #include <cmath>
+#include <ea/core/comparator.hpp>
+#include <ea/core/population.hpp>
+#include <ea/util/random.hpp>
+#include <ea/util/reference_point.hpp>
+#include <limits>
+#include <vector>
 
 namespace ea {
 
@@ -37,7 +37,7 @@ struct NSGAIIIReplacement {
 private:
     /// Compute ideal point from front
     static void compute_ideal_point(Population& pop, const std::vector<int>& front,
-                                     std::vector<double>& ideal, int n_obj) {
+                                    std::vector<double>& ideal, int n_obj) {
         ideal.assign(n_obj, std::numeric_limits<double>::max());
         for (int idx : front) {
             for (int o = 0; o < n_obj; ++o) {
@@ -77,7 +77,8 @@ private:
     }
 
     /// Find which reference point is closest to a normalized point
-    static int find_closest_ref(const double* normalized, const std::vector<ReferencePoint>& refs, int n_obj) {
+    static int find_closest_ref(const double* normalized, const std::vector<ReferencePoint>& refs,
+                                int n_obj) {
         int closest = 0;
         double min_dist = std::numeric_limits<double>::max();
         for (size_t r = 0; r < refs.size(); ++r) {
@@ -96,7 +97,7 @@ private:
 };
 
 inline std::vector<int> NSGAIIIReplacement::replace(this NSGAIIIReplacement& self,
-                                                     Population& combined, int target_size) {
+                                                    Population& combined, int target_size) {
     const int n_obj = combined.n_obj;
 
     // Non-dominated sort
@@ -189,15 +190,17 @@ inline std::vector<int> NSGAIIIReplacement::replace(this NSGAIIIReplacement& sel
         int best_idx = -1;
         double best_dist = std::numeric_limits<double>::max();
         for (size_t i = 0; i < last_front.size(); ++i) {
-            if (chosen[i]) continue;
-            if (association[i] != chosen_ref) continue;
+            if (chosen[i])
+                continue;
+            if (association[i] != chosen_ref)
+                continue;
 
             std::vector<double> normalized(n_obj);
             for (int o = 0; o < n_obj; ++o) {
                 normalized[o] = combined.objective(last_front[i], o) - ideal[o];
             }
-            double dist = perpendicular_distance(normalized.data(),
-                self.reference_points[chosen_ref].position.data(), n_obj);
+            double dist = perpendicular_distance(
+                normalized.data(), self.reference_points[chosen_ref].position.data(), n_obj);
 
             if (dist < best_dist) {
                 best_dist = dist;

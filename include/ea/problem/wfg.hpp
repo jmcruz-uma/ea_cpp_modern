@@ -16,14 +16,14 @@
 /// 3. Calculate x vector from transformed y
 /// 4. Apply shape functions to get objectives.
 
-#include <ea/core/population.hpp>
-#include <ea/core/encoding.hpp>
-#include <span>
-#include <cmath>
-#include <vector>
-#include <numeric>
 #include <algorithm>
 #include <cassert>
+#include <cmath>
+#include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
+#include <numeric>
+#include <span>
+#include <vector>
 
 namespace ea {
 
@@ -197,9 +197,8 @@ inline std::vector<double> normalise(const std::vector<double>& z) {
 
 /// Calculate x vector from transformed t vector.
 /// a[i] values are 0 or 1. m is number of objectives.
-inline std::vector<double> calculate_x(const std::vector<double>& t,
-                                          const std::vector<int>& a,
-                                          int m) {
+inline std::vector<double> calculate_x(const std::vector<double>& t, const std::vector<int>& a,
+                                       int m) {
     std::vector<double> x(m);
     for (int i = 0; i < m - 1; ++i) {
         x[i] = std::max(t[m - 1], static_cast<double>(a[i])) * (t[i] - 0.5) + 0.5;
@@ -224,9 +223,9 @@ inline std::vector<int> default_s(int m) {
 // ============================================================
 
 struct WFG1 {
-    int k_;  ///< position variables
-    int l_;  ///< distance variables
-    int m_;  ///< objectives
+    int k_; ///< position variables
+    int l_; ///< distance variables
+    int m_; ///< objectives
     std::vector<double> lower_bounds_;
     std::vector<double> upper_bounds_;
     std::vector<int> s_;
@@ -234,7 +233,8 @@ struct WFG1 {
     int d_ = 1;
 
     WFG1(int m = 3, int k = -1, int l = 20)
-        : l_(l), m_(m) {
+        : l_(l)
+        , m_(m) {
         k_ = (k < 0) ? 2 * (m_ - 1) : k;
         int dim = k_ + l_;
         lower_bounds_.resize(dim);
@@ -306,7 +306,8 @@ struct WFG1 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 };
 
@@ -325,7 +326,8 @@ struct WFG2 {
     int d_ = 1;
 
     WFG2(int m = 3, int k = -1, int l = 20)
-        : l_(l), m_(m) {
+        : l_(l)
+        , m_(m) {
         k_ = (k < 0) ? 2 * (m_ - 1) : k;
         int dim = k_ + l_;
         lower_bounds_.resize(dim);
@@ -398,7 +400,8 @@ struct WFG2 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 };
 
@@ -417,7 +420,8 @@ struct WFG3 {
     int d_ = 1;
 
     WFG3(int m = 3, int k = -1, int l = 20)
-        : l_(l), m_(m) {
+        : l_(l)
+        , m_(m) {
         k_ = (k < 0) ? 2 * (m_ - 1) : k;
         int dim = k_ + l_;
         lower_bounds_.resize(dim);
@@ -428,7 +432,8 @@ struct WFG3 {
         }
         s_ = wfg_detail::default_s(m_);
         a_.assign(m_ - 1, 0);
-        if (!a_.empty()) a_[0] = 1;
+        if (!a_.empty())
+            a_[0] = 1;
     }
 
     int num_objectives() const { return m_; }
@@ -490,7 +495,8 @@ struct WFG3 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 };
 
@@ -509,7 +515,8 @@ struct WFG4 {
     int d_ = 1;
 
     WFG4(int m = 3, int k = -1, int l = 20)
-        : l_(l), m_(m) {
+        : l_(l)
+        , m_(m) {
         k_ = (k < 0) ? 2 * (m_ - 1) : k;
         int dim = k_ + l_;
         lower_bounds_.resize(dim);
@@ -566,7 +573,8 @@ struct WFG4 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 };
 
@@ -585,7 +593,8 @@ struct WFG5 {
     int d_ = 1;
 
     WFG5(int m = 3, int k = -1, int l = 20)
-        : l_(l), m_(m) {
+        : l_(l)
+        , m_(m) {
         k_ = (k < 0) ? 2 * (m_ - 1) : k;
         int dim = k_ + l_;
         lower_bounds_.resize(dim);
@@ -642,7 +651,8 @@ struct WFG5 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 };
 
@@ -661,7 +671,8 @@ struct WFG6 {
     int d_ = 1;
 
     WFG6(int m = 3, int k = -1, int l = 20)
-        : l_(l), m_(m) {
+        : l_(l)
+        , m_(m) {
         k_ = (k < 0) ? 2 * (m_ - 1) : k;
         int dim = k_ + l_;
         lower_bounds_.resize(dim);
@@ -716,7 +727,8 @@ struct WFG6 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 };
 
@@ -735,7 +747,8 @@ struct WFG7 {
     int d_ = 1;
 
     WFG7(int m = 3, int k = -1, int l = 20)
-        : l_(l), m_(m) {
+        : l_(l)
+        , m_(m) {
         k_ = (k < 0) ? 2 * (m_ - 1) : k;
         int dim = k_ + l_;
         lower_bounds_.resize(dim);
@@ -800,7 +813,8 @@ struct WFG7 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 };
 
@@ -819,7 +833,8 @@ struct WFG8 {
     int d_ = 1;
 
     WFG8(int m = 3, int k = -1, int l = 20)
-        : l_(l), m_(m) {
+        : l_(l)
+        , m_(m) {
         k_ = (k < 0) ? 2 * (m_ - 1) : k;
         int dim = k_ + l_;
         lower_bounds_.resize(dim);
@@ -884,7 +899,8 @@ struct WFG8 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 };
 
@@ -903,7 +919,8 @@ struct WFG9 {
     int d_ = 1;
 
     WFG9(int m = 3, int k = -1, int l = 20)
-        : l_(l), m_(m) {
+        : l_(l)
+        , m_(m) {
         k_ = (k < 0) ? 2 * (m_ - 1) : k;
         int dim = k_ + l_;
         lower_bounds_.resize(dim);
@@ -970,7 +987,8 @@ struct WFG9 {
     }
 
     void evaluate_batch(Population& pop, int start, int count) const {
-        for (int i = start; i < start + count; ++i) evaluate(pop, i);
+        for (int i = start; i < start + count; ++i)
+            evaluate(pop, i);
     }
 };
 

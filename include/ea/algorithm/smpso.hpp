@@ -8,15 +8,15 @@
 /// leader selection via crowding distance from an external archive, and
 /// polynomial mutation applied periodically.
 
-#include <ea/core/population.hpp>
-#include <ea/core/comparator.hpp>
-#include <ea/util/random.hpp>
-#include <ea/operator/mutation/polynomial.hpp>
-#include <vector>
 #include <algorithm>
 #include <cmath>
+#include <ea/core/comparator.hpp>
+#include <ea/core/population.hpp>
+#include <ea/operator/mutation/polynomial.hpp>
+#include <ea/util/random.hpp>
 #include <limits>
 #include <string_view>
+#include <vector>
 
 namespace ea {
 
@@ -25,23 +25,23 @@ namespace ea {
 /// Template composition: no external operator templates (mutation is internal).
 struct SMPSO {
     // --- PSO parameters ---
-    double c1_min = 1.5;     ///< Cognitive coefficient min
-    double c1_max = 2.5;     ///< Cognitive coefficient max
-    double c2_min = 1.5;     ///< Social coefficient min
-    double c2_max = 2.5;     ///< Social coefficient max
-    double weight_min = 0.1; ///< Inertia weight min
-    double weight_max = 0.5; ///< Inertia weight max
-    double r1_min = 0.0;     ///< Random factor 1 min
-    double r1_max = 1.0;     ///< Random factor 1 max
-    double r2_min = 0.0;     ///< Random factor 2 min
-    double r2_max = 1.0;     ///< Random factor 2 max
+    double c1_min = 1.5;            ///< Cognitive coefficient min
+    double c1_max = 2.5;            ///< Cognitive coefficient max
+    double c2_min = 1.5;            ///< Social coefficient min
+    double c2_max = 2.5;            ///< Social coefficient max
+    double weight_min = 0.1;        ///< Inertia weight min
+    double weight_max = 0.5;        ///< Inertia weight max
+    double r1_min = 0.0;            ///< Random factor 1 min
+    double r1_max = 1.0;            ///< Random factor 1 max
+    double r2_min = 0.0;            ///< Random factor 2 min
+    double r2_max = 1.0;            ///< Random factor 2 max
     double change_velocity1 = -1.0; ///< Velocity damping on lower bound hit (<0 = no change)
     double change_velocity2 = -1.0; ///< Velocity damping on upper bound hit (<0 = no change)
 
     // --- Algorithm parameters ---
     int pop_size = 100;
     int max_evals = 25000;
-    int archive_size = 100;   ///< External archive size (leaders)
+    int archive_size = 100; ///< External archive size (leaders)
 
     // --- Internal mutation ---
     PolynomialMutation mutation;
@@ -49,21 +49,22 @@ struct SMPSO {
     // --- Internal state ---
     std::vector<std::vector<double>> speed_;         ///< [pop_size][dim] particle velocities
     std::vector<std::vector<double>> personal_best_; ///< [pop_size][dim] personal best genes
-    std::vector<std::vector<double>> personal_best_obj_; ///< [pop_size][n_obj] personal best objectives
-    std::vector<std::vector<double>> archive_genes_;  ///< [archive_size][dim] archived genes
-    std::vector<std::vector<double>> archive_obj_;    ///< [archive_size][n_obj] archived objectives
+    std::vector<std::vector<double>>
+        personal_best_obj_;                          ///< [pop_size][n_obj] personal best objectives
+    std::vector<std::vector<double>> archive_genes_; ///< [archive_size][dim] archived genes
+    std::vector<std::vector<double>> archive_obj_;   ///< [archive_size][n_obj] archived objectives
     int archive_count_ = 0;
 
     static constexpr std::string_view name() { return "SMPSO"; }
 
     /// Run SMPSO.
-    template<typename Problem>
-    void run(this auto& self, Population& pop, Problem&& problem) {
+    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
         const int n = self.pop_size;
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
 
-        if (pop.pop_size != n) pop.resize(n);
+        if (pop.pop_size != n)
+            pop.resize(n);
 
         // Initialize velocities and personal bests
         self.speed_.assign(n, std::vector<double>(dim, 0.0));
@@ -109,7 +110,8 @@ struct SMPSO {
         while (evals < self.max_evals) {
             // --- Update velocities ---
             for (int i = 0; i < n; ++i) {
-                if (self.archive_count_ == 0) break;
+                if (self.archive_count_ == 0)
+                    break;
 
                 // Select global best from archive (binary tournament by crowding)
                 int leader_idx = self.select_leader();
@@ -129,9 +131,7 @@ struct SMPSO {
                     double x = pop.gene(i, j);
                     double gb = self.archive_genes_[leader_idx][j];
 
-                    v = chi * (w * v +
-                               c1 * r1 * (pb - x) +
-                               c2 * r2 * (gb - x));
+                    v = chi * (w * v + c1 * r1 * (pb - x) + c2 * r2 * (gb - x));
 
                     // Velocity constriction
                     v = self.velocity_constriction(v, delta_max[j], delta_min[j]);
@@ -175,16 +175,16 @@ struct SMPSO {
                     problem(pop, i);
                     pop.set_evaluated(i, true);
                     evals++;
-                    if (evals >= self.max_evals) break;
+                    if (evals >= self.max_evals)
+                        break;
                 }
             }
-            if (evals >= self.max_evals) break;
+            if (evals >= self.max_evals)
+                break;
 
             // --- Update personal bests ---
             for (int i = 0; i < n; ++i) {
-                auto dom = self.compare_dominance_obj(
-                    pop, i,
-                    self.personal_best_obj_[i].data());
+                auto dom = self.compare_dominance_obj(pop, i, self.personal_best_obj_[i].data());
 
                 if (dom == Dominance::Dominates || dom == Dominance::Equal) {
                     // Current dominates or equals personal best — update
@@ -208,9 +208,8 @@ struct SMPSO {
 
 private:
     /// Compare population individual against objective vector.
-    Dominance compare_dominance_obj(this auto& self,
-                                     const Population& pop, int idx,
-                                     const double* other_obj) {
+    Dominance compare_dominance_obj(this auto& self, const Population& pop, int idx,
+                                    const double* other_obj) {
         const int n_obj = pop.n_obj;
         bool a_dominates_b = false;
         bool b_dominates_a = false;
@@ -218,13 +217,18 @@ private:
         for (int o = 0; o < n_obj; ++o) {
             double fa = pop.objective(idx, o);
             double fb = other_obj[o];
-            if (fa < fb) a_dominates_b = true;
-            else if (fb < fa) b_dominates_a = true;
-            if (a_dominates_b && b_dominates_a) return Dominance::Equal;
+            if (fa < fb)
+                a_dominates_b = true;
+            else if (fb < fa)
+                b_dominates_a = true;
+            if (a_dominates_b && b_dominates_a)
+                return Dominance::Equal;
         }
 
-        if (a_dominates_b && !b_dominates_a) return Dominance::Dominates;
-        if (b_dominates_a && !a_dominates_b) return Dominance::Dominated;
+        if (a_dominates_b && !b_dominates_a)
+            return Dominance::Dominates;
+        if (b_dominates_a && !a_dominates_b)
+            return Dominance::Dominated;
         return Dominance::Equal;
     }
 
@@ -244,8 +248,10 @@ private:
             for (int o = 0; o < n_obj; ++o) {
                 double fa = self.archive_obj_[a][o];
                 double fb = pop.objective(idx, o);
-                if (fa < fb) a_dominates_new = true;
-                else if (fb < fa) new_dominates_a = true;
+                if (fa < fb)
+                    a_dominates_new = true;
+                else if (fb < fa)
+                    new_dominates_a = true;
             }
 
             if (a_dominates_new && !new_dominates_a) {
@@ -257,7 +263,8 @@ private:
             }
         }
 
-        if (dominated) return;
+        if (dominated)
+            return;
 
         // Remove dominated individuals (in reverse order)
         std::sort(to_remove.begin(), to_remove.end(), std::greater<int>());
@@ -290,7 +297,8 @@ private:
 
     /// Remove archived individual at index (shift remaining).
     void remove_from_archive(this auto& self, int idx) {
-        if (idx < 0 || idx >= self.archive_count_) return;
+        if (idx < 0 || idx >= self.archive_count_)
+            return;
         for (int i = idx; i < self.archive_count_ - 1; ++i) {
             self.archive_genes_[i] = self.archive_genes_[i + 1];
             self.archive_obj_[i] = self.archive_obj_[i + 1];
@@ -301,7 +309,8 @@ private:
     /// Select leader from archive using binary tournament (crowding distance).
     int select_leader(this auto& self) {
         auto& rng = Random::instance();
-        if (self.archive_count_ <= 1) return 0;
+        if (self.archive_count_ <= 1)
+            return 0;
 
         int a = rng.uniform_int(0, self.archive_count_ - 1);
         int b = rng.uniform_int(0, self.archive_count_ - 1);
@@ -310,7 +319,8 @@ private:
         // For now, random selection (crowding distance would need recompute)
         // In jMetal, they use archive.comparator() which is crowding-based
         // Here we do random tournament
-        if (a == b) return a;
+        if (a == b)
+            return a;
 
         // Compute simple crowding: compare distance to nearest neighbor in archive
         double dist_a = self.archive_distance(a);
@@ -321,13 +331,15 @@ private:
 
     /// Compute approximate crowding distance for archive individual.
     double archive_distance(this auto& self, int idx) {
-        if (self.archive_count_ <= 1) return std::numeric_limits<double>::infinity();
+        if (self.archive_count_ <= 1)
+            return std::numeric_limits<double>::infinity();
 
         const int n_obj = static_cast<int>(self.archive_obj_[0].size());
         double min_dist = std::numeric_limits<double>::infinity();
 
         for (int i = 0; i < self.archive_count_; ++i) {
-            if (i == idx) continue;
+            if (i == idx)
+                continue;
             double dist = 0.0;
             for (int o = 0; o < n_obj; ++o) {
                 double d = self.archive_obj_[idx][o] - self.archive_obj_[i][o];
@@ -340,22 +352,23 @@ private:
 
     /// Velocity constriction — clamp velocity to bounds.
     double velocity_constriction(this auto&, double v, double dmax, double dmin) {
-        if (v > dmax) return dmax;
-        if (v < dmin) return dmin;
+        if (v > dmax)
+            return dmax;
+        if (v < dmin)
+            return dmin;
         return v;
     }
 
     /// Constriction coefficient (Clerc & Kennedy).
     double constriction_coefficient(this auto&, double c1, double c2) {
         double rho = c1 + c2;
-        if (rho <= 4.0) return 1.0;
+        if (rho <= 4.0)
+            return 1.0;
         return 2.0 / (2.0 - rho - std::sqrt(rho * rho - 4.0 * rho));
     }
 
     /// Inertia weight (constant in original SMPSO, could be linearly decreasing).
-    double inertia_weight(this auto& self, int /*iteration*/) {
-        return self.weight_max;
-    }
+    double inertia_weight(this auto& self, int /*iteration*/) { return self.weight_max; }
 };
 
 } // namespace ea

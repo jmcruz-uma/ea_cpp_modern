@@ -9,10 +9,10 @@
 /// a set of reference vectors (weights). Lower is better.
 /// Uses Tchebycheff utility function.
 
-#include <ea/core/population.hpp>
-#include <vector>
 #include <cmath>
+#include <ea/core/population.hpp>
 #include <limits>
+#include <vector>
 
 namespace ea {
 
@@ -25,13 +25,12 @@ namespace ea {
 /// @param ideal Ideal point (minimum of reference front)
 /// @param nadir Nadir point (maximum of reference front)
 /// @return R2 value (lower is better)
-inline double r2(const Population& pop,
-                 const std::vector<int>& indices,
+inline double r2(const Population& pop, const std::vector<int>& indices,
                  const std::vector<std::vector<double>>& reference_front,
-                 const std::vector<std::vector<double>>& weights,
-                 const std::vector<double>& ideal,
+                 const std::vector<std::vector<double>>& weights, const std::vector<double>& ideal,
                  const std::vector<double>& nadir) {
-    if (reference_front.empty() || indices.empty() || weights.empty()) return 0.0;
+    if (reference_front.empty() || indices.empty() || weights.empty())
+        return 0.0;
 
     int n_obj = pop.n_obj;
     if (ideal.size() != static_cast<size_t>(n_obj) || nadir.size() != static_cast<size_t>(n_obj)) {
@@ -47,12 +46,15 @@ inline double r2(const Population& pop,
             double max_val = std::numeric_limits<double>::lowest();
             for (int o = 0; o < n_obj; ++o) {
                 double range = nadir[o] - ideal[o];
-                if (range < 1e-12) range = 1.0;
+                if (range < 1e-12)
+                    range = 1.0;
                 double normalized = (ref_point[o] - ideal[o]) / range;
                 double utility = weight[o] * std::abs(normalized);
-                if (utility > max_val) max_val = utility;
+                if (utility > max_val)
+                    max_val = utility;
             }
-            if (max_val < best_ref) best_ref = max_val;
+            if (max_val < best_ref)
+                best_ref = max_val;
         }
 
         // Best utility in approximated front for this weight
@@ -61,12 +63,15 @@ inline double r2(const Population& pop,
             double max_val = std::numeric_limits<double>::lowest();
             for (int o = 0; o < n_obj; ++o) {
                 double range = nadir[o] - ideal[o];
-                if (range < 1e-12) range = 1.0;
+                if (range < 1e-12)
+                    range = 1.0;
                 double normalized = (pop.objective(idx, o) - ideal[o]) / range;
                 double utility = weight[o] * std::abs(normalized);
-                if (utility > max_val) max_val = utility;
+                if (utility > max_val)
+                    max_val = utility;
             }
-            if (max_val < best_approx) best_approx = max_val;
+            if (max_val < best_approx)
+                best_approx = max_val;
         }
 
         r2_value += std::abs(best_approx - best_ref);
@@ -76,11 +81,11 @@ inline double r2(const Population& pop,
 }
 
 /// R2 Indicator with auto-computed ideal and nadir.
-inline double r2(const Population& pop,
-                 const std::vector<int>& indices,
+inline double r2(const Population& pop, const std::vector<int>& indices,
                  const std::vector<std::vector<double>>& reference_front,
                  const std::vector<std::vector<double>>& weights) {
-    if (reference_front.empty()) return 0.0;
+    if (reference_front.empty())
+        return 0.0;
 
     int n_obj = static_cast<int>(reference_front[0].size());
     std::vector<double> ideal(n_obj, std::numeric_limits<double>::infinity());
@@ -88,8 +93,10 @@ inline double r2(const Population& pop,
 
     for (const auto& point : reference_front) {
         for (int o = 0; o < n_obj; ++o) {
-            if (point[o] < ideal[o]) ideal[o] = point[o];
-            if (point[o] > nadir[o]) nadir[o] = point[o];
+            if (point[o] < ideal[o])
+                ideal[o] = point[o];
+            if (point[o] > nadir[o])
+                nadir[o] = point[o];
         }
     }
 
@@ -99,12 +106,10 @@ inline double r2(const Population& pop,
 /// R2 Indicator struct for convenience.
 struct R2Indicator {
     std::vector<std::vector<double>> weights; ///< Weight vectors
-    std::vector<double> ideal;                     ///< Ideal point (optional)
-    std::vector<double> nadir;                     ///< Nadir point (optional)
+    std::vector<double> ideal;                ///< Ideal point (optional)
+    std::vector<double> nadir;                ///< Nadir point (optional)
 
-    double compute(this R2Indicator& self,
-                   const Population& pop,
-                   const std::vector<int>& indices,
+    double compute(this R2Indicator& self, const Population& pop, const std::vector<int>& indices,
                    const std::vector<std::vector<double>>& reference_front) {
         if (self.weights.empty()) {
             // Generate default weights (uniform)
@@ -137,7 +142,8 @@ private:
                     w[o] = static_cast<double>(rand()) / RAND_MAX;
                     sum += w[o];
                 }
-                for (int o = 0; o < n_obj; ++o) w[o] /= sum;
+                for (int o = 0; o < n_obj; ++o)
+                    w[o] /= sum;
                 weights.push_back(w);
             }
         }

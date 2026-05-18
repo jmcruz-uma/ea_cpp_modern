@@ -7,21 +7,20 @@
 /// Differential evolution variant for multi-objective optimization.
 /// Uses DE/rand/1/bin crossover and non-dominated sorting + crowding for selection.
 
-#include <ea/core/population.hpp>
+#include <algorithm>
 #include <ea/core/comparator.hpp>
+#include <ea/core/population.hpp>
 #include <ea/operator/replacement/nsga2_replacement.hpp>
 #include <ea/util/random.hpp>
-#include <vector>
-#include <algorithm>
 #include <string_view>
+#include <vector>
 
 namespace ea {
 
 /// GDE3 — Generalized Differential Evolution 3.
 /// Uses DE crossover operator (in ea::DECrossover) with NSGA-II style environmental selection.
-template<typename CX, typename MT>
-struct GDE3 {
-    CX crossover;  // Should be DECrossover or similar
+template <typename CX, typename MT> struct GDE3 {
+    CX crossover; // Should be DECrossover or similar
     MT mutation;
 
     int pop_size = 100;
@@ -30,13 +29,13 @@ struct GDE3 {
     static constexpr std::string_view name() { return "GDE3"; }
 
     /// Run GDE3.
-    template<typename Problem>
-    void run(this auto& self, Population& pop, Problem&& problem) {
+    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
         const int N = self.pop_size;
 
-        if (pop.pop_size != N) pop.resize(N);
+        if (pop.pop_size != N)
+            pop.resize(N);
 
         // Evaluate initial population
         for (int i = 0; i < N; ++i) {
@@ -86,7 +85,8 @@ struct GDE3 {
                     problem(offspring, i);
                     offspring.set_evaluated(i, true);
                     evals++;
-                    if (evals >= self.max_evals) break;
+                    if (evals >= self.max_evals)
+                        break;
                 }
             }
 

@@ -11,10 +11,10 @@
 ///   - org.uma.jmetal.algorithm.multiobjective.nsgaiii.util.ReferencePoint
 ///   - org.uma.jmetal.component.catalogue.ea.replacement.impl.nsgaiii.ReferencePoint
 
-#include <vector>
 #include <algorithm>
 #include <cmath>
 #include <random>
+#include <vector>
 
 namespace ea {
 
@@ -31,22 +31,24 @@ struct ReferencePoint {
 
     /// Indices of potential members (individuals on the critical front) with distances
     struct MemberInfo {
-        int individual_index = -1;  ///< Index in combined population
-        double distance = 0.0;       ///< Perpendicular distance to this reference point
+        int individual_index = -1; ///< Index in combined population
+        double distance = 0.0;     ///< Perpendicular distance to this reference point
 
         bool operator<(const MemberInfo& other) const {
-            return distance < other.distance;  // For sorting by ascending distance
+            return distance < other.distance; // For sorting by ascending distance
         }
     };
     std::vector<MemberInfo> potential_members;
 
     ReferencePoint() = default;
 
-    explicit ReferencePoint(int num_objectives) : position(num_objectives, 0.0) {}
+    explicit ReferencePoint(int num_objectives)
+        : position(num_objectives, 0.0) {}
 
     /// Copy constructor (resets member tracking)
     ReferencePoint(const ReferencePoint& other)
-        : position(other.position), member_count(0) {}
+        : position(other.position)
+        , member_count(0) {}
 
     /// Add a selected member to this reference point
     void add_member(this auto& self) { self.member_count++; }
@@ -68,22 +70,21 @@ struct ReferencePoint {
     }
 
     /// Check if there are potential members available
-    bool has_potential_members(this auto& self) {
-        return !self.potential_members.empty();
-    }
+    bool has_potential_members(this auto& self) { return !self.potential_members.empty(); }
 
     /// Remove and return the closest potential member
     int remove_closest_member(this auto& self) {
-        if (self.potential_members.empty()) return -1;
+        if (self.potential_members.empty())
+            return -1;
         int idx = self.potential_members.front().individual_index;
         self.potential_members.erase(self.potential_members.begin());
         return idx;
     }
 
     /// Remove a random potential member, return its individual index
-    template<typename Rng>
-    int remove_random_member(this auto& self, Rng& rng) {
-        if (self.potential_members.empty()) return -1;
+    template <typename Rng> int remove_random_member(this auto& self, Rng& rng) {
+        if (self.potential_members.empty())
+            return -1;
         std::uniform_int_distribution<size_t> dist(0, self.potential_members.size() - 1);
         size_t i = dist(rng);
         int idx = self.potential_members[i].individual_index;
@@ -102,20 +103,15 @@ struct ReferencePoint {
 ///
 /// jMetal equivalent: ReferencePoint.generateReferencePoints()
 /// Recursive implementation following the original NSGA-III paper.
-inline void generate_reference_points_das_dennis(
-    std::vector<ReferencePoint>& reference_points,
-    int num_objectives,
-    int num_divisions) {
+inline void generate_reference_points_das_dennis(std::vector<ReferencePoint>& reference_points,
+                                                 int num_objectives, int num_divisions) {
 
     ReferencePoint point(num_objectives);
 
     // Recursive lambda to enumerate all combinations
-    auto generate_recursive = [&](this auto& self,
-                                   std::vector<ReferencePoint>& out,
-                                   ReferencePoint& ref,
-                                   int objectives_left,
-                                   int divisions_left,
-                                   int element) -> void {
+    auto generate_recursive = [&](this auto& self, std::vector<ReferencePoint>& out,
+                                  ReferencePoint& ref, int objectives_left, int divisions_left,
+                                  int element) -> void {
         if (element == num_objectives - 1) {
             ref.position[element] = static_cast<double>(divisions_left) / num_divisions;
             out.emplace_back(ref);
@@ -140,11 +136,9 @@ inline void generate_reference_points_das_dennis(
 /// @param[in]  inner_divisions     Divisions for inner layer (0 = single layer)
 ///
 /// jMetal equivalent: NSGAIII constructor with secondLayerDivisions
-inline void generate_reference_points_two_layer(
-    std::vector<ReferencePoint>& reference_points,
-    int num_objectives,
-    int outer_divisions,
-    int inner_divisions) {
+inline void generate_reference_points_two_layer(std::vector<ReferencePoint>& reference_points,
+                                                int num_objectives, int outer_divisions,
+                                                int inner_divisions) {
 
     // Generate outer layer
     generate_reference_points_das_dennis(reference_points, num_objectives, outer_divisions);

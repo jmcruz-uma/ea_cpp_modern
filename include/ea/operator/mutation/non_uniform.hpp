@@ -3,10 +3,10 @@
 /// @brief Non-Uniform Mutation — perturbation magnitude decreases over iterations.
 /// Reference: org.uma.jmetal.operator.mutation.impl.NonUniformMutation
 
-#include <cmath>
 #include <algorithm>
-#include <ea/core/population.hpp>
+#include <cmath>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 
 namespace ea {
@@ -14,10 +14,10 @@ namespace ea {
 /// Non-Uniform Mutation for real-valued encodings.
 /// Perturbation shrinks as iterations progress, favoring fine local search later.
 struct NonUniformMutation {
-    double perturbation = 0.1;      ///< Mutation perturbation parameter (b)
-    double mutation_rate = -1.0;    ///< Per-gene probability (-1 = 1/dim auto)
-    int max_iterations = 100;       ///< Maximum expected iterations
-    int current_iteration = 0;      ///< Current iteration (set by algorithm)
+    double perturbation = 0.1;   ///< Mutation perturbation parameter (b)
+    double mutation_rate = -1.0; ///< Per-gene probability (-1 = 1/dim auto)
+    int max_iterations = 100;    ///< Maximum expected iterations
+    int current_iteration = 0;   ///< Current iteration (set by algorithm)
 
     static constexpr Encoding encoding() { return Encoding::Real; }
 
@@ -26,7 +26,8 @@ struct NonUniformMutation {
         double rate = self.mutation_rate < 0 ? 1.0 / pop.dim : self.mutation_rate;
 
         for (int j = 0; j < pop.dim; ++j) {
-            if (!rng.coin_flip(rate)) continue;
+            if (!rng.coin_flip(rate))
+                continue;
 
             double y = pop.gene(idx, j);
             double lb = pop.lower_bounds[j];
@@ -52,7 +53,8 @@ private:
     double delta(this NonUniformMutation& self, double y) {
         auto& rng = Random::instance();
         double rand = rng.uniform();
-        double ratio = static_cast<double>(self.current_iteration) / static_cast<double>(self.max_iterations);
+        double ratio =
+            static_cast<double>(self.current_iteration) / static_cast<double>(self.max_iterations);
         double exponent = std::pow(1.0 - ratio, self.perturbation);
         return y * (1.0 - std::pow(rand, exponent));
     }

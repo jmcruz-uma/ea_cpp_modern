@@ -6,11 +6,11 @@
 /// Selects a single crossover point. Genes before the point come from one parent,
 /// genes after from the other parent.
 
-#include <vector>
 #include <algorithm>
-#include <ea/core/population.hpp>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
+#include <vector>
 
 namespace ea {
 
@@ -24,8 +24,8 @@ struct SinglePointCrossover {
     static constexpr Encoding encoding() { return Encoding::Binary; }
     // Also works for Real, Integer at runtime
 
-    void apply(this SinglePointCrossover& self, Population& pop,
-               int parent_a, int parent_b, int child_start) {
+    void apply(this SinglePointCrossover& self, Population& pop, int parent_a, int parent_b,
+               int child_start) {
         auto& rng = Random::instance();
 
         if (!rng.coin_flip(self.crossover_probability)) {

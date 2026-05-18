@@ -12,8 +12,8 @@
 
 #include <algorithm>
 #include <cmath>
-#include <ea/core/population.hpp>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 
 namespace ea {
@@ -21,16 +21,15 @@ namespace ea {
 /// BLX-Alpha-Beta Crossover for real-valued encodings.
 /// Produces two children from two parents with asymmetric exploration.
 struct BLXAlphaBetaCrossover {
-    double alpha = 0.5;               ///< Exploration factor below smaller parent
-    double beta = 0.5;                ///< Exploration factor above larger parent
+    double alpha = 0.5;                 ///< Exploration factor below smaller parent
+    double beta = 0.5;                  ///< Exploration factor above larger parent
     double crossover_probability = 0.9; ///< Probability of applying crossover
 
     static constexpr int arity() { return 2; }
     static constexpr Encoding encoding() { return Encoding::Real; }
 
     /// Apply BLX-alpha-beta crossover. Produces 2 children starting at child_start.
-    void apply(this auto& self, Population& pop,
-               int parent_a, int parent_b, int child_start) {
+    void apply(this auto& self, Population& pop, int parent_a, int parent_b, int child_start) {
         auto& rng = Random::instance();
 
         for (int j = 0; j < pop.dim; ++j) {

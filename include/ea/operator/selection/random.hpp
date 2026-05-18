@@ -2,7 +2,8 @@
 /// @file random.hpp
 /// @brief Random Selection — selects individuals uniformly at random from the population.
 ///
-/// Reference: jMetal jmetal-core/src/main/java/org/uma/jmetal/operator/selection/impl/RandomSelection.java
+/// Reference: jMetal
+/// jmetal-core/src/main/java/org/uma/jmetal/operator/selection/impl/RandomSelection.java
 ///
 /// This operator performs no quality-based filtering; every individual has equal probability
 /// of being selected. Useful for baseline comparisons or when combined with other operators
@@ -19,8 +20,7 @@ struct RandomSelection {
     /// Select mating pool from population uniformly at random.
     /// @param pop Population
     /// @param mating_pool Output indices (will be resized to 2 * pop_size)
-    void select(Population& pop,
-                std::vector<int>& mating_pool) {
+    void select(Population& pop, std::vector<int>& mating_pool) {
         auto& rng = Random::instance();
         mating_pool.resize(2 * pop.pop_size);
 

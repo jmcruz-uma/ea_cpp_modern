@@ -6,8 +6,8 @@
 ///   jmetal-core/src/main/java/org/uma/jmetal/operator/selection/impl/BestSolutionSelection.java
 
 #include <ea/core/population.hpp>
-#include <vector>
 #include <limits>
+#include <vector>
 
 namespace ea {
 
@@ -21,10 +21,10 @@ struct BestSolutionSelection {
     /// @param pop   Population
     /// @param ranks Rank of each individual (lower is better, used for multi-objective)
     /// @return Index of the best individual
-    int select(this BestSolutionSelection& self, Population& pop,
-               const std::vector<int>& ranks) {
+    int select(this BestSolutionSelection& self, Population& pop, const std::vector<int>& ranks) {
         (void)self;
-        if (pop.pop_size == 0) return -1;
+        if (pop.pop_size == 0)
+            return -1;
 
         int best_idx = 0;
 

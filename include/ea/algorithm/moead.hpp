@@ -18,20 +18,20 @@
 /// - std::vector instead of ArrayList
 /// - Batch-friendly evaluation
 
-#include <ea/core/population.hpp>
-#include <ea/core/concepts.hpp>
-#include <ea/util/random.hpp>
-#include <ea/util/aggregation.hpp>
-#include <string_view>
-#include <vector>
 #include <algorithm>
-#include <numeric>
 #include <cmath>
-#include <limits>
+#include <ea/core/concepts.hpp>
+#include <ea/core/population.hpp>
+#include <ea/util/aggregation.hpp>
+#include <ea/util/random.hpp>
 #include <fstream>
+#include <functional>
+#include <limits>
+#include <numeric>
 #include <sstream>
 #include <string>
-#include <functional>
+#include <string_view>
+#include <vector>
 
 namespace ea {
 
@@ -63,27 +63,26 @@ namespace ea {
 ///    c. Evaluate offspring
 ///    d. Update ideal point
 ///    e. Replace neighbors that are improved by the offspring
-template<typename CX, typename MT>
-struct MOEAD {
+template <typename CX, typename MT> struct MOEAD {
     CX crossover;
     MT mutation;
 
-    int pop_size = 100;              ///< Number of subproblems (N)
-    int max_evals = 25000;           ///< Maximum number of function evaluations
-    int neighbor_size = -1;          ///< Neighborhood size (T), -1 = pop_size/10
-    int max_replaced_solutions = 2;  ///< Max replacements per offspring (nr)
-    double neighborhood_prob = 0.9;  ///< Probability of using neighborhood (delta)
+    int pop_size = 100;             ///< Number of subproblems (N)
+    int max_evals = 25000;          ///< Maximum number of function evaluations
+    int neighbor_size = -1;         ///< Neighborhood size (T), -1 = pop_size/10
+    int max_replaced_solutions = 2; ///< Max replacements per offspring (nr)
+    double neighborhood_prob = 0.9; ///< Probability of using neighborhood (delta)
     AggregationType aggregation_type = AggregationType::Tchebycheff;
-    bool normalize = false;          ///< Whether to normalize using ideal/nadir
-    std::string weight_directory;    ///< Directory with weight vector files (empty = generate)
+    bool normalize = false;       ///< Whether to normalize using ideal/nadir
+    std::string weight_directory; ///< Directory with weight vector files (empty = generate)
 
     static constexpr std::string_view name() { return "MOEA/D"; }
 
     // ---- Internal state (allocated during run) ----
-    std::vector<std::vector<double>> lambda_;       ///< Weight vectors [pop_size][n_obj]
-    std::vector<std::vector<int>> neighborhood_;    ///< Neighborhood indices [pop_size][T]
-    std::vector<double> ideal_point_;                ///< Ideal point [n_obj]
-    std::vector<double> nadir_point_;                ///< Nadir point [n_obj]
+    std::vector<std::vector<double>> lambda_;    ///< Weight vectors [pop_size][n_obj]
+    std::vector<std::vector<int>> neighborhood_; ///< Neighborhood indices [pop_size][T]
+    std::vector<double> ideal_point_;            ///< Ideal point [n_obj]
+    std::vector<double> nadir_point_;            ///< Nadir point [n_obj]
     int evals_ = 0;
 
     enum class NeighborType : uint8_t { Neighbor, Population };
@@ -91,18 +90,20 @@ struct MOEAD {
     /// Run MOEA/D on the given population.
     /// @param pop Population with genes initialized and bounds set.
     /// @param problem Callable: void(Population&, int) — evaluates individual's objectives
-    template<typename Problem>
-    void run(this auto& self, Population& pop, Problem&& problem) {
+    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
         const int n = self.pop_size;
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
 
-        if (pop.pop_size != n) pop.resize(n);
+        if (pop.pop_size != n)
+            pop.resize(n);
 
         // Resolve neighbor size
         int T = self.neighbor_size < 0 ? n / 10 : self.neighbor_size;
-        if (T < 2) T = 2;
-        if (T > n - 1) T = n - 1;
+        if (T < 2)
+            T = 2;
+        if (T > n - 1)
+            T = n - 1;
 
         // Allocate state
         self.lambda_.assign(n, std::vector<double>(n_obj, 0.0));
@@ -225,7 +226,8 @@ private:
         } else if (n_obj == 3) {
             // Simplex lattice with H divisions where C(H+2,2) ≈ n
             int H = static_cast<int>(std::sqrt(2.0 * n)) - 1;
-            if (H < 1) H = 1;
+            if (H < 1)
+                H = 1;
             int count = 0;
             for (int i = 0; i <= H && count < n; ++i) {
                 for (int j = 0; j <= H - i && count < n; ++j) {
@@ -252,8 +254,8 @@ private:
         } else {
             // Try to load from file first
             if (!self.weight_directory.empty()) {
-                std::string dataFileName = "W" + std::to_string(n_obj) + "D_" +
-                                           std::to_string(n) + ".dat";
+                std::string dataFileName =
+                    "W" + std::to_string(n_obj) + "D_" + std::to_string(n) + ".dat";
                 std::string path = self.weight_directory + "/" + dataFileName;
                 std::ifstream file(path);
                 if (file.is_open()) {
@@ -269,7 +271,8 @@ private:
                         }
                         ++i;
                     }
-                    if (i == n) return; // Successfully loaded
+                    if (i == n)
+                        return; // Successfully loaded
                 }
             }
             // Fallback: generate random normalized weight vectors
@@ -299,14 +302,13 @@ private:
 
         for (int i = 0; i < n; ++i) {
             for (int j = 0; j < n; ++j) {
-                dists[j] = self.dist_vector(
-                    self.lambda_[i].data(), self.lambda_[j].data(),
-                    static_cast<int>(self.lambda_[i].size()));
+                dists[j] = self.dist_vector(self.lambda_[i].data(), self.lambda_[j].data(),
+                                            static_cast<int>(self.lambda_[i].size()));
                 indices[j] = j;
             }
             // Sort indices by distance (ascending)
             std::partial_sort(indices.begin(), indices.begin() + T, indices.end(),
-                [&dists](int a, int b) { return dists[a] < dists[b]; });
+                              [&dists](int a, int b) { return dists[a] < dists[b]; });
             for (int t = 0; t < T; ++t) {
                 self.neighborhood_[i][t] = indices[t];
             }
@@ -329,9 +331,8 @@ private:
 
     /// Choose whether to use neighborhood or whole population for mating.
     NeighborType choose_neighbor_type(this auto& self) {
-        return Random::instance().coin_flip(self.neighborhood_prob)
-                   ? NeighborType::Neighbor
-                   : NeighborType::Population;
+        return Random::instance().coin_flip(self.neighborhood_prob) ? NeighborType::Neighbor
+                                                                    : NeighborType::Population;
     }
 
     // ============================================================
@@ -349,9 +350,8 @@ private:
     }
 
     /// Mating selection: select distinct individuals from neighborhood or population.
-    std::vector<int> mating_selection(this auto& self, int subproblem_id,
-                                      int number_to_select, NeighborType neighbor_type,
-                                      int n, int T) {
+    std::vector<int> mating_selection(this auto& self, int subproblem_id, int number_to_select,
+                                      NeighborType neighbor_type, int n, int T) {
         std::vector<int> selected;
         selected.reserve(number_to_select);
         auto& rng = Random::instance();
@@ -388,18 +388,14 @@ private:
 
     /// Compute scalar fitness for individual i in population pop
     /// using weight vector w_idx.
-    double fitness(this auto& self, const Population& pop, int individual_idx,
-                   int w_idx, int n_obj) {
+    double fitness(this auto& self, const Population& pop, int individual_idx, int w_idx,
+                   int n_obj) {
         AggregationFunction aggr;
         aggr.type = self.aggregation_type;
         aggr.normalize = self.normalize;
 
-        return aggr.compute(
-            pop.objectives_ptr(individual_idx),
-            self.lambda_[w_idx].data(),
-            self.ideal_point_.data(),
-            self.nadir_point_.data(),
-            n_obj);
+        return aggr.compute(pop.objectives_ptr(individual_idx), self.lambda_[w_idx].data(),
+                            self.ideal_point_.data(), self.nadir_point_.data(), n_obj);
     }
 
     // ============================================================
@@ -432,10 +428,8 @@ private:
 
     /// Update neighborhood with the new offspring.
     /// Replace at most max_replaced_solutions neighbors that are improved.
-    void update_neighborhood(this auto& self, Population& pop,
-                             const Population& offspring,
-                             int sub_problem_id, NeighborType neighbor_type,
-                             int n, int T) {
+    void update_neighborhood(this auto& self, Population& pop, const Population& offspring,
+                             int sub_problem_id, NeighborType neighbor_type, int n, int T) {
         int size = (neighbor_type == NeighborType::Neighbor) ? T : n;
         int n_obj = pop.n_obj;
 

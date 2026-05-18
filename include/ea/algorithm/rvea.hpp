@@ -10,15 +10,15 @@
 /// - Angle-penalized distance (APD) for selection
 /// - Adaptive reference vector adjustment
 
-#include <ea/core/population.hpp>
+#include <algorithm>
+#include <cmath>
 #include <ea/core/comparator.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 #include <ea/util/reference_point.hpp>
-#include <cmath>
-#include <vector>
-#include <algorithm>
 #include <limits>
 #include <unordered_map>
+#include <vector>
 
 namespace ea {
 
@@ -30,16 +30,15 @@ namespace ea {
 ///   rvea.pop_size = 100;
 ///   rvea.max_evals = 25000;
 ///   rvea.run(pop, problem);
-template<typename CX, typename MT>
-struct RVEA {
+template <typename CX, typename MT> struct RVEA {
     CX crossover;
     MT mutation;
 
     int pop_size = 100;
     int max_evals = 25000;
-    int num_reference_points = 100;  ///< Number of reference vectors
-    double alpha = 2.0;              ///< APD penalty parameter
-    int freq_adapt = 10;             ///< Frequency of reference vector adaptation (generations)
+    int num_reference_points = 100; ///< Number of reference vectors
+    double alpha = 2.0;             ///< APD penalty parameter
+    int freq_adapt = 10;            ///< Frequency of reference vector adaptation (generations)
 
     static constexpr std::string_view name() { return "RVEA"; }
 
@@ -48,7 +47,8 @@ struct RVEA {
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
 
-        if (pop.pop_size != n) pop.resize(n);
+        if (pop.pop_size != n)
+            pop.resize(n);
 
         // === Evaluate initial population ===
         for (int i = 0; i < n; ++i) {
@@ -79,10 +79,12 @@ struct RVEA {
         // Normalize reference vectors
         for (auto& rp : ref_points) {
             double norm = 0.0;
-            for (double v : rp.position) norm += v * v;
+            for (double v : rp.position)
+                norm += v * v;
             norm = std::sqrt(norm);
             if (norm > 1e-12) {
-                for (double& v : rp.position) v /= norm;
+                for (double& v : rp.position)
+                    v /= norm;
             }
         }
 
@@ -105,7 +107,8 @@ struct RVEA {
                 // Copy parents
                 for (int j = 0; j < dim; ++j) {
                     offspring.gene(i, j) = pop.gene(p1, j);
-                    if (i + 1 < n) offspring.gene(i + 1, j) = pop.gene(p2, j);
+                    if (i + 1 < n)
+                        offspring.gene(i + 1, j) = pop.gene(p2, j);
                 }
 
                 // Crossover
@@ -113,7 +116,8 @@ struct RVEA {
 
                 // Mutate
                 self.mutation.apply(offspring, i);
-                if (i + 1 < n) self.mutation.apply(offspring, i + 1);
+                if (i + 1 < n)
+                    self.mutation.apply(offspring, i + 1);
             }
 
             // Evaluate offspring
@@ -122,7 +126,8 @@ struct RVEA {
                     problem(offspring, i);
                     offspring.set_evaluated(i, true);
                     evals++;
-                    if (evals >= self.max_evals) break;
+                    if (evals >= self.max_evals)
+                        break;
                 }
             }
 
@@ -148,8 +153,10 @@ struct RVEA {
             for (int i = 0; i < 2 * n; ++i) {
                 for (int o = 0; o < n_obj; ++o) {
                     double val = combined.objective(i, o);
-                    if (val < ideal[o]) ideal[o] = val;
-                    if (val > nadir[o]) nadir[o] = val;
+                    if (val < ideal[o])
+                        ideal[o] = val;
+                    if (val > nadir[o])
+                        nadir[o] = val;
                 }
             }
 
@@ -268,10 +275,12 @@ struct RVEA {
                     }
                     // Renormalize
                     double norm = 0.0;
-                    for (double v : rp.position) norm += v * v;
+                    for (double v : rp.position)
+                        norm += v * v;
                     norm = std::sqrt(norm);
                     if (norm > 1e-12) {
-                        for (double& v : rp.position) v /= norm;
+                        for (double& v : rp.position)
+                            v /= norm;
                     }
                 }
             }

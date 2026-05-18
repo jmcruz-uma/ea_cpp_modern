@@ -5,14 +5,15 @@
 /// Parents and offspring compete together. The best μ individuals survive.
 /// This is the elitist strategy: good parents are never lost.
 ///
-/// Reference: jMetal jmetal-core/src/main/java/org/uma/jmetal/operator/selection/impl/RankingAndCrowdingSelection.java
+/// Reference: jMetal
+/// jmetal-core/src/main/java/org/uma/jmetal/operator/selection/impl/RankingAndCrowdingSelection.java
 
-#include <ea/core/population.hpp>
-#include <ea/core/comparator.hpp>
-#include <vector>
 #include <algorithm>
-#include <numeric>
+#include <ea/core/comparator.hpp>
+#include <ea/core/population.hpp>
 #include <limits>
+#include <numeric>
+#include <vector>
 
 namespace ea {
 
@@ -24,9 +25,7 @@ struct MuPlusLambdaReplacement {
     /// @param offspring_indices Indices of offspring in pop (typically [μ, μ+λ))
     /// @param mu Target population size (μ)
     /// @return Indices of the selected μ individuals
-    std::vector<int> replace(Population& pop,
-                             const std::vector<int>& offspring_indices,
-                             int mu) {
+    std::vector<int> replace(Population& pop, const std::vector<int>& offspring_indices, int mu) {
         // Merge parent indices [0, mu) with offspring_indices
         std::vector<int> merged;
         merged.reserve(mu + offspring_indices.size());
@@ -58,12 +57,11 @@ struct MuPlusLambdaReplacement {
 
                 // Sort front by descending crowding distance
                 std::vector<int> sorted_front = front;
-                std::sort(sorted_front.begin(), sorted_front.end(),
-                    [&cdist, &front](int a, int b) {
-                        auto pos_a = std::find(front.begin(), front.end(), a) - front.begin();
-                        auto pos_b = std::find(front.begin(), front.end(), b) - front.begin();
-                        return cdist[pos_a] > cdist[pos_b];
-                    });
+                std::sort(sorted_front.begin(), sorted_front.end(), [&cdist, &front](int a, int b) {
+                    auto pos_a = std::find(front.begin(), front.end(), a) - front.begin();
+                    auto pos_b = std::find(front.begin(), front.end(), b) - front.begin();
+                    return cdist[pos_a] > cdist[pos_b];
+                });
 
                 int needed = mu - static_cast<int>(selected.size());
                 for (int i = 0; i < needed; ++i) {
@@ -88,10 +86,9 @@ struct MuPlusLambdaReplacement {
 
         for (int new_pos = 0; new_pos < static_cast<int>(new_order.size()); ++new_pos) {
             int old_pos = new_order[new_pos];
-            std::copy_n(pop.genes_ptr(old_pos), pop.dim,
-                       temp_genes.data() + new_pos * pop.dim);
+            std::copy_n(pop.genes_ptr(old_pos), pop.dim, temp_genes.data() + new_pos * pop.dim);
             std::copy_n(pop.objectives_ptr(old_pos), pop.n_obj,
-                       temp_objectives.data() + new_pos * pop.n_obj);
+                        temp_objectives.data() + new_pos * pop.n_obj);
             temp_flags[new_pos] = pop.flags[old_pos];
         }
 
@@ -111,8 +108,8 @@ struct MuPlusLambdaReplacement {
 
 private:
     /// Fast non-dominated sort for a subset of indices.
-    std::vector<std::vector<int>> fast_non_dominated_sort_subset(
-        Population& pop, const std::vector<int>& indices) {
+    std::vector<std::vector<int>> fast_non_dominated_sort_subset(Population& pop,
+                                                                 const std::vector<int>& indices) {
         const int n = static_cast<int>(indices.size());
         std::vector<int> domination_count(n, 0);
         std::vector<std::vector<int>> dominated_by(n);
@@ -121,7 +118,8 @@ private:
 
         for (int p = 0; p < n; ++p) {
             for (int q = 0; q < n; ++q) {
-                if (p == q) continue;
+                if (p == q)
+                    continue;
                 auto dom = compare_dominance(pop, indices[p], indices[q]);
                 if (dom == Dominance::Dominates) {
                     dominated_by[p].push_back(q);
@@ -138,7 +136,8 @@ private:
         while (!fronts[k].empty()) {
             std::vector<int> next_front;
             for (int p_idx : fronts[k]) {
-                int p_local = static_cast<int>(std::find(indices.begin(), indices.end(), p_idx) - indices.begin());
+                int p_local = static_cast<int>(std::find(indices.begin(), indices.end(), p_idx) -
+                                               indices.begin());
                 for (int q_local : dominated_by[p_local]) {
                     domination_count[q_local]--;
                     if (domination_count[q_local] == 0) {
@@ -158,8 +157,7 @@ private:
     }
 
     /// Compute crowding distances for a subset of indices.
-    void compute_crowding_distance_subset(const Population& pop,
-                                          const std::vector<int>& indices,
+    void compute_crowding_distance_subset(const Population& pop, const std::vector<int>& indices,
                                           std::vector<double>& crowding_dist) {
         const int n = static_cast<int>(indices.size());
         crowding_dist.assign(n, 0.0);
@@ -173,17 +171,17 @@ private:
 
         for (int o = 0; o < pop.n_obj; ++o) {
             std::vector<int> sorted_indices(indices);
-            std::sort(sorted_indices.begin(), sorted_indices.end(),
-                [&pop, o](int a, int b) {
-                    return pop.objective(a, o) < pop.objective(b, o);
-                });
+            std::sort(sorted_indices.begin(), sorted_indices.end(), [&pop, o](int a, int b) {
+                return pop.objective(a, o) < pop.objective(b, o);
+            });
 
             double f_min = pop.objective(sorted_indices[0], o);
             double f_max = pop.objective(sorted_indices[n - 1], o);
             double range = f_max - f_min;
 
             auto find_pos = [&indices](int idx) -> int {
-                return static_cast<int>(std::find(indices.begin(), indices.end(), idx) - indices.begin());
+                return static_cast<int>(std::find(indices.begin(), indices.end(), idx) -
+                                        indices.begin());
             };
 
             int pos_min = find_pos(sorted_indices[0]);
@@ -191,7 +189,8 @@ private:
             crowding_dist[pos_min] = std::numeric_limits<double>::infinity();
             crowding_dist[pos_max] = std::numeric_limits<double>::infinity();
 
-            if (range < 1e-12) continue;
+            if (range < 1e-12)
+                continue;
 
             for (int i = 1; i < n - 1; ++i) {
                 double f_prev = pop.objective(sorted_indices[i - 1], o);

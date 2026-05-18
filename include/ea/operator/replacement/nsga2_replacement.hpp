@@ -4,11 +4,11 @@
 /// Combines parents and offspring, sorts by non-dominated rank then crowding distance,
 /// and selects the best pop_size individuals.
 
-#include <ea/core/population.hpp>
-#include <ea/core/comparator.hpp>
-#include <vector>
 #include <algorithm>
+#include <ea/core/comparator.hpp>
+#include <ea/core/population.hpp>
 #include <numeric>
+#include <vector>
 
 namespace ea {
 
@@ -57,7 +57,7 @@ struct NSGAIIReplacement {
                     cd_index[i] = {crowding[front[i]], front[i]};
                 }
                 std::sort(cd_index.begin(), cd_index.end(),
-                    [](const auto& a, const auto& b) { return a.first > b.first; });
+                          [](const auto& a, const auto& b) { return a.first > b.first; });
 
                 for (int i = 0; i < remaining; ++i) {
                     selected.push_back(cd_index[i].second);
@@ -65,7 +65,8 @@ struct NSGAIIReplacement {
                 break;
             }
 
-            if (static_cast<int>(selected.size()) >= pop_size) break;
+            if (static_cast<int>(selected.size()) >= pop_size)
+                break;
         }
 
         return selected;

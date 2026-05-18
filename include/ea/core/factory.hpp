@@ -7,11 +7,11 @@
 /// The factory stores creator functions in a compile-time-initialized map.
 /// Types self-register via static init — order-independent thanks to constinit.
 
-#include <string_view>
-#include <functional>
 #include <array>
-#include <memory>
 #include <cassert>
+#include <functional>
+#include <memory>
+#include <string_view>
 
 namespace ea {
 
@@ -23,23 +23,28 @@ namespace ea {
 /// - No dynamic allocation (fixed-size array)
 /// - Trivial default construction (all zeroed)
 /// - constexpr insert/lookup
-template<typename Key, typename Value, std::size_t Capacity>
-class ConstinitMap {
+template <typename Key, typename Value, std::size_t Capacity> class ConstinitMap {
 public:
-    struct Entry { Key key; Value value; };
+    struct Entry {
+        Key key;
+        Value value;
+    };
 
     constexpr bool insert(Key key, Value value) {
         for (std::size_t i = 0; i < size_; ++i) {
-            if (entries_[i].key == key) return false;  // duplicate
+            if (entries_[i].key == key)
+                return false; // duplicate
         }
-        if (size_ >= Capacity) return false;           // full
+        if (size_ >= Capacity)
+            return false; // full
         entries_[size_++] = {key, std::move(value)};
         return true;
     }
 
     [[nodiscard]] constexpr const Value* find(Key key) const {
         for (std::size_t i = 0; i < size_; ++i) {
-            if (entries_[i].key == key) return &entries_[i].value;
+            if (entries_[i].key == key)
+                return &entries_[i].value;
         }
         return nullptr;
     }
@@ -64,10 +69,9 @@ private:
 ///   using MyFactory = Factory<MyBase, 32>;
 ///   MyFactory::register_type("name", []{ return std::make_unique<MyImpl>(); });
 ///   auto obj = MyFactory::create("name");
-template<typename T, std::size_t Capacity = 64>
-class Factory {
+template <typename T, std::size_t Capacity = 64> class Factory {
 public:
-    using CreatorFn = std::unique_ptr<T>(*)();
+    using CreatorFn = std::unique_ptr<T> (*)();
 
     /// Register a creator function under a name.
     /// Returns true on success, false on duplicate or full.
@@ -82,19 +86,13 @@ public:
     }
 
     /// Check if a type is registered.
-    static constexpr bool has(std::string_view name) {
-        return registry_.find(name) != nullptr;
-    }
+    static constexpr bool has(std::string_view name) { return registry_.find(name) != nullptr; }
 
     /// Number of registered types.
-    static constexpr std::size_t size() {
-        return registry_.size();
-    }
+    static constexpr std::size_t size() { return registry_.size(); }
 
     /// Iterate over registered entries.
-    static constexpr const auto& entries() {
-        return registry_;
-    }
+    static constexpr const auto& entries() { return registry_; }
 
 private:
     /// constinit guarantees the map is zero-initialized at compile time,

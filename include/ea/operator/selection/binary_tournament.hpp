@@ -17,8 +17,7 @@ struct BinaryTournamentSelection {
     /// @param ranks Rank of each individual (from NDS)
     /// @param crowding_dist Crowding distance of each individual
     void select(this BinaryTournamentSelection& self, Population& pop,
-                std::vector<int>& mating_pool,
-                const std::vector<int>& ranks,
+                std::vector<int>& mating_pool, const std::vector<int>& ranks,
                 const std::vector<double>& crowding_dist) {
         auto& rng = Random::instance();
         mating_pool.resize(2 * pop.pop_size);

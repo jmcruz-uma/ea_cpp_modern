@@ -7,10 +7,10 @@
 /// Reference: jMetal
 ///   jmetal-core/src/main/java/org/uma/jmetal/operator/selection/impl/RankingAndCrowdingSelection.java
 
-#include <ea/core/population.hpp>
-#include <vector>
 #include <algorithm>
+#include <ea/core/population.hpp>
 #include <numeric>
+#include <vector>
 
 namespace ea {
 
@@ -30,19 +30,21 @@ struct RankingAndCrowdingSelection {
     /// @param ranks        Rank of each individual (0 = best)
     /// @param crowding_dist Crowding distance of each individual
     void select(this RankingAndCrowdingSelection& self, Population& pop,
-                std::vector<int>& mating_pool,
-                const std::vector<int>& ranks,
+                std::vector<int>& mating_pool, const std::vector<int>& ranks,
                 const std::vector<double>& crowding_dist) {
         const int n = pop.pop_size;
         mating_pool.clear();
 
-        if (self.pool_size <= 0) return;
-        if (self.pool_size > n) self.pool_size = n;
+        if (self.pool_size <= 0)
+            return;
+        if (self.pool_size > n)
+            self.pool_size = n;
 
         // Group indices by rank
         int max_rank = 0;
         for (int r : ranks) {
-            if (r > max_rank) max_rank = r;
+            if (r > max_rank)
+                max_rank = r;
         }
 
         std::vector<std::vector<int>> fronts(max_rank + 1);
@@ -54,7 +56,8 @@ struct RankingAndCrowdingSelection {
         int rank_idx = 0;
 
         // Take whole fronts while they fit
-        while (rank_idx <= max_rank && selected + static_cast<int>(fronts[rank_idx].size()) <= self.pool_size) {
+        while (rank_idx <= max_rank &&
+               selected + static_cast<int>(fronts[rank_idx].size()) <= self.pool_size) {
             mating_pool.insert(mating_pool.end(), fronts[rank_idx].begin(), fronts[rank_idx].end());
             selected += static_cast<int>(fronts[rank_idx].size());
             ++rank_idx;
@@ -63,10 +66,9 @@ struct RankingAndCrowdingSelection {
         // Partial front: sort by crowding distance descending, take top-k
         if (selected < self.pool_size && rank_idx <= max_rank) {
             auto& last_front = fronts[rank_idx];
-            std::sort(last_front.begin(), last_front.end(),
-                [&crowding_dist](int a, int b) {
-                    return crowding_dist[a] > crowding_dist[b];
-                });
+            std::sort(last_front.begin(), last_front.end(), [&crowding_dist](int a, int b) {
+                return crowding_dist[a] > crowding_dist[b];
+            });
             int need = self.pool_size - selected;
             mating_pool.insert(mating_pool.end(), last_front.begin(), last_front.begin() + need);
         }

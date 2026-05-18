@@ -13,8 +13,8 @@
 
 #include <algorithm>
 #include <cmath>
-#include <ea/core/population.hpp>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 
 namespace ea {
@@ -28,8 +28,7 @@ struct ArithmeticCrossover {
     static constexpr Encoding encoding() { return Encoding::Real; }
 
     /// Apply arithmetic crossover. Produces 2 children starting at child_start.
-    void apply(this auto& self, Population& pop,
-               int parent_a, int parent_b, int child_start) {
+    void apply(this auto& self, Population& pop, int parent_a, int parent_b, int child_start) {
         auto& rng = Random::instance();
 
         for (int j = 0; j < pop.dim; ++j) {

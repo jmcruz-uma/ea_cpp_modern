@@ -3,8 +3,8 @@
 /// @brief Bit-Flip Mutation — flips individual bits with given probability.
 /// Reference: org.uma.jmetal.operator.mutation.impl.BitFlipMutation
 
-#include <ea/core/population.hpp>
 #include <ea/core/encoding.hpp>
+#include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 
 namespace ea {
@@ -13,7 +13,7 @@ namespace ea {
 /// Each bit in each gene is flipped independently with probability mutation_rate.
 /// Genes are stored as doubles but interpreted as bit vectors.
 struct BitFlipMutation {
-    double mutation_rate = -1.0;    ///< Per-bit flip probability
+    double mutation_rate = -1.0; ///< Per-bit flip probability
 
     static constexpr Encoding encoding() { return Encoding::Binary; }
 

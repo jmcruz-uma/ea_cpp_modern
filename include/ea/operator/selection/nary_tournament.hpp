@@ -2,17 +2,18 @@
 /// @file nary_tournament.hpp
 /// @brief N-ary Tournament Selection — selects best among N randomly chosen individuals.
 ///
-/// Reference: jMetal jmetal-core/src/main/java/org/uma/jmetal/operator/selection/impl/NaryTournamentSelection.java
+/// Reference: jMetal
+/// jmetal-core/src/main/java/org/uma/jmetal/operator/selection/impl/NaryTournamentSelection.java
 ///
 /// The N-ary tournament works by picking `tournament_size` distinct individuals uniformly
 /// at random and keeping the best according to a comparator. When `tournament_size == 2`,
 /// this degenerates to binary tournament selection. Larger sizes increase selection pressure.
 
+#include <algorithm>
+#include <cassert>
 #include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 #include <vector>
-#include <algorithm>
-#include <cassert>
 
 namespace ea {
 
@@ -27,9 +28,7 @@ struct NaryTournamentSelection {
     /// @param mating_pool Output indices (will be resized to 2 * pop_size)
     /// @param ranks Rank of each individual (from NDS)
     /// @param crowding_dist Crowding distance of each individual
-    void select(Population& pop,
-                std::vector<int>& mating_pool,
-                const std::vector<int>& ranks,
+    void select(Population& pop, std::vector<int>& mating_pool, const std::vector<int>& ranks,
                 const std::vector<double>& crowding_dist) {
         assert(tournament_size >= 1);
         assert(tournament_size <= pop.pop_size);
