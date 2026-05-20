@@ -40,55 +40,34 @@ struct TournamentWithoutReplacement {
         mating_pool.clear();
         mating_pool.reserve(pool_size);
 
-        // Track which individuals have been selected
-        std::vector<bool> used(n, false);
+        // All individual indices
+        std::vector<int> all_indices(n);
+        std::iota(all_indices.begin(), all_indices.end(), 0);
+
         int selected_count = 0;
 
-        // Full passes through available individuals
+        // Keep shuffling and running tournaments until we have enough
         while (selected_count < pool_size) {
-            // Gather available indices
-            std::vector<int> available;
-            available.reserve(n);
-            for (int i = 0; i < n; ++i) {
-                if (!used[i]) {
-                    available.push_back(i);
-                }
-            }
+            // Shuffle all indices
+            std::shuffle(all_indices.begin(), all_indices.end(), rng.engine());
 
-            if (available.empty()) {
-                // All used — reset and continue
-                std::fill(used.begin(), used.end(), false);
-                for (int i = 0; i < n; ++i) {
-                    available.push_back(i);
-                }
-            }
-
-            // Shuffle available indices
-            std::shuffle(available.begin(), available.end(), rng.engine());
-
-            // Process available indices in groups of tournament_size
-            // For WOR, we may have leftover individuals if available.size() % tournament_size != 0
-            // We handle complete groups and then reshuffle leftovers
-            size_t max_start = available.size() / self.tournament_size * self.tournament_size;
-            
-            for (size_t start = 0; start < max_start && selected_count < pool_size;
+            // Run tournaments on consecutive groups
+            for (int start = 0; start + self.tournament_size <= n && selected_count < pool_size;
                  start += self.tournament_size) {
-                // Tournament among available[start .. start+tournament_size-1]
-                int best = available[start];
+                int best = all_indices[start];
                 for (int t = 1; t < self.tournament_size; ++t) {
-                    int candidate = available[start + t];
+                    int candidate = all_indices[start + t];
                     // Prefer: lower rank, then higher crowding distance
                     if (ranks[candidate] < ranks[best]) {
                         best = candidate;
-                    } else if (ranks[candidate] > ranks[best]) {
-                        // best stays
-                    } else if (crowding_dist[candidate] > crowding_dist[best]) {
-                        best = candidate;
+                    } else if (ranks[candidate] == ranks[best]) {
+                        if (crowding_dist[candidate] > crowding_dist[best]) {
+                            best = candidate;
+                        }
                     }
                 }
 
                 mating_pool.push_back(best);
-                used[best] = true;
                 ++selected_count;
             }
         }

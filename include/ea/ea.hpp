@@ -43,13 +43,28 @@
 // Operators — Selection
 #include <ea/operator/selection/binary_tournament.hpp>
 #include <ea/operator/selection/binary_tournament2.hpp>
+#include <ea/operator/selection/differential_evolution.hpp>
+#include <ea/operator/selection/environmental.hpp>
+#include <ea/operator/selection/nary_random.hpp>
 #include <ea/operator/selection/nary_tournament.hpp>
 #include <ea/operator/selection/neighborhood.hpp>
 #include <ea/operator/selection/random.hpp>
+#include <ea/operator/selection/ranking_crowding.hpp>
+#include <ea/operator/selection/spea2_strength.hpp>
+#include <ea/operator/selection/spatial_spread.hpp>
+#include <ea/operator/selection/sus.hpp>
+#include <ea/operator/selection/tournament_wor.hpp>
+#include <ea/operator/selection/weighted.hpp>
 
 // Operators — Replacement
+#include <ea/operator/replacement/crowding_replacement.hpp>
+#include <ea/operator/replacement/moead_replacement.hpp>
 #include <ea/operator/replacement/mu_comma_lambda.hpp>
 #include <ea/operator/replacement/mu_plus_lambda.hpp>
+#include <ea/operator/replacement/nsga2_replacement.hpp>
+#include <ea/operator/replacement/nsga3_replacement.hpp>
+#include <ea/operator/replacement/smpso_replacement.hpp>
+#include <ea/operator/replacement/spea2_replacement.hpp>
 
 // Problems
 #include <ea/problem/dtlz.hpp>

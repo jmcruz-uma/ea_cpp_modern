@@ -16,6 +16,7 @@ TEST_COMPILE = $(BUILD_DIR)/test_compile
 TEST_OPERATORS = $(BUILD_DIR)/test_operators
 
 TEST_ISLAND = $(BUILD_DIR)/test_island_model
+TEST_NEW_OPERATORS = $(BUILD_DIR)/test_new_operators
 
 all: $(BUILD_DIR) $(BENCHMARK_FAIR) $(TEST_COMPILE)
 
@@ -37,12 +38,16 @@ $(TEST_OPERATORS): $(TEST_DIR)/test_operators.cpp
 $(TEST_ISLAND): tests/integration/test_island_model.cpp
 	$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
 
+$(TEST_NEW_OPERATORS): $(TEST_DIR)/test_new_operators.cpp
+	$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
+
 # Quick test
-test: $(TEST_COMPILE) $(TEST_OPERATORS) $(TEST_ISLAND)
+test: $(TEST_COMPILE) $(TEST_OPERATORS) $(TEST_ISLAND) $(TEST_NEW_OPERATORS)
 	@echo "=== Running tests ==="
 	$(TEST_COMPILE)
 	$(TEST_OPERATORS)
 	$(TEST_ISLAND)
+	$(TEST_NEW_OPERATORS)
 
 # Benchmark
 benchmark: $(BENCHMARK_FAIR)
