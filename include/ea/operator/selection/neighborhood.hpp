@@ -2,7 +2,7 @@
 /// @file neighborhood.hpp
 /// @brief Neighborhood Selection — selects individuals from the neighborhood
 ///        of a given subproblem. Used in MOEA/D and decomposition-based algorithms.
-/// @reference Zhang & Li, "MOEA/D: A Multiobjective Evolutionary Algorithm Based
+/// @par Reference Zhang & Li, "MOEA/D: A Multiobjective Evolutionary Algorithm Based
 ///            on Decomposition", IEEE Trans. Evol. Comput., 2007.
 
 #include <ea/core/population.hpp>

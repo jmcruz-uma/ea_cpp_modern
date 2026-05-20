@@ -1,7 +1,7 @@
 #pragma once
 /// @file moead_de.hpp
 /// @brief MOEA/D-DE — MOEA/D with Differential Evolution operators.
-/// @reference Li & Zhang, "Multiobjective Optimization Problems With Complicated
+/// @par Reference Li & Zhang, "Multiobjective Optimization Problems With Complicated
 ///            Pareto Sets, MOEA/D and NSGA-II", IEEE Trans. Evol. Comput., 2009.
 ///
 /// Key differences from base MOEA/D:

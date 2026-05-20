@@ -5,7 +5,9 @@
 /// Include this ONCE in your main.cpp (or a dedicated .cpp) to populate
 /// the factories. After that, you can create operators by name:
 ///
+///   @code
 ///   #include <ea/core/registry.hpp>
+///   @endcode
 ///   int main() {
 ///       auto cx   = ea::CrossoverFactory::create("sbx");
 ///       auto mt   = ea::MutationFactory::create("polynomial");

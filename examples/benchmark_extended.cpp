@@ -47,13 +47,14 @@ std::vector<std::vector<double>> zdt3_ref() {
 }
 
 std::vector<std::vector<double>> zdt6_ref() {
+    // ZDT6 Pareto front: g=1 on front, so f2 = 1 - f1^2
     std::vector<std::vector<double>> ref;
     for (int i = 0; i <= 500; ++i) {
         double t = static_cast<double>(i) / 500.0;
         double f1 = 1.0 - std::exp(-4.0 * t) * std::pow(std::sin(6.0 * M_PI * t), 6.0);
-        double g = 1.0 + 9.0 * std::pow(f1 / 1e-10, 0.25);
-        if (f1 >= 0.0 && f1 <= 1.0 && g > 0)
-            ref.push_back({f1, 1.0 - (f1 / g) * (f1 / g)});
+        double f2 = 1.0 - f1 * f1;
+        if (f1 >= 0.0 && f1 <= 1.0 && f2 >= 0.0)
+            ref.push_back({f1, f2});
     }
     return ref;
 }

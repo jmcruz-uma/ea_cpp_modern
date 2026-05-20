@@ -2,7 +2,7 @@
 /// @file binary_tournament2.hpp
 /// @brief Binary Tournament Selection 2 — picks the first individual if comparator says so,
 ///        otherwise random. Used in SPEA2 and other algorithms.
-/// @reference Zitzler, Thiele, Laumanns "SPEA2: Improving the Strength Pareto Evolutionary
+/// @par Reference Zitzler, Thiele, Laumanns "SPEA2: Improving the Strength Pareto Evolutionary
 ///            Algorithm", TIK-Report 103, 2001.
 
 #include <ea/core/population.hpp>
