@@ -92,7 +92,7 @@ struct MOEAD_DE {
         // Evaluate initial population
         for (int i = 0; i < n; ++i) {
             if (!pop.evaluated(i)) {
-                problem.evaluate(pop, i);
+                problem(pop, i);
                 pop.set_evaluated(i, true);
             }
             self.update_ideal_point(pop, i);
@@ -140,7 +140,7 @@ struct MOEAD_DE {
                 self.mutation.apply(trial_pop, 0);
 
                 // Evaluate offspring
-                problem.evaluate(trial_pop, 0);
+                problem(trial_pop, 0);
                 trial_pop.set_evaluated(0, true);
                 self.evals_++;
 

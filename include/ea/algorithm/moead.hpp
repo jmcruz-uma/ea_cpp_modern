@@ -121,7 +121,7 @@ template <typename CX, typename MT> struct MOEAD {
         // === Evaluate initial population ===
         for (int i = 0; i < n; ++i) {
             if (!pop.evaluated(i)) {
-                problem.evaluate(pop, i);
+                problem(pop, i);
                 pop.set_evaluated(i, true);
             }
             self.update_ideal_point(pop, i);
@@ -192,7 +192,7 @@ template <typename CX, typename MT> struct MOEAD {
 
                 // Evaluate offspring
                 if (!scratch.evaluated(0)) {
-                    problem.evaluate(scratch, 0);
+                    problem(scratch, 0);
                     scratch.set_evaluated(0, true);
                 }
                 self.evals_++;

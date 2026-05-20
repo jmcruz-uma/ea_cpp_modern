@@ -88,7 +88,7 @@ template <typename CX, typename MT> struct SMSEMOA {
             self.mutation.apply(child, 0);
 
             // Evaluate offspring
-            problem.evaluate(child, 0);
+            problem(child, 0);
             child.set_evaluated(0, true);
             evals++;
             if (evals >= self.max_evals)
