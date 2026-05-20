@@ -75,14 +75,35 @@
 - [x] README: badges, quick start, benchmarks, version history
 - [x] CI: GitHub Actions regression test
 
-## Estado final del proyecto
+## v1.1.0 ✅ (2026-05-20) — Island Model + Operator Gap + Bug Fixes
 
-| Versión | Fecha | Features |
-|---------|-------|----------|
-| v0.1.0 | 2026-05-16 | Framework base, 76 headers, jMetal parity |
-| v0.2.0 | 2026-05-17 | Robustez, tests, Spread indicator, CI |
-| v0.3.0 | 2026-05-17 | RVEA, IBEA, RandomSearch, MOEA/D-DE, SMS-EMOA verified, new selection ops |
-| v0.4.0 | 2026-05-17 | Epsilon, R2, Hausdorff indicators |
-| v0.5.0 | 2026-05-18 | Benchmark suite, CI, clang-format, Doxygen |
-| v0.6.0 | 2026-05-17 | JSON configuration |
-| **v1.0.0** | **2026-05-17** | **Paper-ready** |
+- [x] Island Model: RingTopology, MeshTopology, FullyConnectedTopology
+- [x] Island Model: MigrationPolicy, MigrationOperator, Island, IslandModel
+- [x] Selection: +7 operators (Environmental, SPEA2Strength, SUS, TournamentWOR, Weighted, SpatialSpread, BestSolution) = 15 total
+- [x] Replacement: +4 operators (SPEA2, Crowding, MOEAD, SMPSO) = 8 total
+- [x] Fix: NSGA-III heap-buffer-overflow (pop_size impar + selected bounds)
+- [x] Fix: SMSEMOA, MOEA/D, MOEA/D-DE problem callable API (problem.evaluate → problem())
+- [x] Extended benchmark suite (7 algos × 4 problems × N runs → CSV)
+- [x] Total: 104 headers (was 76)
+
+## v1.2.0 (WIP) — Doxygen + Paper polish
+
+- [ ] Doxygen documentation for all 104 public headers
+- [ ] Fix IBEA IGD (kappa normalization)
+- [ ] Fix RVEA on 3-obj (verify stability)
+- [ ] Benchmark: 30 runs complete suite → paper tables
+- [ ] GitHub Actions CI (needs workflow scope on token)
+
+## Estado actual del proyecto
+
+| Categoría | Implementados | jMetal | Cobertura |
+|---|---|---|---|
+| Crossover | 21 | 25 | 84% |
+| Mutation | 17 | 20 | 85% |
+| Selection | 15 | 14 | 107% ✅ |
+| Replacement | 8 | 13 | 62% |
+| Algorithms | 14 | 15+ | 93% |
+| Problems | 22 | 40+ | 55% |
+| Indicators | 7+ | 7 | 100% ✅ |
+| Island Model | 5 | — | NEW ✅ |
+| **Total** | **104 headers** | | |
