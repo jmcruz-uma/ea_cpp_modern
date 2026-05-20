@@ -31,9 +31,17 @@ template <typename CX, typename MT> struct NSGAIII {
 
     /// Run NSGA-III.
     template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
-        const int n = self.pop_size;
+        int n = self.pop_size;
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
+
+        // Validate: pop_size must be even for crossover pairing
+        if (n % 2 != 0) {
+            std::cerr << "[ea::NSGAIII] Warning: pop_size must be even (got " << n
+                      << "). Adjusting to " << (n + 1) << ".\n";
+            n = n + 1;
+            self.pop_size = n;
+        }
 
         if (pop.pop_size != n)
             pop.resize(n);
