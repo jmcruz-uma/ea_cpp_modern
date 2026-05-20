@@ -72,6 +72,13 @@
 #include <ea/algorithm/smsemoa.hpp>
 #include <ea/algorithm/spea2.hpp>
 
+// Island Model
+#include <ea/island/island_model.hpp>
+#include <ea/island/island.hpp>
+#include <ea/island/migration.hpp>
+#include <ea/island/migration_policy.hpp>
+#include <ea/island/topology.hpp>
+
 // Util
 #include <ea/util/adaptive_grid.hpp>
 #include <ea/util/aggregation.hpp>
