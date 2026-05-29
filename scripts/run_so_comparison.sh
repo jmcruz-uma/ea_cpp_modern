@@ -50,6 +50,15 @@ fi
 
 mkdir -p "$OUTDIR"
 
+# ── Temperatura idle de referencia ────────────────────────────────────────────
+# Se mide aquí, con la CPU en reposo, antes de lanzar cualquier carga.
+THERMAL_FILE="/sys/class/thermal/thermal_zone0/temp"
+if [[ -r "${THERMAL_FILE}" ]]; then
+    IDLE_TEMP_mC=$(cat "${THERMAL_FILE}")
+    echo "Temperatura idle de referencia: $((IDLE_TEMP_mC/1000))°C"
+    export IDLE_TEMP_mC THERMAL_FILE
+fi
+
 # ── Generar JSONs de configuración ────────────────────────────────────────────
 cat > "${OUTDIR}/numeric.json" << EOF
 {
@@ -107,12 +116,36 @@ ORIG_WALL=$(echo "scale=3; ($END - $START) / 1000000000" | bc)
 echo "   Completado en ${ORIG_WALL}s → ${OUTDIR}/rastrigin-20-1-stats.json"
 echo ""
 
-# ── Pausa térmica ─────────────────────────────────────────────────────────────
-# 60s permite que la CPU vuelva a temperatura base tras una carga larga.
-# En bare-metal: monitorizar con 'watch -n1 sensors' antes de continuar.
-COOLDOWN=60
-echo "   Pausa térmica de ${COOLDOWN}s (CPU cooling down)..."
-sleep "${COOLDOWN}"
+# ── Pausa térmica basada en temperatura real ──────────────────────────────────
+# Usa el sensor térmico del sistema para esperar hasta que la CPU vuelva
+# a la temperatura idle medida al inicio del script (+ margen de 3°C).
+# Si no hay sensor disponible, aplica sleep 90s como fallback.
+echo "   Esperando enfriamiento de CPU..."
+if [[ -v IDLE_TEMP_mC && -r "${THERMAL_FILE}" ]]; then
+    TARGET_mC=$(( IDLE_TEMP_mC + 3000 ))  # idle + 3°C de margen
+    WAITED=0
+    while true; do
+        NOW=$(cat "${THERMAL_FILE}")
+        TEMP_C=$(( NOW / 1000 ))
+        TEMP_D=$(( (NOW % 1000) / 100 ))
+        echo -ne "   ${WAITED}s — ${TEMP_C}.${TEMP_D}°C  (objetivo ≤$(( TARGET_mC/1000 ))°C)\r"
+        if (( NOW <= TARGET_mC )); then
+            echo ""
+            echo "   CPU a ${TEMP_C}.${TEMP_D}°C — dentro del margen. Continuando."
+            break
+        fi
+        sleep 5
+        WAITED=$(( WAITED + 5 ))
+        if (( WAITED >= 300 )); then
+            echo ""
+            echo "   AVISO: 300s sin alcanzar objetivo. Continuando de todos modos (${TEMP_C}°C)."
+            break
+        fi
+    done
+else
+    echo "   Sensor térmico no disponible — sleep 90s como fallback."
+    sleep 90
+fi
 echo ""
 
 # ── Ejecutar ea_cpp_modern ───────────────────────────────────────────────────
@@ -133,7 +166,7 @@ echo ""
 echo "============================================================"
 echo " Tiempos de pared (${NUMRUNS} runs × ${MAXEVALS} evals)"
 echo "   ea_cpp_original : ${ORIG_WALL}s"
-echo "   ea_cpp_modern   : ${MODERN_WALL}s  (tras ${COOLDOWN}s cooldown)"
+echo "   ea_cpp_modern   : ${MODERN_WALL}s  (tras cooldown térmico)"
 SPEEDUP=$(echo "scale=3; ${ORIG_WALL} / ${MODERN_WALL}" | bc)
 echo "   Speedup         : ${SPEEDUP}×"
 echo "============================================================"
