@@ -137,10 +137,22 @@ def main():
     try:
         from scipy import stats as sp
         if len(b_o) == len(b_m) and len(b_o) >= 10:
-            stat, pval = sp.wilcoxon(b_o, b_m, alternative="two-sided")
+            diffs = [m - o for o, m in zip(b_o, b_m)]
             print("── Test de Wilcoxon (fitness final, bilateral) ──────────────────────")
-            print(f"  W={stat:.1f}  p={pval:.4f}  "
-                  f"{'sin diferencia significativa (p>0.05)' if pval > 0.05 else 'DIFERENCIA SIGNIFICATIVA (p≤0.05)'}")
+            if all(d == 0.0 for d in diffs):
+                print("  Todas las diferencias son 0 — distribuciones idénticas.")
+                print("  Test no aplicable; equivalencia perfecta en esta muestra.")
+            else:
+                try:
+                    stat, pval = sp.wilcoxon(b_o, b_m, alternative="two-sided",
+                                             zero_method="zsplit")
+                    n_zero = sum(1 for d in diffs if d == 0)
+                    print(f"  W={stat:.1f}  p={pval:.4f}  pares_iguales={n_zero}/{len(diffs)}")
+                    if n_zero > len(diffs) // 2:
+                        print("  AVISO: mayoría de pares empatados — p-value poco fiable.")
+                    print(f"  {'sin diferencia significativa (p>0.05)' if pval > 0.05 else 'DIFERENCIA SIGNIFICATIVA (p≤0.05)'}")
+                except Exception as e:
+                    print(f"  Test no ejecutable: {e}")
             print()
     except ImportError:
         print("  (scipy no disponible — instala con: pip install scipy)")
