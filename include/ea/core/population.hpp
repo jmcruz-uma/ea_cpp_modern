@@ -134,6 +134,17 @@ struct Population {
         flags.resize(pop_size, IndFlags::None);
     }
 
+    /// Copy individual src_idx from another population into this population's dst_idx.
+    void copy_from_other(const Population<E>& other, int src_idx, int dst_idx) {
+        std::copy_n(other.genes_ptr(src_idx), dim, genes_ptr(dst_idx));
+        std::copy_n(other.objectives_ptr(src_idx), n_obj, objectives_ptr(dst_idx));
+        if (n_const > 0) {
+            std::copy_n(other.constraints.data() + src_idx * n_const, n_const,
+                        constraints.data() + dst_idx * n_const);
+        }
+        flags[dst_idx] = other.flags[src_idx];
+    }
+
     /// Copy individual src to dst
     void copy_individual(int src, int dst) {
         std::copy_n(genes_ptr(src), dim, genes_ptr(dst));
