@@ -90,17 +90,22 @@ Ambos sistemas usan exactamente la misma configuración (generada por el script)
 | Problema          | Rastrigin d=20, [-5.12, 5.12] | experiment.json |
 | RNG               | mt19937_64, seed=1..NUMRUNS | ambos repos |
 
-### Resultados de referencia (30 runs × 1M evals, WSL2)
+### Resultados de referencia (30 runs × 10M evals, WSL2)
 
 | Métrica               | ea_cpp_original | ea_cpp_modern | Ratio  |
 |-----------------------|-----------------|---------------|--------|
-| Tiempo medio (s)      | 0.902           | 0.534         | **1.69×** |
-| Tiempo mediana (s)    | 0.920           | 0.542         | **1.70×** |
+| Tiempo mediana (s)    | 7.84            | 6.74          | **1.16×** |
+| Tiempo media (s)      | 7.70            | 7.78          | ≈1× (ruidoso) |
 | Fitness mediano       | 0.0             | 0.0           | =      |
-| hits≈0 (de 30)        | 30/30           | 29/30         | ≈      |
+| hits≈0 (de 30)        | 30/30           | 30/30         | =      |
 
-> Nota: los tiempos en bare-metal Linux con RAPL diferirán de WSL2.
-> Los resultados definitivos del paper deben medirse en bare-metal.
+> **Advertencia WSL2**: la media es inestable por throttling térmico
+> (outlier de 14.2s observado). Usar **mediana** como estimador robusto.
+> La pausa de 60s entre sistemas mitiga pero no elimina el efecto térmico.
+>
+> **Los resultados definitivos del paper deben medirse en bare-metal Linux**
+> con frecuencia de CPU verificada (`turbostat` o `watch sensors`).
+> En bare-metal el speedup por SoA debería ser más pronunciado.
 
 ### Dependencias Python opcionales
 
