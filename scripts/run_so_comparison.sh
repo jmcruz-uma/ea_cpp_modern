@@ -91,6 +91,9 @@ echo " Budget    : ${MAXEVALS} evaluaciones × ${NUMRUNS} runs"
 echo " Salida    : ${OUTDIR}"
 echo "============================================================"
 echo ""
+echo "NOTA: para medición definitiva en bare-metal usar sesiones"
+echo "separadas o monitorizar frecuencia con turbostat/perf."
+echo ""
 
 # ── Ejecutar ea_cpp_original ─────────────────────────────────────────────────
 echo "[1/2] Ejecutando ea_cpp_original..."
@@ -101,8 +104,15 @@ START=$(date +%s%N)
 END=$(date +%s%N)
 popd > /dev/null
 ORIG_WALL=$(echo "scale=3; ($END - $START) / 1000000000" | bc)
-# El original escribe rastrigin-20-1-stats.json en OUTDIR
 echo "   Completado en ${ORIG_WALL}s → ${OUTDIR}/rastrigin-20-1-stats.json"
+echo ""
+
+# ── Pausa térmica ─────────────────────────────────────────────────────────────
+# 60s permite que la CPU vuelva a temperatura base tras una carga larga.
+# En bare-metal: monitorizar con 'watch -n1 sensors' antes de continuar.
+COOLDOWN=60
+echo "   Pausa térmica de ${COOLDOWN}s (CPU cooling down)..."
+sleep "${COOLDOWN}"
 echo ""
 
 # ── Ejecutar ea_cpp_modern ───────────────────────────────────────────────────
@@ -123,7 +133,7 @@ echo ""
 echo "============================================================"
 echo " Tiempos de pared (${NUMRUNS} runs × ${MAXEVALS} evals)"
 echo "   ea_cpp_original : ${ORIG_WALL}s"
-echo "   ea_cpp_modern   : ${MODERN_WALL}s"
+echo "   ea_cpp_modern   : ${MODERN_WALL}s  (tras ${COOLDOWN}s cooldown)"
 SPEEDUP=$(echo "scale=3; ${ORIG_WALL} / ${MODERN_WALL}" | bc)
 echo "   Speedup         : ${SPEEDUP}×"
 echo "============================================================"

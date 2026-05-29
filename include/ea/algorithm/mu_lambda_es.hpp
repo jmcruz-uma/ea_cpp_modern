@@ -80,36 +80,29 @@ struct MuLambdaES {
         uint64_t evals = static_cast<uint64_t>(mu);
         stats.take(pop, evals);
 
-        // Reusable offspring buffer (lam individuals, same dims and bounds as pop)
+        // --- Pre-allocate all buffers once outside the main loop ---
+        // Eliminates ~303K malloc/free calls at 10M evals (next + off_order + par_order).
         Population<> offspring(lam, dim, pop.n_obj, pop.n_const);
         offspring.lower_bounds = pop.lower_bounds;
         offspring.upper_bounds = pop.upper_bounds;
+
+        Population<> next(mu, dim, pop.n_obj, pop.n_const);
+        next.lower_bounds = pop.lower_bounds;
+        next.upper_bounds = pop.upper_bounds;
+
+        std::vector<int> off_order(lam);
+        std::vector<int> par_order(lam < mu ? mu : 0);
+
+        const int n_from_offspring = std::min(lam, mu);
 
         auto& rng = Random::instance();
 
         while (evals < static_cast<uint64_t>(self.max_evals)) {
             // === 1. Generate offspring ===
             for (int c = 0; c < lam; ++c) {
-                // Select 2 parents by k-tournament (minimisation on objective[0])
                 int p1 = tournament_select(pop, self.tournament_k, rng);
                 int p2 = tournament_select(pop, self.tournament_k, rng);
-
-                // Copy parent p1 into offspring slot c (fallback if crossover skips)
-                for (int j = 0; j < dim; ++j)
-                    offspring.gene(c, j) = pop.gene(p1, j);
-                offspring.set_evaluated(c, true);
-
-                // Crossover: apply writes to child_start and child_start+1 in a
-                // single Population<>. We use a 2-slot scratch view inside offspring
-                // by appending a temporary second slot if needed.
-                // Simpler: apply crossover on offspring itself (p1→c, p2→c, child=c).
-                // Since apply() writes child_start AND child_start+1, we need a scratch
-                // slot. We borrow slot (c+1 % lam) temporarily — acceptable because
-                // we overwrite every slot each generation.
-                // Cleanest alternative: call crossover gene-by-gene inline.
                 apply_crossover_one_child(self.crossover, pop, p1, p2, offspring, c);
-
-                // Mutation
                 self.mutation.apply(offspring, c);
                 offspring.set_evaluated(c, false);
             }
@@ -123,30 +116,18 @@ struct MuLambdaES {
                 }
             }
 
-            // === 3. Comma replacement ===
-            // Sort offspring by fitness (ascending — minimisation)
-            std::vector<int> off_order(lam);
+            // === 3. Comma replacement (reuses pre-allocated buffers) ===
             std::iota(off_order.begin(), off_order.end(), 0);
             std::sort(off_order.begin(), off_order.end(), [&](int a, int b) {
                 return offspring.objective(a, 0) < offspring.objective(b, 0);
             });
 
-            int n_from_offspring = std::min(lam, mu);
-
-            // If lambda < mu, also sort parents to keep the best (mu - lambda)
-            std::vector<int> par_order;
             if (lam < mu) {
-                par_order.resize(mu);
                 std::iota(par_order.begin(), par_order.end(), 0);
                 std::sort(par_order.begin(), par_order.end(), [&](int a, int b) {
                     return pop.objective(a, 0) < pop.objective(b, 0);
                 });
             }
-
-            // Build next generation in a temp buffer
-            Population<> next(mu, dim, pop.n_obj, pop.n_const);
-            next.lower_bounds = pop.lower_bounds;
-            next.upper_bounds = pop.upper_bounds;
 
             for (int i = 0; i < n_from_offspring; ++i)
                 next.copy_from_other(offspring, off_order[i], i);
@@ -154,10 +135,11 @@ struct MuLambdaES {
             for (int i = n_from_offspring; i < mu; ++i)
                 next.copy_from_other(pop, par_order[i - n_from_offspring], i);
 
-            // Swap next into pop
-            pop.genes      = std::move(next.genes);
-            pop.objectives = std::move(next.objectives);
-            pop.flags      = std::move(next.flags);
+            // Swap buffers: pop gets the new generation, next keeps a valid
+            // (reusable) buffer for the following iteration — no heap allocation.
+            std::swap(pop.genes,      next.genes);
+            std::swap(pop.objectives, next.objectives);
+            std::swap(pop.flags,      next.flags);
 
             stats.take(pop, evals);
         }
