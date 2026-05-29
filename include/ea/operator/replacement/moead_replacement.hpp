@@ -28,7 +28,7 @@ struct MOEADReplacement {
     bool normalize = false;               ///< Whether to normalize objectives
 
     /// Update neighborhood with offspring.
-    /// @param pop               Population to update
+    /// @param pop               Population<> to update
     /// @param offspring         Offspring population (single individual at index 0)
     /// @param subproblem_id     Current subproblem index
     /// @param neighborhood      Neighborhood indices for subproblem
@@ -36,7 +36,7 @@ struct MOEADReplacement {
     /// @param ideal_point       Ideal point [n_obj]
     /// @param nadir_point       Nadir point [n_obj] (can be empty if not normalizing)
     /// @return Number of replacements made
-    int update(this MOEADReplacement& self, Population& pop, const Population& offspring,
+    int update(this MOEADReplacement& self, Population<>& pop, const Population<>& offspring,
                int subproblem_id, const std::vector<int>& neighborhood,
                const std::vector<std::vector<double>>& lambda,
                const std::vector<double>& ideal_point,
@@ -85,7 +85,7 @@ struct MOEADReplacement {
 
     /// Compatibility: replace() signature for algorithm templates.
     /// Returns indices of all individuals (MOEA/D updates in-place).
-    std::vector<int> replace(this MOEADReplacement& self, Population& pop,
+    std::vector<int> replace(this MOEADReplacement& self, Population<>& pop,
                              const std::vector<int>& offspring_indices, int target_size) {
         (void)self;
         (void)offspring_indices;

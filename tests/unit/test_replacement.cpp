@@ -11,7 +11,7 @@ int main() {
     {
         MuPlusLambdaReplacement repl;
         ZDT1 prob(5);  // small dimension for test
-        Population pop(4, prob.dimension(), prob.num_objectives());
+        Population<> pop(4, prob.dimension(), prob.num_objectives());
 
         // Fill with known values
         for (int i = 0; i < 4; ++i) {
@@ -34,7 +34,7 @@ int main() {
     {
         MuCommaLambdaReplacement repl;
         ZDT1 prob(5);
-        Population pop(6, prob.dimension(), prob.num_objectives());
+        Population<> pop(6, prob.dimension(), prob.num_objectives());
 
         for (int i = 0; i < 6; ++i) {
             for (int j = 0; j < prob.dimension(); ++j) {

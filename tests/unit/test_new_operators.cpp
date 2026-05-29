@@ -20,7 +20,7 @@
 using namespace ea;
 
 // Helper: initialize population with random values in [0,1]
-static void init_pop_random(Population& pop, uint64_t seed) {
+static void init_pop_random(Population<>& pop, uint64_t seed) {
     auto& rng = Random::instance();
     rng.seed(seed);
     for (int i = 0; i < pop.pop_size; ++i) {
@@ -41,7 +41,7 @@ static void init_pop_random(Population& pop, uint64_t seed) {
 static bool test_environmental_selection() {
     std::cout << "TEST: EnvironmentalSelection ... " << std::flush;
 
-    Population pop(10, 2, 1, Encoding::Real, 0, 0.0, 1.0);
+    Population<> pop(10, 2, 1, 0, 0.0, 1.0);
     init_pop_random(pop, 100);
 
     // Set clear fitness: lower index = better fitness
@@ -79,7 +79,7 @@ static bool test_environmental_selection() {
 static bool test_spea2_strength_selection() {
     std::cout << "TEST: SPEA2StrengthSelection ... " << std::flush;
 
-    Population pop(10, 2, 2, Encoding::Real, 0, 0.0, 1.0);
+    Population<> pop(10, 2, 2, 0, 0.0, 1.0);
     init_pop_random(pop, 200);
 
     std::vector<double> fitness(10);
@@ -110,7 +110,7 @@ static bool test_spea2_strength_selection() {
 static bool test_sus_selection() {
     std::cout << "TEST: StochasticUniversalSampling ... " << std::flush;
 
-    Population pop(20, 2, 2, Encoding::Real, 0, 0.0, 1.0);
+    Population<> pop(20, 2, 2, 0, 0.0, 1.0);
     init_pop_random(pop, 300);
 
     // Make index 0 have very good (low) fitness
@@ -142,7 +142,7 @@ static bool test_sus_selection() {
 static bool test_tournament_wor() {
     std::cout << "TEST: TournamentWithoutReplacement ... " << std::flush;
 
-    Population pop(10, 2, 2, Encoding::Real, 0, 0.0, 1.0);
+    Population<> pop(10, 2, 2, 0, 0.0, 1.0);
     init_pop_random(pop, 400);
 
     std::vector<int> ranks(10, 0);
@@ -170,7 +170,7 @@ static bool test_tournament_wor() {
 static bool test_weighted_selection() {
     std::cout << "TEST: WeightedSelection ... " << std::flush;
 
-    Population pop(20, 2, 2, Encoding::Real, 0, 0.0, 1.0);
+    Population<> pop(20, 2, 2, 0, 0.0, 1.0);
     init_pop_random(pop, 500);
 
     std::vector<double> fitness(20);
@@ -200,7 +200,7 @@ static bool test_crowding_replacement() {
     std::cout << "TEST: CrowdingReplacement ... " << std::flush;
 
     // Create combined population with known structure
-    Population combined(20, 2, 2, Encoding::Real, 0, 0.0, 1.0);
+    Population<> combined(20, 2, 2, 0, 0.0, 1.0);
     for (int i = 0; i < 20; ++i) {
         combined.gene(i, 0) = 0.1 * i;
         combined.gene(i, 1) = 0.1 * i;
@@ -233,7 +233,7 @@ static bool test_spea2_replacement() {
     std::cout << "TEST: SPEA2Replacement ... " << std::flush;
 
     // Combined population of 20, want to select 10
-    Population combined(20, 2, 2, Encoding::Real, 0, 0.0, 1.0);
+    Population<> combined(20, 2, 2, 0, 0.0, 1.0);
     for (int i = 0; i < 20; ++i) {
         // Create a simple Pareto front structure
         // Front 0: indices 0-4 (non-dominated)
@@ -273,7 +273,7 @@ static bool test_moead_replacement() {
     std::cout << "TEST: MOEADReplacement ... " << std::flush;
 
     MOEADReplacement repl;
-    Population pop(10, 2, 2, Encoding::Real, 0, 0.0, 1.0);
+    Population<> pop(10, 2, 2, 0, 0.0, 1.0);
     std::vector<int> offspring = {};
     auto selected = repl.replace(pop, offspring, 10);
 
@@ -294,13 +294,13 @@ static bool test_smpso_replacement() {
     repl.archive_size = 10;
 
     // Create a source population with non-dominated individuals
-    Population source(5, 2, 2, Encoding::Real, 0, 0.0, 1.0);
+    Population<> source(5, 2, 2, 0, 0.0, 1.0);
     for (int i = 0; i < 5; ++i) {
         source.objective(i, 0) = 0.1 * i;
         source.objective(i, 1) = 1.0 - 0.1 * i;
     }
 
-    Population archive(10, 2, 2, Encoding::Real, 0, 0.0, 1.0);
+    Population<> archive(10, 2, 2, 0, 0.0, 1.0);
     archive.pop_size = 0; // Start empty
 
     // Add all 5

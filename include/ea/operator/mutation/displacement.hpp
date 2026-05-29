@@ -19,7 +19,7 @@ struct DisplacementMutation {
 
     static constexpr Encoding encoding() { return Encoding::Permutation; }
 
-    void apply(this DisplacementMutation& self, Population& pop, int idx) {
+    void apply(this DisplacementMutation& self, Population<>& pop, int idx) {
         if (pop.dim <= 1)
             return;
 

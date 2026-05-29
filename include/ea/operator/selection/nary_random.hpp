@@ -20,9 +20,9 @@ struct NaryRandomSelection {
     int n_solutions = 1; ///< Number of solutions to select
 
     /// Select N random individuals into `selected`.
-    /// @param pop      Population
+    /// @param pop      Population<>
     /// @param selected Output: selected individual indices (resized to n_solutions)
-    void select(this NaryRandomSelection& self, Population& pop, std::vector<int>& selected) {
+    void select(this NaryRandomSelection& self, Population<>& pop, std::vector<int>& selected) {
         auto& rng = Random::instance();
         selected.resize(self.n_solutions);
 

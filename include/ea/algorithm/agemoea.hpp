@@ -31,7 +31,7 @@ template <typename CX, typename MT> struct AGEMOEA {
     static constexpr std::string_view name() { return "AGE-MOEA"; }
 
     /// Run AGE-MOEA.
-    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
+    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
         const int n = self.pop_size;
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
@@ -52,11 +52,11 @@ template <typename CX, typename MT> struct AGEMOEA {
         self.environmental_selection(pop, n);
 
         // Allocate offspring population
-        Population offspring(n, dim, n_obj, pop.encoding, pop.n_const);
+        Population<> offspring(n, dim, n_obj, pop.n_const);
         offspring.lower_bounds = pop.lower_bounds;
         offspring.upper_bounds = pop.upper_bounds;
 
-        Population combined(2 * n, dim, n_obj, pop.encoding, pop.n_const);
+        Population<> combined(2 * n, dim, n_obj, pop.n_const);
         combined.lower_bounds = pop.lower_bounds;
         combined.upper_bounds = pop.upper_bounds;
 
@@ -136,7 +136,7 @@ private:
     /// AGE-MOEA environmental selection with geometry estimation.
     /// Sorts by non-dominated rank, then uses survival score based on
     /// geometry estimation of the Pareto front shape.
-    void environmental_selection(this auto& self, Population& pop, int target_size) {
+    void environmental_selection(this auto& self, Population<>& pop, int target_size) {
         const int n_obj = pop.n_obj;
         const int n = pop.pop_size;
 
@@ -196,7 +196,7 @@ private:
 
     /// Estimate the geometry (shape) parameter p of the Pareto front.
     /// p = 1: linear, p = 2: convex, p > 2: more convex, p < 1: concave.
-    double estimate_geometry(this auto& self, Population& pop, const std::vector<int>& selected,
+    double estimate_geometry(this auto& self, Population<>& pop, const std::vector<int>& selected,
                              const std::vector<int>& critical_front, int n_obj) {
         // Combine selected + critical front for estimation
         std::vector<int> all_individuals = selected;
@@ -241,7 +241,7 @@ private:
 
     /// Compute survival score for an individual based on geometry estimation.
     /// Uses the Minkowski distance with estimated p to measure contribution.
-    double survival_score(this auto& self, Population& pop, int idx,
+    double survival_score(this auto& self, Population<>& pop, int idx,
                           const std::vector<int>& selected, int n_obj, double p) {
         if (selected.empty()) {
             return std::numeric_limits<double>::infinity();
@@ -286,8 +286,8 @@ private:
     }
 
     /// Reorder population so selected individuals are in positions [0, selected.size()).
-    void reorder_population(this auto&, Population& pop, const std::vector<int>& selected) {
-        Population temp(pop.pop_size, pop.dim, pop.n_obj, pop.encoding, pop.n_const);
+    void reorder_population(this auto&, Population<>& pop, const std::vector<int>& selected) {
+        Population<> temp(pop.pop_size, pop.dim, pop.n_obj, pop.n_const);
         temp.lower_bounds = pop.lower_bounds;
         temp.upper_bounds = pop.upper_bounds;
 

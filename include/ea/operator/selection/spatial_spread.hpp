@@ -22,11 +22,11 @@ struct SpatialSpreadDeviationSelection {
     int number_of_tournaments = 2; ///< Tournament size (default = binary tournament)
 
     /// Select mating pool using SSD-based tournament selection.
-    /// @param pop              Population
+    /// @param pop              Population<>
     /// @param mating_pool      Output: selected indices (resized to 2 * pop_size)
     /// @param ranks            Pareto rank of each individual (lower = better)
     /// @param spatial_spread   Spatial spread deviation of each individual (higher = better)
-    void select(this SpatialSpreadDeviationSelection& self, Population& pop,
+    void select(this SpatialSpreadDeviationSelection& self, Population<>& pop,
                 std::vector<int>& mating_pool, const std::vector<int>& ranks,
                 const std::vector<double>& spatial_spread) {
         auto& rng = Random::instance();

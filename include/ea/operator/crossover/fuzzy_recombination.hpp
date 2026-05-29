@@ -25,7 +25,7 @@ struct FuzzyRecombinationCrossover {
     static constexpr int arity() { return 2; }
     static constexpr Encoding encoding() { return Encoding::Real; }
 
-    void apply(this FuzzyRecombinationCrossover& self, Population& pop, int parent_a, int parent_b,
+    void apply(this FuzzyRecombinationCrossover& self, Population<>& pop, int parent_a, int parent_b,
                int child_start) {
         auto& rng = Random::instance();
         constexpr double EPSILON = 1e-10;

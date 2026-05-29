@@ -25,10 +25,10 @@ struct EnvironmentalSelection {
     int pool_size = 0; ///< Number of individuals to select
 
     /// Select `pool_size` individuals with lowest fitness.
-    /// @param pop          Population
+    /// @param pop          Population<>
     /// @param mating_pool  Output: selected indices (resized)
     /// @param fitness      Fitness of each individual (lower = better)
-    void select(this EnvironmentalSelection& self, Population& pop,
+    void select(this EnvironmentalSelection& self, Population<>& pop,
                 std::vector<int>& mating_pool, const std::vector<double>& fitness) {
         const int n = pop.pop_size;
         mating_pool.clear();
@@ -54,10 +54,10 @@ struct EnvironmentalSelection {
     }
 
     /// Convenience: select best N by a single objective value.
-    /// @param pop          Population
+    /// @param pop          Population<>
     /// @param mating_pool  Output: selected indices
     /// @param obj_idx      Objective index to use for ranking (default: 0)
-    void select_by_objective(this EnvironmentalSelection& self, Population& pop,
+    void select_by_objective(this EnvironmentalSelection& self, Population<>& pop,
                              std::vector<int>& mating_pool, int obj_idx = 0) {
         const int n = pop.pop_size;
         mating_pool.clear();

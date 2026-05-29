@@ -19,10 +19,10 @@ namespace ea {
 /// Lower fitness (strength + density) is better.
 struct SPEA2StrengthSelection {
     /// Select mating pool from population using SPEA2 fitness values.
-    /// @param pop          Population
+    /// @param pop          Population<>
     /// @param mating_pool  Output indices (resized to 2 * pop_size)
     /// @param fitness      SPEA2 fitness of each individual (lower = better)
-    void select(this SPEA2StrengthSelection& self, Population& pop,
+    void select(this SPEA2StrengthSelection& self, Population<>& pop,
                 std::vector<int>& mating_pool, const std::vector<double>& fitness) {
         (void)self;
         auto& rng = Random::instance();

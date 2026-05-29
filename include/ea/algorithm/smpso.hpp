@@ -58,7 +58,7 @@ struct SMPSO {
     static constexpr std::string_view name() { return "SMPSO"; }
 
     /// Run SMPSO.
-    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
+    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
         const int n = self.pop_size;
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
@@ -208,7 +208,7 @@ struct SMPSO {
 
 private:
     /// Compare population individual against objective vector.
-    Dominance compare_dominance_obj(this auto& self, const Population& pop, int idx,
+    Dominance compare_dominance_obj(this auto& self, const Population<>& pop, int idx,
                                     const double* other_obj) {
         const int n_obj = pop.n_obj;
         bool a_dominates_b = false;
@@ -233,7 +233,7 @@ private:
     }
 
     /// Add individual from population to archive (if non-dominated).
-    void add_to_archive(this auto& self, const Population& pop, int idx) {
+    void add_to_archive(this auto& self, const Population<>& pop, int idx) {
         const int n_obj = pop.n_obj;
         const int dim = pop.dim;
 

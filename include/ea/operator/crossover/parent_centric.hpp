@@ -34,7 +34,7 @@ struct ParentCentricCrossover {
     /// Apply UNDX crossover. Produces 2 children starting at child_start.
     /// parent_a and parent_b define the primary axis; parent_c provides
     /// the orthogonal direction.
-    void apply(this auto& self, Population& pop, int parent_a, int parent_b, int parent_c,
+    void apply(this auto& self, Population<>& pop, int parent_a, int parent_b, int parent_c,
                int child_start) {
         auto& rng = Random::instance();
 

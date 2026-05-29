@@ -32,7 +32,7 @@ struct SPEA2Replacement {
     /// @param offspring_indices  Indices of offspring in combined (unused, for API compat)
     /// @param target_size   Target population size (typically = archive_size)
     /// @return Indices of selected individuals
-    std::vector<int> replace(this SPEA2Replacement& self, Population& combined,
+    std::vector<int> replace(this SPEA2Replacement& self, Population<>& combined,
                                const std::vector<int>& offspring_indices, int target_size) {
         (void)offspring_indices;
         const int n = combined.pop_size;
@@ -117,7 +117,7 @@ private:
     /// Compute SPEA2 fitness: R(i) + D(i)
     /// R(i) = sum of strengths of dominators
     /// D(i) = 1 / (sigma_k + 2) where sigma_k = k-th NN distance
-    static void compute_spea2_fitness(const Population& pop, std::vector<double>& fitness) {
+    static void compute_spea2_fitness(const Population<>& pop, std::vector<double>& fitness) {
         const int n = pop.pop_size;
         fitness.resize(n);
 

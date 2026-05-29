@@ -20,7 +20,7 @@ std::vector<std::vector<double>> zdt1_reference_front() {
     return ref;
 }
 
-double compute_igd(const ea::Population& pop, const std::vector<std::vector<double>>& ref_front) {
+double compute_igd(const ea::Population<>& pop, const std::vector<std::vector<double>>& ref_front) {
     if (ref_front.empty() || pop.pop_size == 0) return 0.0;
     int n_obj = pop.n_obj;
     double sum = 0.0;
@@ -60,7 +60,7 @@ int main() {
 
     for (int r = 0; r < RUNS; ++r) {
         ea::ZDT1 zdt1(DIM);
-        ea::Population pop(POP_SIZE, DIM, N_OBJ);
+        ea::Population<> pop(POP_SIZE, DIM, N_OBJ);
         pop.lower_bounds = std::vector<double>(zdt1.lower_bounds().begin(), zdt1.lower_bounds().end());
         pop.upper_bounds = std::vector<double>(zdt1.upper_bounds().begin(), zdt1.upper_bounds().end());
 
@@ -79,7 +79,7 @@ int main() {
         nsga.pop_size = POP_SIZE;
         nsga.max_evals = MAX_EVALS;
 
-        auto problem = [&zdt1](ea::Population& p, int idx) {
+        auto problem = [&zdt1](ea::Population<>& p, int idx) {
             zdt1.evaluate(p, idx);
         };
 

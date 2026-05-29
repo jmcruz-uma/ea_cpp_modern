@@ -253,7 +253,7 @@ struct WFG1 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         int n = k_ + l_;
         std::vector<double> z(n);
         for (int i = 0; i < n; ++i) {
@@ -305,7 +305,7 @@ struct WFG1 {
         pop.objective(idx, m_ - 1) = d_ * x[m_ - 1] + s_[m_ - 1] * wfg_shape::mixed(x, 5, 1.0);
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
@@ -346,7 +346,7 @@ struct WFG2 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         int n = k_ + l_;
         std::vector<double> z(n);
         for (int i = 0; i < n; ++i) {
@@ -399,7 +399,7 @@ struct WFG2 {
         pop.objective(idx, m_ - 1) = d_ * x[m_ - 1] + s_[m_ - 1] * wfg_shape::disc(x, 5, 1.0, 1.0);
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
@@ -442,7 +442,7 @@ struct WFG3 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         int n = k_ + l_;
         std::vector<double> z(n);
         for (int i = 0; i < n; ++i) {
@@ -494,7 +494,7 @@ struct WFG3 {
         }
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
@@ -535,7 +535,7 @@ struct WFG4 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         int n = k_ + l_;
         std::vector<double> z(n);
         for (int i = 0; i < n; ++i) {
@@ -572,7 +572,7 @@ struct WFG4 {
         }
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
@@ -613,7 +613,7 @@ struct WFG5 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         int n = k_ + l_;
         std::vector<double> z(n);
         for (int i = 0; i < n; ++i) {
@@ -650,7 +650,7 @@ struct WFG5 {
         }
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
@@ -691,7 +691,7 @@ struct WFG6 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         int n = k_ + l_;
         std::vector<double> z(n);
         for (int i = 0; i < n; ++i) {
@@ -726,7 +726,7 @@ struct WFG6 {
         }
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
@@ -767,7 +767,7 @@ struct WFG7 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         int n = k_ + l_;
         std::vector<double> z(n);
         for (int i = 0; i < n; ++i) {
@@ -812,7 +812,7 @@ struct WFG7 {
         }
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
@@ -853,7 +853,7 @@ struct WFG8 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         int n = k_ + l_;
         std::vector<double> z(n);
         for (int i = 0; i < n; ++i) {
@@ -898,7 +898,7 @@ struct WFG8 {
         }
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
@@ -939,7 +939,7 @@ struct WFG9 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         int n = k_ + l_;
         std::vector<double> z(n);
         for (int i = 0; i < n; ++i) {
@@ -986,7 +986,7 @@ struct WFG9 {
         }
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }

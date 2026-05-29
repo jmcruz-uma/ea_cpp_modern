@@ -24,7 +24,7 @@ struct SinglePointCrossover {
     static constexpr Encoding encoding() { return Encoding::Binary; }
     // Also works for Real, Integer at runtime
 
-    void apply(this SinglePointCrossover& self, Population& pop, int parent_a, int parent_b,
+    void apply(this SinglePointCrossover& self, Population<>& pop, int parent_a, int parent_b,
                int child_start) {
         auto& rng = Random::instance();
 

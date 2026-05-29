@@ -24,7 +24,7 @@ struct CrowdingReplacement {
     /// @param offspring_indices  Indices of offspring (unused, for API compat)
     /// @param target_size       Target population size
     /// @return Indices of selected individuals
-    std::vector<int> replace(this CrowdingReplacement&, Population& combined,
+    std::vector<int> replace(this CrowdingReplacement&, Population<>& combined,
                            const std::vector<int>& offspring_indices, int target_size) {
         (void)offspring_indices;
         const int total = combined.pop_size;
@@ -75,7 +75,7 @@ struct CrowdingReplacement {
     }
 
     /// Compact selected individuals into the first target_size positions.
-    void compact(this CrowdingReplacement& self, Population& combined, int target_size) {
+    void compact(this CrowdingReplacement& self, Population<>& combined, int target_size) {
         auto selected = self.replace(combined, {}, target_size);
 
         for (int i = 0; i < target_size; ++i) {

@@ -23,7 +23,7 @@ struct IntegerSBXCrossover {
     static constexpr int arity() { return 2; }
     static constexpr Encoding encoding() { return Encoding::Integer; }
 
-    void apply(this IntegerSBXCrossover& self, Population& pop, int parent_a, int parent_b,
+    void apply(this IntegerSBXCrossover& self, Population<>& pop, int parent_a, int parent_b,
                int child_start) {
         auto& rng = Random::instance();
         constexpr double EPS = 1.0e-14;

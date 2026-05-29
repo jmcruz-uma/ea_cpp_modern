@@ -78,7 +78,7 @@ static void test_archive_compiles() {
 }
 
 static void test_smpso_runs() {
-    Population pop(30, 30, 2);
+    Population<> pop(30, 30, 2);
     ZDT1 zdt1;
     
     auto& rng = Random::instance();
@@ -93,7 +93,7 @@ static void test_smpso_runs() {
     smpso.max_evals = 500;
     smpso.archive_size = 30;
     
-    auto problem = [&zdt1](Population& p, int idx) { zdt1.evaluate(p, idx); };
+    auto problem = [&zdt1](Population<>& p, int idx) { zdt1.evaluate(p, idx); };
     smpso.run(pop, problem);
     
     bool any_evaluated = false;
@@ -108,7 +108,7 @@ static void test_smpso_runs() {
 }
 
 static void test_agemoea_runs() {
-    Population pop(30, 30, 2);
+    Population<> pop(30, 30, 2);
     ZDT1 zdt1;
     
     auto& rng = Random::instance();
@@ -124,7 +124,7 @@ static void test_agemoea_runs() {
     agemoea.crossover.distribution_index = 20.0;
     agemoea.mutation.distribution_index = 20.0;
     
-    auto problem = [&zdt1](Population& p, int idx) { zdt1.evaluate(p, idx); };
+    auto problem = [&zdt1](Population<>& p, int idx) { zdt1.evaluate(p, idx); };
     agemoea.run(pop, problem);
     
     for (int i = 0; i < pop.pop_size; ++i) {
@@ -135,7 +135,7 @@ static void test_agemoea_runs() {
 }
 
 static void test_paes_runs() {
-    Population pop(1, 30, 2);
+    Population<> pop(1, 30, 2);
     ZDT1 zdt1;
     
     auto& rng = Random::instance();
@@ -148,7 +148,7 @@ static void test_paes_runs() {
     paes.archive_size = 30;
     paes.mutation.distribution_index = 20.0;
     
-    auto problem = [&zdt1](Population& p, int idx) { zdt1.evaluate(p, idx); };
+    auto problem = [&zdt1](Population<>& p, int idx) { zdt1.evaluate(p, idx); };
     paes.run(pop, problem);
     
     assert(pop.pop_size > 0);
@@ -160,7 +160,7 @@ static void test_paes_runs() {
 }
 
 static void test_mocell_runs() {
-    Population pop(30, 30, 2);
+    Population<> pop(30, 30, 2);
     ZDT1 zdt1;
     
     auto& rng = Random::instance();
@@ -177,7 +177,7 @@ static void test_mocell_runs() {
     mocell.crossover.distribution_index = 20.0;
     mocell.mutation.distribution_index = 20.0;
     
-    auto problem = [&zdt1](Population& p, int idx) { zdt1.evaluate(p, idx); };
+    auto problem = [&zdt1](Population<>& p, int idx) { zdt1.evaluate(p, idx); };
     mocell.run(pop, problem);
     
     assert(pop.pop_size > 0);

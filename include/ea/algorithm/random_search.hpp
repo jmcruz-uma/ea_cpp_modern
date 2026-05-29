@@ -32,9 +32,9 @@ struct RandomSearch {
     static constexpr std::string_view name() { return "Random Search"; }
 
     /// Run Random Search on the given population.
-    /// @param pop Population with bounds set. Will be resized to pop_size.
-    /// @param problem Callable: void(Population&, int) — evaluates individual's objectives
-    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
+    /// @param pop Population<> with bounds set. Will be resized to pop_size.
+    /// @param problem Callable: void(Population<>&, int) — evaluates individual's objectives
+    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
         if (self.max_evals < self.pop_size) {
             std::cerr << "[ea::RandomSearch] Warning: max_evals (" << self.max_evals
                       << ") must be >= pop_size (" << self.pop_size << "). Adjusting max_evals to "
@@ -54,7 +54,7 @@ struct RandomSearch {
         int evals = 0;
 
         // Allocate storage for all evaluated solutions (up to max_evals)
-        Population archive(self.max_evals, dim, n_obj, pop.encoding, pop.n_const);
+        Population<> archive(self.max_evals, dim, n_obj, pop.n_const);
         archive.lower_bounds = pop.lower_bounds;
         archive.upper_bounds = pop.upper_bounds;
 

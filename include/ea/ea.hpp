@@ -10,6 +10,8 @@
 
 // Util
 #include <ea/util/random.hpp>
+#include <ea/util/seed_manager.hpp>
+#include <ea/util/stats_collector.hpp>
 
 // Operators — Crossover
 #include <ea/operator/crossover/arithmetic.hpp>
@@ -29,6 +31,7 @@
 
 // Operators — Mutation
 #include <ea/operator/mutation/bit_flip.hpp>
+#include <ea/operator/mutation/gaussian.hpp>
 #include <ea/operator/mutation/insert.hpp>
 #include <ea/operator/mutation/inversion.hpp>
 #include <ea/operator/mutation/levy_flight.hpp>

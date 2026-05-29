@@ -170,7 +170,7 @@ inline void generate_reference_points_two_layer(std::vector<ReferencePoint>& ref
 /// Rounds up to the nearest multiple of 4 (for crossover pairing).
 ///
 /// @param num_reference_points Number of reference points
-/// @return Population size (>= num_reference_points, divisible by 4)
+/// @return Population<> size (>= num_reference_points, divisible by 4)
 inline int compute_population_size(int num_reference_points) {
     int pop_size = num_reference_points;
     while (pop_size % 4 > 0) {

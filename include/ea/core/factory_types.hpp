@@ -30,7 +30,7 @@ namespace ea {
 /// Base for crossover operators with standard 2-parent signature.
 struct CrossoverBase {
     virtual ~CrossoverBase() = default;
-    virtual void apply(Population& pop, int parent_a, int parent_b, int child_start) = 0;
+    virtual void apply(Population<>& pop, int parent_a, int parent_b, int child_start) = 0;
     virtual int arity() const = 0;
     virtual Encoding encoding() const = 0;
 };
@@ -38,14 +38,14 @@ struct CrossoverBase {
 /// Base for mutation operators.
 struct MutationBase {
     virtual ~MutationBase() = default;
-    virtual void apply(Population& pop, int idx) = 0;
+    virtual void apply(Population<>& pop, int idx) = 0;
     virtual Encoding encoding() const = 0;
 };
 
 /// Base for problems.
 struct ProblemBase {
     virtual ~ProblemBase() = default;
-    virtual void evaluate(Population& pop, int idx) = 0;
+    virtual void evaluate(Population<>& pop, int idx) = 0;
     virtual int num_objectives() const = 0;
     virtual int dimension() const = 0;
     virtual std::string_view name() const = 0;
@@ -68,7 +68,7 @@ template <typename T> struct CrossoverAdapter : CrossoverBase {
     T op;
     explicit CrossoverAdapter(T t = T{})
         : op(std::move(t)) {}
-    void apply(Population& pop, int a, int b, int child) override { op.apply(pop, a, b, child); }
+    void apply(Population<>& pop, int a, int b, int child) override { op.apply(pop, a, b, child); }
     int arity() const override { return op.arity(); }
     Encoding encoding() const override { return op.encoding(); }
 };
@@ -78,7 +78,7 @@ template <typename T> struct MutationAdapter : MutationBase {
     T op;
     explicit MutationAdapter(T t = T{})
         : op(std::move(t)) {}
-    void apply(Population& pop, int idx) override { op.apply(pop, idx); }
+    void apply(Population<>& pop, int idx) override { op.apply(pop, idx); }
     Encoding encoding() const override { return op.encoding(); }
 };
 
@@ -88,7 +88,7 @@ template <typename T, typename = void> struct ProblemAdapter : ProblemBase {
     T prob;
     explicit ProblemAdapter(T t = T{})
         : prob(std::move(t)) {}
-    void evaluate(Population& pop, int idx) override {
+    void evaluate(Population<>& pop, int idx) override {
         const_cast<const T&>(prob).evaluate(pop, idx);
     }
     int num_objectives() const override { return prob.num_objectives(); }

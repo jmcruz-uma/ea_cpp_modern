@@ -27,7 +27,7 @@ struct GroupedPolynomialMutation {
 
     static constexpr Encoding encoding() { return Encoding::Real; }
 
-    void apply(this GroupedPolynomialMutation& self, Population& pop, int idx) {
+    void apply(this GroupedPolynomialMutation& self, Population<>& pop, int idx) {
         auto& rng = Random::instance();
 
         // Default grouping: contiguous blocks

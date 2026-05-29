@@ -37,7 +37,7 @@ struct MigrationPolicy {
     }
 
     /// Get the number of migrants to send, clamped to population size.
-    /// @param pop_size Population size of the source island
+    /// @param pop_size Population<> size of the source island
     /// @return Clamped number of migrants
     [[nodiscard]] int migrants_to_send(int pop_size) const {
         if (num_migrants <= 0) return 0;

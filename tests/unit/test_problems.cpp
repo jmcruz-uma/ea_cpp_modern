@@ -11,7 +11,7 @@ int main() {
         ZDT1 prob(30);
         std::cout << "ZDT1: dim=" << prob.dimension()
                   << " obj=" << prob.num_objectives() << "\n";
-        Population pop(2, prob.dimension(), prob.num_objectives());
+        Population<> pop(2, prob.dimension(), prob.num_objectives());
         // Set some genes
         for (int j = 0; j < prob.dimension(); ++j) {
             pop.gene(0, j) = 0.5;
@@ -28,7 +28,7 @@ int main() {
         ZDT2 prob(30);
         std::cout << "ZDT2: dim=" << prob.dimension()
                   << " obj=" << prob.num_objectives() << "\n";
-        Population pop(1, prob.dimension(), prob.num_objectives());
+        Population<> pop(1, prob.dimension(), prob.num_objectives());
         prob.evaluate(pop, 0);
     }
 
@@ -37,7 +37,7 @@ int main() {
         ZDT3 prob(30);
         std::cout << "ZDT3: dim=" << prob.dimension()
                   << " obj=" << prob.num_objectives() << "\n";
-        Population pop(1, prob.dimension(), prob.num_objectives());
+        Population<> pop(1, prob.dimension(), prob.num_objectives());
         prob.evaluate(pop, 0);
     }
 
@@ -46,7 +46,7 @@ int main() {
         DTLZ1 prob(7, 3);
         std::cout << "DTLZ1: dim=" << prob.dimension()
                   << " obj=" << prob.num_objectives() << "\n";
-        Population pop(1, prob.dimension(), prob.num_objectives());
+        Population<> pop(1, prob.dimension(), prob.num_objectives());
         for (int j = 0; j < prob.dimension(); ++j) {
             pop.gene(0, j) = 0.5;
         }
@@ -61,7 +61,7 @@ int main() {
         DTLZ2 prob(12, 3);
         std::cout << "DTLZ2: dim=" << prob.dimension()
                   << " obj=" << prob.num_objectives() << "\n";
-        Population pop(1, prob.dimension(), prob.num_objectives());
+        Population<> pop(1, prob.dimension(), prob.num_objectives());
         for (int j = 0; j < prob.dimension(); ++j) {
             pop.gene(0, j) = 0.5;
         }

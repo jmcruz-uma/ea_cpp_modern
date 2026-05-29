@@ -39,7 +39,7 @@ int main() {
     ea::IslandModel model(nsga, topo, policy, num_islands, pop_per_island, dim, n_obj);
 
     // Evaluation function
-    auto problem = [&zdt1](ea::Population& p, int idx) {
+    auto problem = [&zdt1](ea::Population<>& p, int idx) {
         zdt1.evaluate(p, idx);
     };
 

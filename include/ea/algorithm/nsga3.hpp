@@ -30,7 +30,7 @@ template <typename CX, typename MT> struct NSGAIII {
     static constexpr std::string_view name() { return "NSGA-III"; }
 
     /// Run NSGA-III.
-    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
+    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
         int n = self.pop_size;
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
@@ -59,11 +59,11 @@ template <typename CX, typename MT> struct NSGAIII {
         int evals = n;
 
         // Allocate offspring + combined
-        Population offspring(n, dim, n_obj, pop.encoding, pop.n_const);
+        Population<> offspring(n, dim, n_obj, pop.n_const);
         offspring.lower_bounds = pop.lower_bounds;
         offspring.upper_bounds = pop.upper_bounds;
 
-        Population combined(2 * n, dim, n_obj, pop.encoding, pop.n_const);
+        Population<> combined(2 * n, dim, n_obj, pop.n_const);
         combined.lower_bounds = pop.lower_bounds;
         combined.upper_bounds = pop.upper_bounds;
 

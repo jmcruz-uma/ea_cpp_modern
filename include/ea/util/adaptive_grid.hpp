@@ -111,7 +111,7 @@ struct AdaptiveGridArchive {
     }
 
     /// Add from a population using SoA access.
-    bool add_from_population(this auto& self, const Population& pop, int idx) {
+    bool add_from_population(this auto& self, const Population<>& pop, int idx) {
         std::vector<double> objs(pop.n_obj);
         for (int o = 0; o < pop.n_obj; ++o) {
             objs[o] = pop.objective(idx, o);
@@ -144,7 +144,7 @@ struct AdaptiveGridArchive {
     }
 
     /// Copy genes from archive individual into population position.
-    void copy_to_population(this auto& self, int archive_idx, Population& pop, int pop_idx) {
+    void copy_to_population(this auto& self, int archive_idx, Population<>& pop, int pop_idx) {
         const auto& ind = self.archive_[archive_idx];
         for (int j = 0; j < pop.dim; ++j) {
             pop.gene(pop_idx, j) = ind.genes[j];

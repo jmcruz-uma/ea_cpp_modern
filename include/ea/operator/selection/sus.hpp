@@ -24,10 +24,10 @@ namespace ea {
 /// Deterministic alternative to roulette wheel that maintains diversity.
 struct StochasticUniversalSampling {
     /// Select mating pool using SUS.
-    /// @param pop          Population
+    /// @param pop          Population<>
     /// @param mating_pool  Output indices (resized to 2 * pop_size)
     /// @param fitness      Fitness of each individual (lower = better for minimization)
-    void select(this StochasticUniversalSampling& self, Population& pop,
+    void select(this StochasticUniversalSampling& self, Population<>& pop,
                 std::vector<int>& mating_pool, const std::vector<double>& fitness) {
         (void)self;
         auto& rng = Random::instance();

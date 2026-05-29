@@ -1,6 +1,13 @@
 #pragma once
 /// @file population.hpp
 /// @brief Structure of Arrays (SoA) population storage — cache-friendly, SIMD-ready.
+///
+/// Population<E> is parameterised on Encoding E (default: Encoding::Real).
+/// The gene storage type is gene_t<E>:
+///   Real → double (8 B), Binary → uint8_t (1 B), Integer/Permutation → int32_t (4 B).
+///
+/// For Encoding::Real this template instantiates to code identical to a plain
+/// std::vector<double> implementation — zero overhead from the abstraction.
 
 #include <algorithm>
 #include <cassert>
@@ -32,28 +39,35 @@ constexpr bool has_flag(IndFlags f, IndFlags flag) {
 
 /// Structure of Arrays population — all genes, objectives, and constraints
 /// stored contiguously for maximum cache locality and SIMD vectorization.
+///
+/// @tparam E  Encoding that determines the gene value type via gene_t<E>.
+template <Encoding E = Encoding::Real>
 struct Population {
+    // --- Gene type ---
+    using gene_type = gene_t<E>;
+    static constexpr Encoding encoding_value = E;
+
     // --- SoA data ---
-    std::vector<double> genes;        ///< [pop_size * dim] contiguos
-    std::vector<double> objectives;   ///< [pop_size * n_obj] contiguos
-    std::vector<double> constraints;  ///< [pop_size * n_const] contiguos
-    std::vector<IndFlags> flags;      ///< [pop_size] state flags
-    std::vector<double> lower_bounds; ///< [dim] bounds
-    std::vector<double> upper_bounds; ///< [dim] bounds
+    std::vector<gene_type> genes;       ///< [pop_size × dim] contiguous
+    std::vector<double>    objectives;  ///< [pop_size × n_obj] contiguous
+    std::vector<double>    constraints; ///< [pop_size × n_const] contiguous
+    std::vector<IndFlags>  flags;       ///< [pop_size] state flags
+    std::vector<double>    lower_bounds; ///< [dim] per-variable lower bound
+    std::vector<double>    upper_bounds; ///< [dim] per-variable upper bound
 
     // --- Dimensions ---
     int pop_size = 0; ///< Number of individuals
     int dim = 0;      ///< Number of decision variables
     int n_obj = 0;    ///< Number of objectives
     int n_const = 0;  ///< Number of constraints
-    Encoding encoding = Encoding::Real;
+    Encoding encoding = E; ///< Runtime encoding tag (always equals template param E)
 
     // --- Constructors ---
     Population() = default;
 
-    Population(int pop_size, int dim, int n_obj, Encoding enc = Encoding::Real, int n_const = 0,
+    Population(int pop_size, int dim, int n_obj, int n_const = 0,
                double lb = 0.0, double ub = 1.0)
-        : genes(pop_size * dim, 0.0)
+        : genes(pop_size * dim, gene_type{})
         , objectives(pop_size * n_obj, 0.0)
         , constraints(pop_size * n_const, 0.0)
         , flags(pop_size, IndFlags::None)
@@ -63,41 +77,33 @@ struct Population {
         , dim(dim)
         , n_obj(n_obj)
         , n_const(n_const)
-        , encoding(enc) {}
+        , encoding(E) {}
 
     // --- Gene access ---
-    double gene(int i, int j) const { return genes[i * dim + j]; }
-    double& gene(int i, int j) { return genes[i * dim + j]; }
+    gene_type  gene(int i, int j) const { return genes[i * dim + j]; }
+    gene_type& gene(int i, int j)       { return genes[i * dim + j]; }
 
     /// Raw pointer to individual's genes — SIMD-friendly
-    const double* genes_ptr(int i) const { return genes.data() + i * dim; }
-    double* genes_ptr(int i) { return genes.data() + i * dim; }
+    const gene_type* genes_ptr(int i) const { return genes.data() + i * dim; }
+    gene_type*       genes_ptr(int i)       { return genes.data() + i * dim; }
 
-    /// Mutable span over individual's genes
-    std::span<double> genes_span(int i) {
-        return {genes.data() + i * dim, static_cast<size_t>(dim)};
-    }
-    std::span<const double> genes_span(int i) const {
-        return {genes.data() + i * dim, static_cast<size_t>(dim)};
-    }
+    /// Span over individual's genes
+    std::span<gene_type>       genes_span(int i)       { return {genes.data() + i * dim, static_cast<size_t>(dim)}; }
+    std::span<const gene_type> genes_span(int i) const { return {genes.data() + i * dim, static_cast<size_t>(dim)}; }
 
     // --- Objective access ---
-    double objective(int i, int o) const { return objectives[i * n_obj + o]; }
-    double& objective(int i, int o) { return objectives[i * n_obj + o]; }
+    double  objective(int i, int o) const { return objectives[i * n_obj + o]; }
+    double& objective(int i, int o)       { return objectives[i * n_obj + o]; }
 
     const double* objectives_ptr(int i) const { return objectives.data() + i * n_obj; }
-    double* objectives_ptr(int i) { return objectives.data() + i * n_obj; }
+    double*       objectives_ptr(int i)       { return objectives.data() + i * n_obj; }
 
-    std::span<double> objectives_span(int i) {
-        return {objectives.data() + i * n_obj, static_cast<size_t>(n_obj)};
-    }
-    std::span<const double> objectives_span(int i) const {
-        return {objectives.data() + i * n_obj, static_cast<size_t>(n_obj)};
-    }
+    std::span<double>       objectives_span(int i)       { return {objectives.data() + i * n_obj, static_cast<size_t>(n_obj)}; }
+    std::span<const double> objectives_span(int i) const { return {objectives.data() + i * n_obj, static_cast<size_t>(n_obj)}; }
 
     // --- Constraint access ---
-    double constraint(int i, int c) const { return constraints[i * n_const + c]; }
-    double& constraint(int i, int c) { return constraints[i * n_const + c]; }
+    double  constraint(int i, int c) const { return constraints[i * n_const + c]; }
+    double& constraint(int i, int c)       { return constraints[i * n_const + c]; }
 
     // --- Flags ---
     bool evaluated(int i) const { return has_flag(flags[i], IndFlags::Evaluated); }
@@ -122,7 +128,7 @@ struct Population {
     /// Resize population (reallocate all arrays)
     void resize(int new_pop_size) {
         pop_size = new_pop_size;
-        genes.resize(pop_size * dim, 0.0);
+        genes.resize(pop_size * dim, gene_type{});
         objectives.resize(pop_size * n_obj, 0.0);
         constraints.resize(pop_size * n_const, 0.0);
         flags.resize(pop_size, IndFlags::None);
@@ -143,11 +149,8 @@ struct Population {
     void swap_individuals(int i, int j) {
         if (i == j)
             return;
-        // Swap genes
         std::swap_ranges(genes_ptr(i), genes_ptr(i) + dim, genes_ptr(j));
-        // Swap objectives
         std::swap_ranges(objectives_ptr(i), objectives_ptr(i) + n_obj, objectives_ptr(j));
-        // Swap constraints
         if (n_const > 0) {
             std::swap_ranges(constraints.data() + i * n_const,
                              constraints.data() + i * n_const + n_const,
@@ -161,9 +164,12 @@ struct Population {
 
     /// Total memory used in bytes
     [[nodiscard]] size_t memory_bytes() const {
-        return genes.capacity() * sizeof(double) + objectives.capacity() * sizeof(double) +
-               constraints.capacity() * sizeof(double) + flags.capacity() * sizeof(IndFlags) +
-               lower_bounds.capacity() * sizeof(double) + upper_bounds.capacity() * sizeof(double);
+        return genes.capacity() * sizeof(gene_type)
+             + objectives.capacity() * sizeof(double)
+             + constraints.capacity() * sizeof(double)
+             + flags.capacity() * sizeof(IndFlags)
+             + lower_bounds.capacity() * sizeof(double)
+             + upper_bounds.capacity() * sizeof(double);
     }
 };
 

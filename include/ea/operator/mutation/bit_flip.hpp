@@ -17,7 +17,7 @@ struct BitFlipMutation {
 
     static constexpr Encoding encoding() { return Encoding::Binary; }
 
-    void apply(this BitFlipMutation& self, Population& pop, int idx) {
+    void apply(this BitFlipMutation& self, Population<>& pop, int idx) {
         auto& rng = Random::instance();
         // For binary: flip each bit in each gene with probability
         // In SoA, each "gene" is a double that encodes multiple bits

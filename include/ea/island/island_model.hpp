@@ -43,7 +43,7 @@ struct IslandModel {
     MigrationOperator migrator;           /// Migration operator
 
     int num_islands = 0;                   /// Number of islands
-    int pop_per_island = 0;                /// Population per island
+    int pop_per_island = 0;                /// Population<> per island
     int dim = 0;                           /// Number of decision variables
     int n_obj = 0;                         /// Number of objectives
 
@@ -56,7 +56,7 @@ struct IslandModel {
     /// @param topo Ring topology defining island connectivity
     /// @param policy Migration policy
     /// @param num_islands Number of islands
-    /// @param pop_per_island Population size per island
+    /// @param pop_per_island Population<> size per island
     /// @param dim Number of decision variables
     /// @param n_obj Number of objectives
     IslandModel(Algorithm algo, RingTopology topo, MigrationPolicy policy,
@@ -79,7 +79,7 @@ struct IslandModel {
     /// @param topo Mesh topology defining island connectivity
     /// @param policy Migration policy
     /// @param num_islands Number of islands
-    /// @param pop_per_island Population size per island
+    /// @param pop_per_island Population<> size per island
     /// @param dim Number of decision variables
     /// @param n_obj Number of objectives
     IslandModel(Algorithm algo, MeshTopology topo, MigrationPolicy policy,
@@ -102,7 +102,7 @@ struct IslandModel {
     /// @param topo Fully connected topology
     /// @param policy Migration policy
     /// @param num_islands Number of islands
-    /// @param pop_per_island Population size per island
+    /// @param pop_per_island Population<> size per island
     /// @param dim Number of decision variables
     /// @param n_obj Number of objectives
     IslandModel(Algorithm algo, FullyConnectedTopology topo, MigrationPolicy policy,
@@ -121,7 +121,7 @@ struct IslandModel {
     }
 
     /// Run the island model evolution.
-    /// @param problem Evaluation function: void(Population&, int)
+    /// @param problem Evaluation function: void(Population<>&, int)
     /// @param max_evals Maximum total evaluations across all islands
     template <typename Problem>
     void run(this auto& self, Problem&& problem, int max_evals) {
@@ -183,7 +183,7 @@ struct IslandModel {
         (void)problem; // May be used for re-evaluation in future extensions
 
         // Collect migrants from each island
-        std::vector<Population> all_migrants;
+        std::vector<Population<>> all_migrants;
         all_migrants.reserve(self.num_islands);
         for (int i = 0; i < self.num_islands; ++i) {
             all_migrants.push_back(self.islands[i].migrate_out());
@@ -202,8 +202,8 @@ struct IslandModel {
 
     /// Get the global best Pareto front across all islands.
     /// Merges all non-dominated individuals and returns the global non-dominated set.
-    /// @return Population containing the global Pareto front
-    [[nodiscard]] Population best_front(this auto& self) {
+    /// @return Population<> containing the global Pareto front
+    [[nodiscard]] Population<> best_front(this auto& self) {
         // Count total non-dominated individuals
         int total_nd = 0;
         std::vector<std::vector<int>> all_fronts;
@@ -216,11 +216,11 @@ struct IslandModel {
         }
 
         if (total_nd == 0) {
-            return Population(0, self.dim, self.n_obj);
+            return Population<>(0, self.dim, self.n_obj);
         }
 
         // Merge all non-dominated individuals into a single population
-        Population merged(total_nd, self.dim, self.n_obj);
+        Population<> merged(total_nd, self.dim, self.n_obj);
         merged.lower_bounds = self.islands[0].population.lower_bounds;
         merged.upper_bounds = self.islands[0].population.upper_bounds;
 
@@ -237,14 +237,14 @@ struct IslandModel {
         }
 
         // Non-dominated sort the merged population and return only the first front
-        Population merged_copy = merged;
+        Population<> merged_copy = merged;
         auto global_fronts = fast_non_dominated_sort(merged_copy);
         if (global_fronts.empty()) {
             return merged;
         }
 
         int nd_size = static_cast<int>(global_fronts[0].size());
-        Population result(nd_size, self.dim, self.n_obj);
+        Population<> result(nd_size, self.dim, self.n_obj);
         result.lower_bounds = merged.lower_bounds;
         result.upper_bounds = merged.upper_bounds;
 

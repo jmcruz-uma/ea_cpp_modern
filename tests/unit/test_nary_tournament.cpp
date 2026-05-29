@@ -7,7 +7,7 @@ using namespace ea;
 TEST(NaryTournamentSelection, BasicSelect) {
     NaryTournamentSelection sel;
     sel.tournament_size = 2;
-    Population pop(10, 2, 2);
+    Population<> pop(10, 2, 2);
     std::vector<int> mating_pool;
     std::vector<int> ranks(10, 0);
     std::vector<double> cd(10, 0.0);
@@ -22,7 +22,7 @@ TEST(NaryTournamentSelection, BasicSelect) {
 TEST(NaryTournamentSelection, LargerTournament) {
     NaryTournamentSelection sel;
     sel.tournament_size = 4;
-    Population pop(20, 2, 2);
+    Population<> pop(20, 2, 2);
     std::vector<int> mating_pool;
     std::vector<int> ranks(20, 0);
     std::vector<double> cd(20, 0.0);

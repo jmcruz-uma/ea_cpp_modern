@@ -49,7 +49,7 @@ struct DTLZ1 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         int k = dim_ - n_obj_ + 1;
         double g = 0.0;
         for (int i = dim_ - k; i < dim_; ++i) {
@@ -72,7 +72,7 @@ struct DTLZ1 {
         }
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
@@ -108,7 +108,7 @@ struct DTLZ2 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         int k = dim_ - n_obj_ + 1;
         double g = 0.0;
         for (int i = dim_ - k; i < dim_; ++i) {
@@ -129,7 +129,7 @@ struct DTLZ2 {
         }
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
@@ -166,7 +166,7 @@ struct DTLZ3 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         int k = dim_ - n_obj_ + 1;
         double g = 0.0;
         for (int i = dim_ - k; i < dim_; ++i) {
@@ -188,7 +188,7 @@ struct DTLZ3 {
         }
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
@@ -225,7 +225,7 @@ struct DTLZ4 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         constexpr double alpha = 100.0;
         int k = dim_ - n_obj_ + 1;
         double g = 0.0;
@@ -247,7 +247,7 @@ struct DTLZ4 {
         }
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
@@ -284,7 +284,7 @@ struct DTLZ5 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         int k = dim_ - n_obj_ + 1;
         double g = 0.0;
         for (int i = dim_ - k; i < dim_; ++i) {
@@ -313,7 +313,7 @@ struct DTLZ5 {
         }
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
@@ -350,7 +350,7 @@ struct DTLZ6 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         int k = dim_ - n_obj_ + 1;
         double g = 0.0;
         for (int i = dim_ - k; i < dim_; ++i) {
@@ -378,7 +378,7 @@ struct DTLZ6 {
         }
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
@@ -418,7 +418,7 @@ struct DTLZ7 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         int k = dim_ - n_obj_ + 1;
 
         // Copy first M-1 objectives directly from position variables
@@ -442,7 +442,7 @@ struct DTLZ7 {
         pop.objective(idx, n_obj_ - 1) = (1.0 + g) * h;
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }

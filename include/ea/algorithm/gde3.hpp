@@ -29,7 +29,7 @@ template <typename CX, typename MT> struct GDE3 {
     static constexpr std::string_view name() { return "GDE3"; }
 
     /// Run GDE3.
-    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
+    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
         const int N = self.pop_size;
@@ -46,11 +46,11 @@ template <typename CX, typename MT> struct GDE3 {
         }
         int evals = N;
 
-        Population offspring(N, dim, n_obj, pop.encoding, pop.n_const);
+        Population<> offspring(N, dim, n_obj, pop.n_const);
         offspring.lower_bounds = pop.lower_bounds;
         offspring.upper_bounds = pop.upper_bounds;
 
-        Population combined(2 * N, dim, n_obj, pop.encoding, pop.n_const);
+        Population<> combined(2 * N, dim, n_obj, pop.n_const);
         combined.lower_bounds = pop.lower_bounds;
         combined.upper_bounds = pop.upper_bounds;
 

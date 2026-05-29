@@ -2,7 +2,7 @@
 /// @file cycle.hpp
 /// @brief Cycle Crossover (CX) for permutation encodings.
 /// Reference: jMetal CycleCrossover — https://github.com/jMetal/jMetal
-/// C++23 with deducing this, SoA Population access.
+/// C++23 with deducing this, SoA Population<> access.
 
 #include <algorithm>
 #include <ea/core/encoding.hpp>
@@ -15,7 +15,7 @@ namespace ea {
 /// Cycle Crossover (CX) for permutation-based encodings.
 /// Identifies cycles between two parent permutations and exchanges them
 /// to produce offspring, preserving positional information.
-/// Genes are integers stored as doubles in the Population array.
+/// Genes are integers stored as doubles in the Population<> array.
 struct CycleCrossover {
     double crossover_probability = 1.0; ///< Probability of applying crossover
 
@@ -23,7 +23,7 @@ struct CycleCrossover {
     static constexpr Encoding encoding() { return Encoding::Permutation; }
 
     /// Apply Cycle crossover. Produces 2 children starting at child_start.
-    void apply(this CycleCrossover& self, Population& pop, int parent_a, int parent_b,
+    void apply(this CycleCrossover& self, Population<>& pop, int parent_a, int parent_b,
                int child_start) {
         auto& rng = Random::instance();
         int dim = pop.dim;

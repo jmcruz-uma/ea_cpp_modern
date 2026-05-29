@@ -19,11 +19,11 @@ namespace ea {
 /// Additive Epsilon Indicator (I_epsilon+).
 /// Measures the minimum value to add to each objective of the approximated front
 /// so that it weakly dominates the reference front.
-/// @param pop Population with approximated front
+/// @param pop Population<> with approximated front
 /// @param indices Indices of individuals in the approximated front
 /// @param reference_front Reference Pareto front
 /// @return Additive epsilon value (lower is better, 0 = perfect)
-inline double epsilon_additive(const Population& pop, const std::vector<int>& indices,
+inline double epsilon_additive(const Population<>& pop, const std::vector<int>& indices,
                                const std::vector<std::vector<double>>& reference_front) {
     if (reference_front.empty() || indices.empty())
         return 0.0;
@@ -58,7 +58,7 @@ inline double epsilon_additive(const Population& pop, const std::vector<int>& in
 /// Multiplicative Epsilon Indicator (I_epsilon*).
 /// Measures the minimum factor by which to multiply each objective.
 /// @return Multiplicative epsilon value (lower is better, 1 = perfect)
-inline double epsilon_multiplicative(const Population& pop, const std::vector<int>& indices,
+inline double epsilon_multiplicative(const Population<>& pop, const std::vector<int>& indices,
                                      const std::vector<std::vector<double>>& reference_front) {
     if (reference_front.empty() || indices.empty())
         return 1.0;
@@ -101,7 +101,7 @@ inline double epsilon_multiplicative(const Population& pop, const std::vector<in
 struct EpsilonIndicator {
     bool additive = true; ///< true = additive, false = multiplicative
 
-    double compute(this EpsilonIndicator& self, const Population& pop,
+    double compute(this EpsilonIndicator& self, const Population<>& pop,
                    const std::vector<int>& indices,
                    const std::vector<std::vector<double>>& reference_front) {
         if (self.additive) {

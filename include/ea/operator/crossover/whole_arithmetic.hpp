@@ -29,7 +29,7 @@ struct WholeArithmeticCrossover {
 
     /// Apply whole arithmetic crossover. Produces 2 children starting at child_start.
     /// Uses a single alpha for all decision variables.
-    void apply(this auto& self, Population& pop, int parent_a, int parent_b, int child_start) {
+    void apply(this auto& self, Population<>& pop, int parent_a, int parent_b, int child_start) {
         auto& rng = Random::instance();
 
         // Copy parents as default

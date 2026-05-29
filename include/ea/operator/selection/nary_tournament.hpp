@@ -24,11 +24,11 @@ struct NaryTournamentSelection {
     int tournament_size = 2; ///< Number of individuals competing in each tournament
 
     /// Select mating pool from population. Fills mating_pool with selected indices.
-    /// @param pop Population
+    /// @param pop Population<>
     /// @param mating_pool Output indices (will be resized to 2 * pop_size)
     /// @param ranks Rank of each individual (from NDS)
     /// @param crowding_dist Crowding distance of each individual
-    void select(Population& pop, std::vector<int>& mating_pool, const std::vector<int>& ranks,
+    void select(Population<>& pop, std::vector<int>& mating_pool, const std::vector<int>& ranks,
                 const std::vector<double>& crowding_dist) {
         assert(tournament_size >= 1);
         assert(tournament_size <= pop.pop_size);

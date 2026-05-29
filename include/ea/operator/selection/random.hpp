@@ -18,9 +18,9 @@ namespace ea {
 /// Random Selection — uniform random selection of mating pool indices.
 struct RandomSelection {
     /// Select mating pool from population uniformly at random.
-    /// @param pop Population
+    /// @param pop Population<>
     /// @param mating_pool Output indices (will be resized to 2 * pop_size)
-    void select(Population& pop, std::vector<int>& mating_pool) {
+    void select(Population<>& pop, std::vector<int>& mating_pool) {
         auto& rng = Random::instance();
         mating_pool.resize(2 * pop.pop_size);
 

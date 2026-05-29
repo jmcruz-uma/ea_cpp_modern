@@ -33,7 +33,7 @@ template <typename CX, typename MT> struct MOCell {
     static constexpr std::string_view name() { return "MOCell"; }
 
     /// Run MOCell.
-    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
+    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
         const int n = self.pop_size;
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
@@ -55,7 +55,7 @@ template <typename CX, typename MT> struct MOCell {
         std::vector<std::vector<double>> archive_obj_;
         int archive_count_ = 0;
 
-        auto update_archive = [&](const Population& p, int idx,
+        auto update_archive = [&](const Population<>& p, int idx,
                                   std::vector<std::vector<double>>& a_genes,
                                   std::vector<std::vector<double>>& a_obj, int& a_count, int a_size,
                                   int dim_, int n_obj_) {
@@ -124,11 +124,11 @@ template <typename CX, typename MT> struct MOCell {
         }
 
         // Working populations
-        Population parents(2, dim, n_obj, pop.encoding, pop.n_const);
+        Population<> parents(2, dim, n_obj, pop.n_const);
         parents.lower_bounds = pop.lower_bounds;
         parents.upper_bounds = pop.upper_bounds;
 
-        Population offspring(1, dim, n_obj, pop.encoding, pop.n_const);
+        Population<> offspring(1, dim, n_obj, pop.n_const);
         offspring.lower_bounds = pop.lower_bounds;
         offspring.upper_bounds = pop.upper_bounds;
 
@@ -273,7 +273,7 @@ template <typename CX, typename MT> struct MOCell {
 
 private:
     /// Compare dominance between two individuals in potentially different populations.
-    Dominance compare_dominance(this auto&, const Population& pop_a, int a, const Population& pop_b,
+    Dominance compare_dominance(this auto&, const Population<>& pop_a, int a, const Population<>& pop_b,
                                 int b) {
         const int n_obj = pop_a.n_obj;
         bool a_dominates_b = false;

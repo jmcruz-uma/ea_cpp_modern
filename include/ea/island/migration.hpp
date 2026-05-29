@@ -30,15 +30,15 @@ struct MigrationOperator {
     /// @param pop Source population
     /// @param num_migrants Number of individuals to select
     /// @param selection How to select migrants
-    /// @return Population containing the selected migrants
-    Population select_migrants(const Population& pop, int num_migrants,
+    /// @return Population<> containing the selected migrants
+    Population<> select_migrants(const Population<>& pop, int num_migrants,
                                 MigrantSelection selection) const {
         if (num_migrants <= 0 || pop.pop_size == 0) {
-            return Population(0, pop.dim, pop.n_obj, pop.encoding, pop.n_const);
+            return Population<>(0, pop.dim, pop.n_obj, pop.n_const);
         }
 
         int nm = num_migrants > pop.pop_size ? pop.pop_size : num_migrants;
-        Population migrants(nm, pop.dim, pop.n_obj, pop.encoding, pop.n_const);
+        Population<> migrants(nm, pop.dim, pop.n_obj, pop.n_const);
 
         std::vector<int> selected_indices;
         selected_indices.reserve(nm);
@@ -73,7 +73,7 @@ struct MigrationOperator {
     /// Integrate incoming migrants into a population.
     /// @param pop Target population (modified in place)
     /// @param migrants Incoming migrants to integrate
-    void integrate_migrants(Population& pop, const Population& migrants) const {
+    void integrate_migrants(Population<>& pop, const Population<>& migrants) const {
         if (migrants.pop_size == 0) return;
 
         int nm = migrants.pop_size;
@@ -107,9 +107,9 @@ struct MigrationOperator {
 
 private:
     /// Select best individuals using non-dominated sort + crowding.
-    std::vector<int> select_best(const Population& pop, int nm) const {
+    std::vector<int> select_best(const Population<>& pop, int nm) const {
         // Make a mutable copy for fast_non_dominated_sort
-        Population pop_copy = pop;
+        Population<> pop_copy = pop;
         auto fronts = fast_non_dominated_sort(pop_copy);
 
         std::vector<int> selected;
@@ -141,7 +141,7 @@ private:
     }
 
     /// Random selection.
-    std::vector<int> select_random(const Population& pop, int nm) const {
+    std::vector<int> select_random(const Population<>& pop, int nm) const {
         auto& rng = Random::instance();
         std::vector<int> indices(pop.pop_size);
         std::iota(indices.begin(), indices.end(), 0);
@@ -151,8 +151,8 @@ private:
     }
 
     /// Tournament selection on rank + crowding.
-    std::vector<int> select_tournament(const Population& pop, int nm) const {
-        Population pop_copy = pop;
+    std::vector<int> select_tournament(const Population<>& pop, int nm) const {
+        Population<> pop_copy = pop;
         auto fronts = fast_non_dominated_sort(pop_copy);
 
         std::vector<int> ranks(pop.pop_size, 0);
@@ -185,8 +185,8 @@ private:
     }
 
     /// Find worst individuals to replace.
-    std::vector<int> find_worst(const Population& pop, int nm) const {
-        Population pop_copy = pop;
+    std::vector<int> find_worst(const Population<>& pop, int nm) const {
+        Population<> pop_copy = pop;
         auto fronts = fast_non_dominated_sort(pop_copy);
 
         // Reverse order: worst front first
@@ -222,7 +222,7 @@ private:
     }
 
     /// Random individuals to replace.
-    std::vector<int> find_random(const Population& pop, int nm) const {
+    std::vector<int> find_random(const Population<>& pop, int nm) const {
         auto& rng = Random::instance();
         std::vector<int> indices(pop.pop_size);
         std::iota(indices.begin(), indices.end(), 0);

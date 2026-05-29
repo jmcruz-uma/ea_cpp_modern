@@ -1,5 +1,6 @@
 // tests/unit/test_operators.cpp
-// Unit tests for SBXCrossover, PolynomialMutation, and BinaryTournamentSelection
+// Unit tests for SBXCrossover, PolynomialMutation, BinaryTournamentSelection,
+// and GaussianMutation
 
 #include <iostream>
 #include <cassert>
@@ -7,6 +8,7 @@
 #include <ea/core/population.hpp>
 #include <ea/core/encoding.hpp>
 #include <ea/operator/crossover/sbx.hpp>
+#include <ea/operator/mutation/gaussian.hpp>
 #include <ea/operator/mutation/polynomial.hpp>
 #include <ea/operator/selection/binary_tournament.hpp>
 #include <ea/util/random.hpp>
@@ -14,7 +16,7 @@
 using namespace ea;
 
 // Helper: initialize population with random values in [0,1]
-static void init_pop_random(Population& pop, uint64_t seed) {
+static void init_pop_random(Population<>& pop, uint64_t seed) {
     auto& rng = Random::instance();
     rng.seed(seed);
     for (int i = 0; i < pop.pop_size; ++i) {
@@ -30,7 +32,7 @@ static void init_pop_random(Population& pop, uint64_t seed) {
 }
 
 // Helper: check all genes are within bounds
-static bool within_bounds(const Population& pop, int idx) {
+static bool within_bounds(const Population<>& pop, int idx) {
     for (int j = 0; j < pop.dim; ++j) {
         double g = pop.gene(idx, j);
         if (g < pop.lower_bounds[j] - 1e-12 || g > pop.upper_bounds[j] + 1e-12) {
@@ -46,7 +48,7 @@ static bool within_bounds(const Population& pop, int idx) {
 static bool test_sbx_crossover() {
     std::cout << "TEST: SBXCrossover ... " << std::flush;
 
-    Population pop(10, 5, 2, Encoding::Real, 0, 0.0, 1.0);
+    Population<> pop(10, 5, 2, 0, 0.0, 1.0);
     init_pop_random(pop, 42);
 
     SBXCrossover cx;
@@ -95,7 +97,7 @@ static bool test_polynomial_mutation() {
 
     // --- 2a: mutation_rate = 0 => no mutation ---
     {
-        Population pop(10, 5, 2, Encoding::Real, 0, 0.0, 1.0);
+        Population<> pop(10, 5, 2, 0, 0.0, 1.0);
         init_pop_random(pop, 123);
 
         // Snapshot genes
@@ -127,7 +129,7 @@ static bool test_polynomial_mutation() {
 
     // --- 2b: mutation_rate = 1 => all genes mutated (and within bounds) ---
     {
-        Population pop(10, 5, 2, Encoding::Real, 0, 0.0, 1.0);
+        Population<> pop(10, 5, 2, 0, 0.0, 1.0);
         init_pop_random(pop, 456);
 
         std::vector<double> before(pop.pop_size * pop.dim);
@@ -169,7 +171,7 @@ static bool test_polynomial_mutation() {
 static bool test_binary_tournament() {
     std::cout << "TEST: BinaryTournamentSelection ... " << std::flush;
 
-    Population pop(10, 5, 2, Encoding::Real, 0, 0.0, 1.0);
+    Population<> pop(10, 5, 2, 0, 0.0, 1.0);
     init_pop_random(pop, 789);
 
     // Manually assign ranks and crowding distances
@@ -225,6 +227,133 @@ static bool test_binary_tournament() {
 }
 
 // ------------------------------------------------------------------
+// Test 4: GaussianMutation
+// ------------------------------------------------------------------
+static bool test_gaussian_mutation() {
+    std::cout << "TEST: GaussianMutation ... " << std::flush;
+    bool pass = true;
+
+    // --- 4a: rate = 0.0 → operator never fires; genes and flags unchanged ---
+    {
+        Population<> pop(20, 10, 1, 0, -5.12, 5.12);
+        init_pop_random(pop, 1001);
+
+        std::vector<double> before(pop.pop_size * pop.dim);
+        for (int i = 0; i < pop.pop_size; ++i)
+            for (int j = 0; j < pop.dim; ++j)
+                before[i * pop.dim + j] = pop.gene(i, j);
+
+        GaussianMutation mut;
+        mut.mutation_rate = 0.0;
+        mut.step_size     = 1.0;
+
+        for (int i = 0; i < pop.pop_size; ++i)
+            mut.apply(pop, i);
+
+        for (int i = 0; i < pop.pop_size; ++i) {
+            // Genes must be unchanged
+            for (int j = 0; j < pop.dim; ++j)
+                if (std::abs(pop.gene(i, j) - before[i * pop.dim + j]) > 1e-15)
+                    pass = false;
+            // Evaluated flag must still be set (we never called set_evaluated(false))
+            if (!pop.evaluated(i)) pass = false;
+        }
+    }
+
+    // --- 4b: rate = 1.0, step_size = 0 → fires every call; exactly one gene
+    //         value is unchanged (v * (1+0) == v), but evaluated flag IS cleared ---
+    {
+        Population<> pop(50, 10, 1, 0, -5.12, 5.12);
+        init_pop_random(pop, 1002);
+
+        GaussianMutation mut;
+        mut.mutation_rate = 1.0;
+        mut.step_size     = 0.0;   // N(0,1)*0 == 0 → val == v, but flag cleared
+
+        for (int i = 0; i < pop.pop_size; ++i)
+            mut.apply(pop, i);
+
+        for (int i = 0; i < pop.pop_size; ++i)
+            if (pop.evaluated(i)) { pass = false; break; }
+    }
+
+    // --- 4c: rate = 1.0, step_size = 100 → result always within bounds ---
+    {
+        Population<> pop(100, 30, 1, 0, -5.12, 5.12);
+        init_pop_random(pop, 1003);
+
+        GaussianMutation mut;
+        mut.mutation_rate = 1.0;
+        mut.step_size     = 100.0; // extreme: forces clamp in almost every case
+
+        for (int i = 0; i < pop.pop_size; ++i)
+            mut.apply(pop, i);
+
+        for (int i = 0; i < pop.pop_size; ++i)
+            if (!within_bounds(pop, i)) { pass = false; break; }
+    }
+
+    // --- 4d: rate = 1.0, step_size = 1.0 → exactly ONE gene changes per call ---
+    //   Verify by counting how many genes differ before and after each apply.
+    {
+        Population<> pop(200, 20, 1, 0, -5.12, 5.12);
+        init_pop_random(pop, 1004);
+
+        GaussianMutation mut;
+        mut.mutation_rate = 1.0;
+        mut.step_size     = 1.0;
+
+        // Avoid genes initialised to 0.0 (multiplicative blind spot);
+        // init_pop_random uses uniform in [-5.12,5.12], so exact 0.0 is negligible.
+        // We still guard: if step_size*N==0 the count will be 0 — acceptable.
+
+        int violations = 0;
+        for (int i = 0; i < pop.pop_size; ++i) {
+            std::vector<double> before(pop.dim);
+            for (int j = 0; j < pop.dim; ++j) before[j] = pop.gene(i, j);
+
+            mut.apply(pop, i);
+
+            int changed = 0;
+            for (int j = 0; j < pop.dim; ++j)
+                if (std::abs(pop.gene(i, j) - before[j]) > 1e-15) ++changed;
+
+            // changed must be 0 (gene==0 blind spot or normal==0) or exactly 1
+            if (changed > 1) ++violations;
+        }
+        if (violations > 0) pass = false;
+    }
+
+    // --- 4e: auto rate (-1.0) with dim=20 → approximately 1/20 of calls fire ---
+    //   Run 10 000 applications; expect ~500 fires. Accept [300, 700] (±4 σ).
+    {
+        Population<> pop(1, 20, 1, 0, -5.12, 5.12);
+        init_pop_random(pop, 1005);
+
+        GaussianMutation mut;
+        mut.mutation_rate = -1.0;  // auto = 1/dim = 0.05
+        mut.step_size     = 1.0;
+
+        const int trials = 10000;
+        int fires = 0;
+        for (int t = 0; t < trials; ++t) {
+            // Reset gene to a non-zero value and mark as evaluated
+            pop.gene(0, 0) = 1.0;
+            pop.set_evaluated(0, true);
+
+            mut.apply(pop, 0);
+
+            if (!pop.evaluated(0)) ++fires;   // flag cleared → operator fired
+        }
+        // Expected fires ≈ 500; accept [300, 700]
+        if (fires < 300 || fires > 700) pass = false;
+    }
+
+    std::cout << (pass ? "PASS" : "FAIL") << std::endl;
+    return pass;
+}
+
+// ------------------------------------------------------------------
 // Main
 // ------------------------------------------------------------------
 int main() {
@@ -238,6 +367,7 @@ int main() {
     if (test_sbx_crossover()) ++passed; else ++failed;
     if (test_polynomial_mutation()) ++passed; else ++failed;
     if (test_binary_tournament()) ++passed; else ++failed;
+    if (test_gaussian_mutation()) ++passed; else ++failed;
 
     std::cout << "----------------------------------------" << std::endl;
     std::cout << "Results: " << passed << " passed, " << failed << " failed" << std::endl;

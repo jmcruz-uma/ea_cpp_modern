@@ -21,7 +21,7 @@ struct LevyFlightMutation {
 
     static constexpr Encoding encoding() { return Encoding::Real; }
 
-    void apply(this LevyFlightMutation& self, Population& pop, int idx) {
+    void apply(this LevyFlightMutation& self, Population<>& pop, int idx) {
         auto& rng = Random::instance();
         double rate = self.mutation_rate < 0 ? 1.0 / pop.dim : self.mutation_rate;
 

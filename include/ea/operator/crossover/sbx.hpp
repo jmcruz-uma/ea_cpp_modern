@@ -33,7 +33,7 @@ struct SBXCrossover {
     /// Apply SBX crossover on the given population.
     /// Parents at indices parent_a and parent_b.
     /// Children written to indices child_start and child_start+1.
-    void apply(this SBXCrossover& self, Population& pop, int parent_a, int parent_b,
+    void apply(this SBXCrossover& self, Population<>& pop, int parent_a, int parent_b,
                int child_start) {
         auto& rng = Random::instance();
 

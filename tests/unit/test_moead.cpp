@@ -110,7 +110,7 @@ TEST(Aggregation, AggregationFunctionDispatch) {
 // ============================================================
 
 TEST(MOEAD, RunsOnZDT1WithTchebycheff) {
-    Population pop(50, 30, 2);
+    Population<> pop(50, 30, 2);
     ZDT1 zdt1;
     
     auto& rng = Random::instance();
@@ -134,7 +134,7 @@ TEST(MOEAD, RunsOnZDT1WithTchebycheff) {
     EXPECT_GE(moead.evals_, 50);  // at least initial population
     EXPECT_LE(moead.evals_, 1000); // at most max_evals
     
-    // Population should have objectives set
+    // Population<> should have objectives set
     for (int i = 0; i < pop.pop_size; ++i) {
         EXPECT_TRUE(pop.evaluated(i));
         EXPECT_GE(pop.objective(i, 0), 0.0);
@@ -143,7 +143,7 @@ TEST(MOEAD, RunsOnZDT1WithTchebycheff) {
 }
 
 TEST(MOEAD, RunsOnZDT1WithWeightedSum) {
-    Population pop(50, 30, 2);
+    Population<> pop(50, 30, 2);
     ZDT1 zdt1;
     
     auto& rng = Random::instance();
@@ -173,7 +173,7 @@ TEST(MOEAD, RunsOnZDT1WithWeightedSum) {
 
 TEST(MOEAD, WeightVectorsInitializedCorrectly) {
     // 2-objective case: weights should be uniformly distributed
-    Population pop(10, 5, 2);
+    Population<> pop(10, 5, 2);
     ZDT1 zdt1;
     
     auto& rng = Random::instance();
@@ -204,7 +204,7 @@ TEST(MOEAD, WeightVectorsInitializedCorrectly) {
 }
 
 TEST(MOEAD, NeighborhoodInitializedCorrectly) {
-    Population pop(20, 5, 2);
+    Population<> pop(20, 5, 2);
     ZDT1 zdt1;
     
     auto& rng = Random::instance();
@@ -231,7 +231,7 @@ TEST(MOEAD, NeighborhoodInitializedCorrectly) {
 }
 
 TEST(MOEAD, IdealPointUpdatesCorrectly) {
-    Population pop(10, 5, 2);
+    Population<> pop(10, 5, 2);
     ZDT1 zdt1;
     
     auto& rng = Random::instance();

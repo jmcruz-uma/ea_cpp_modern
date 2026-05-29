@@ -12,11 +12,11 @@ namespace ea {
 /// For NSGA-II: prefer lower rank, then higher crowding distance.
 struct BinaryTournamentSelection {
     /// Select mating pool from population. Fills mating_pool with selected indices.
-    /// @param pop Population
+    /// @param pop Population<>
     /// @param mating_pool Output indices (will be resized to 2 * pop_size)
     /// @param ranks Rank of each individual (from NDS)
     /// @param crowding_dist Crowding distance of each individual
-    void select(this BinaryTournamentSelection& self, Population& pop,
+    void select(this BinaryTournamentSelection& self, Population<>& pop,
                 std::vector<int>& mating_pool, const std::vector<int>& ranks,
                 const std::vector<double>& crowding_dist) {
         auto& rng = Random::instance();

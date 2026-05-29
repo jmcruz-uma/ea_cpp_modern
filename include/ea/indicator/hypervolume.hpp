@@ -493,11 +493,11 @@ inline double hypervolume_wfg(const std::vector<std::vector<double>>& points, in
 
 /// Hypervolume indicator using WFG algorithm.
 ///
-/// @param pop           Population containing the Pareto front approximation
+/// @param pop           Population<> containing the Pareto front approximation
 /// @param indices       Indices of individuals in the front
 /// @param ref_point     Reference point (must dominate all front points)
 /// @return Hypervolume value
-inline double hypervolume(const Population& pop, const std::vector<int>& indices,
+inline double hypervolume(const Population<>& pop, const std::vector<int>& indices,
                           const std::vector<double>& ref_point) {
     if (indices.empty())
         return 0.0;
@@ -539,7 +539,7 @@ struct HypervolumeIndicator {
         return hypervolume(front, self.ref_point);
     }
 
-    double compute(this HypervolumeIndicator& self, const Population& pop,
+    double compute(this HypervolumeIndicator& self, const Population<>& pop,
                    const std::vector<int>& indices) {
         if (self.ref_point.empty() || indices.empty())
             return 0.0;

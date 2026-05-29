@@ -18,10 +18,10 @@ namespace ea {
 /// The comparator logic is embedded; extend with a custom comparator if needed.
 struct BestSolutionSelection {
     /// Find the index of the best individual.
-    /// @param pop   Population
+    /// @param pop   Population<>
     /// @param ranks Rank of each individual (lower is better, used for multi-objective)
     /// @return Index of the best individual
-    int select(this BestSolutionSelection& self, Population& pop, const std::vector<int>& ranks) {
+    int select(this BestSolutionSelection& self, Population<>& pop, const std::vector<int>& ranks) {
         (void)self;
         if (pop.pop_size == 0)
             return -1;

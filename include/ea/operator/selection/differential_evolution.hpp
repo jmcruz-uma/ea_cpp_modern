@@ -22,10 +22,10 @@ struct DifferentialEvolutionSelection {
     bool select_current = false; ///< If true, current index is appended as last
 
     /// Select distinct individuals and store their indices in `mating_pool`.
-    /// @param pop          Population
+    /// @param pop          Population<>
     /// @param mating_pool  Output: selected indices (resized to number_of_solutions)
     /// @param current_idx  Index of current solution (excluded from random selection)
-    void select(this DifferentialEvolutionSelection& self, Population& pop,
+    void select(this DifferentialEvolutionSelection& self, Population<>& pop,
                 std::vector<int>& mating_pool, int current_idx = -1) {
         auto& rng = Random::instance();
         int n = pop.pop_size;

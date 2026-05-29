@@ -18,14 +18,14 @@ namespace ea {
 
 /// R2 Indicator.
 /// Computes the average utility difference between the reference front and the approximated front.
-/// @param pop Population with approximated front
+/// @param pop Population<> with approximated front
 /// @param indices Indices of individuals in the approximated front
 /// @param reference_front Reference Pareto front
 /// @param weights Vector of weight vectors (one per direction)
 /// @param ideal Ideal point (minimum of reference front)
 /// @param nadir Nadir point (maximum of reference front)
 /// @return R2 value (lower is better)
-inline double r2(const Population& pop, const std::vector<int>& indices,
+inline double r2(const Population<>& pop, const std::vector<int>& indices,
                  const std::vector<std::vector<double>>& reference_front,
                  const std::vector<std::vector<double>>& weights, const std::vector<double>& ideal,
                  const std::vector<double>& nadir) {
@@ -81,7 +81,7 @@ inline double r2(const Population& pop, const std::vector<int>& indices,
 }
 
 /// R2 Indicator with auto-computed ideal and nadir.
-inline double r2(const Population& pop, const std::vector<int>& indices,
+inline double r2(const Population<>& pop, const std::vector<int>& indices,
                  const std::vector<std::vector<double>>& reference_front,
                  const std::vector<std::vector<double>>& weights) {
     if (reference_front.empty())
@@ -109,7 +109,7 @@ struct R2Indicator {
     std::vector<double> ideal;                ///< Ideal point (optional)
     std::vector<double> nadir;                ///< Nadir point (optional)
 
-    double compute(this R2Indicator& self, const Population& pop, const std::vector<int>& indices,
+    double compute(this R2Indicator& self, const Population<>& pop, const std::vector<int>& indices,
                    const std::vector<std::vector<double>>& reference_front) {
         if (self.weights.empty()) {
             // Generate default weights (uniform)

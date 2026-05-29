@@ -25,11 +25,11 @@ struct RankingAndCrowdingSelection {
     int pool_size = 0; ///< Number of individuals to select
 
     /// Select `pool_size` individuals into `mating_pool`.
-    /// @param pop          Population (used for bounds checking)
+    /// @param pop          Population<> (used for bounds checking)
     /// @param mating_pool  Output: selected individual indices (resized)
     /// @param ranks        Rank of each individual (0 = best)
     /// @param crowding_dist Crowding distance of each individual
-    void select(this RankingAndCrowdingSelection& self, Population& pop,
+    void select(this RankingAndCrowdingSelection& self, Population<>& pop,
                 std::vector<int>& mating_pool, const std::vector<int>& ranks,
                 const std::vector<double>& crowding_dist) {
         const int n = pop.pop_size;

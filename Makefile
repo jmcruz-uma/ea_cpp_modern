@@ -1,7 +1,7 @@
 .PHONY: all test clean benchmark
 
 CXX = g++-14
-CXXFLAGS = -std=c++23 -O2 -I include
+CXXFLAGS = -std=c++23 -O3 -march=native -DNDEBUG -I include
 LDFLAGS = -lm
 
 # Directories
@@ -10,13 +10,14 @@ EXAMPLES_DIR = examples
 TEST_DIR = tests/unit
 
 # Targets
-BENCHMARK_FAIR = $(BUILD_DIR)/benchmark_fair
-BENCHMARK_LARGE = $(BUILD_DIR)/benchmark_large
-TEST_COMPILE = $(BUILD_DIR)/test_compile
-TEST_OPERATORS = $(BUILD_DIR)/test_operators
-
-TEST_ISLAND = $(BUILD_DIR)/test_island_model
-TEST_NEW_OPERATORS = $(BUILD_DIR)/test_new_operators
+BENCHMARK_FAIR    = $(BUILD_DIR)/benchmark_fair
+BENCHMARK_LARGE   = $(BUILD_DIR)/benchmark_large
+TEST_COMPILE      = $(BUILD_DIR)/test_compile
+TEST_OPERATORS    = $(BUILD_DIR)/test_operators
+TEST_ISLAND       = $(BUILD_DIR)/test_island_model
+TEST_NEW_OPERATORS    = $(BUILD_DIR)/test_new_operators
+TEST_SEED_MANAGER     = $(BUILD_DIR)/test_seed_manager
+TEST_STATS_COLLECTOR  = $(BUILD_DIR)/test_stats_collector
 
 all: $(BUILD_DIR) $(BENCHMARK_FAIR) $(TEST_COMPILE)
 
@@ -41,13 +42,21 @@ $(TEST_ISLAND): tests/integration/test_island_model.cpp
 $(TEST_NEW_OPERATORS): $(TEST_DIR)/test_new_operators.cpp
 	$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
 
+$(TEST_SEED_MANAGER): $(TEST_DIR)/test_seed_manager.cpp
+	$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
+
+$(TEST_STATS_COLLECTOR): $(TEST_DIR)/test_stats_collector.cpp
+	$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
+
 # Quick test
-test: $(TEST_COMPILE) $(TEST_OPERATORS) $(TEST_ISLAND) $(TEST_NEW_OPERATORS)
+test: $(TEST_COMPILE) $(TEST_OPERATORS) $(TEST_ISLAND) $(TEST_NEW_OPERATORS) $(TEST_SEED_MANAGER) $(TEST_STATS_COLLECTOR)
 	@echo "=== Running tests ==="
 	$(TEST_COMPILE)
 	$(TEST_OPERATORS)
 	$(TEST_ISLAND)
 	$(TEST_NEW_OPERATORS)
+	$(TEST_SEED_MANAGER)
+	$(TEST_STATS_COLLECTOR)
 
 # Benchmark
 benchmark: $(BENCHMARK_FAIR)

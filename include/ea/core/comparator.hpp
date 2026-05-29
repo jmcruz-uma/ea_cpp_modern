@@ -21,7 +21,7 @@ enum class Dominance : int8_t {
 /// @return Dominance::Dominates if a dominates b,
 ///         Dominance::Dominated if b dominates a,
 ///         Dominance::Equal otherwise
-inline Dominance compare_dominance(const Population& pop, int a, int b) {
+inline Dominance compare_dominance(const Population<>& pop, int a, int b) {
     bool a_dominates_b = false;
     bool b_dominates_a = false;
 
@@ -51,10 +51,10 @@ inline Dominance compare_dominance(const Population& pop, int a, int b) {
 /// - Boundary solutions get infinite distance
 /// - Distances are assigned to the correct individuals (not sorted positions)
 /// - O(n log n) per objective thanks to unordered_map for index lookups
-/// @param pop Population
+/// @param pop Population<>
 /// @param indices Indices of individuals in the front
 /// @param crowding_dist Output crowding distances indexed by individual position in `indices`
-inline void compute_crowding_distance(const Population& pop, const std::vector<int>& indices,
+inline void compute_crowding_distance(const Population<>& pop, const std::vector<int>& indices,
                                       std::vector<double>& crowding_dist) {
     const int n = static_cast<int>(indices.size());
     crowding_dist.assign(n, 0.0);
@@ -110,9 +110,9 @@ inline void compute_crowding_distance(const Population& pop, const std::vector<i
 }
 
 /// Fast non-dominated sort. Returns fronts as vectors of individual indices.
-/// @param pop Population (must have objectives evaluated)
+/// @param pop Population<> (must have objectives evaluated)
 /// @return Vector of fronts, front[0] is the best (non-dominated) front
-inline std::vector<std::vector<int>> fast_non_dominated_sort(Population& pop) {
+inline std::vector<std::vector<int>> fast_non_dominated_sort(Population<>& pop) {
     const int n = pop.pop_size;
     std::vector<int> domination_count(n, 0);
     std::vector<std::vector<int>> dominated_by(n);
@@ -160,7 +160,7 @@ inline std::vector<std::vector<int>> fast_non_dominated_sort(Population& pop) {
 
 /// Compute overall constraint violation for an individual.
 /// Returns the sum of constraint violations (negative values = feasible).
-inline double constraint_violation(const Population& pop, int idx) {
+inline double constraint_violation(const Population<>& pop, int idx) {
     if (pop.n_const == 0)
         return 0.0;
     double violation = 0.0;

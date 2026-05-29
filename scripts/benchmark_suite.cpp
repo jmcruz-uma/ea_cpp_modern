@@ -56,7 +56,7 @@ void run_benchmark(const BenchmarkConfig& cfg,
 
     for (int r = 0; r < cfg.runs; ++r) {
         Problem problem(cfg.dim);
-        Population pop(cfg.pop_size, cfg.dim, 2);
+        Population<> pop(cfg.pop_size, cfg.dim, 2);
         pop.lower_bounds = std::vector<double>(cfg.dim, 0.0);
         pop.upper_bounds = std::vector<double>(cfg.dim, 1.0);
 
@@ -67,7 +67,7 @@ void run_benchmark(const BenchmarkConfig& cfg,
             }
         }
 
-        auto problem_fn = [&problem](Population& p, int idx) {
+        auto problem_fn = [&problem](Population<>& p, int idx) {
             problem.evaluate(p, idx);
         };
 

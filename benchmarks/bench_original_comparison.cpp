@@ -7,7 +7,7 @@
 ///
 /// 1. **Raw evaluation speed** — How fast can we evaluate 25K individuals
 ///    on the same problems (Sphere, Rastrigin, etc.)
-/// 2. **Population operations** — Crossover, mutation on SoA vs AoS
+/// 2. **Population<> operations** — Crossover, mutation on SoA vs AoS
 /// 3. **End-to-end** — Same algorithm configuration as possible
 ///
 /// Original results (30 runs, 25K evals, pop=100):
@@ -33,7 +33,7 @@ struct Sphere {
     explicit Sphere(int d = 30) : dim(d) {}
     static constexpr int num_objectives() { return 1; }
     int dimension() const { return dim; }
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         double sum = 0;
         for (int j = 0; j < dim; ++j) sum += pop.gene(idx, j) * pop.gene(idx, j);
         pop.objective(idx, 0) = sum;
@@ -45,7 +45,7 @@ struct Rastrigin {
     explicit Rastrigin(int d = 30) : dim(d) {}
     static constexpr int num_objectives() { return 1; }
     int dimension() const { return dim; }
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         double sum = 10.0 * dim;
         for (int j = 0; j < dim; ++j) {
             double x = pop.gene(idx, j);
@@ -60,7 +60,7 @@ struct Rosenbrock {
     explicit Rosenbrock(int d = 30) : dim(d) {}
     static constexpr int num_objectives() { return 1; }
     int dimension() const { return dim; }
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         double sum = 0;
         for (int j = 0; j < dim - 1; ++j) {
             double x1 = pop.gene(idx, j);
@@ -76,7 +76,7 @@ struct Ackley {
     explicit Ackley(int d = 30) : dim(d) {}
     static constexpr int num_objectives() { return 1; }
     int dimension() const { return dim; }
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         double sum1 = 0, sum2 = 0;
         for (int j = 0; j < dim; ++j) {
             double x = pop.gene(idx, j);
@@ -115,7 +115,7 @@ TimingResult run_mu_lambda_es(const std::string& label,
     for (int r = 0; r < runs; ++r) {
         // Initialize population
         int total = pop_size + offspring;
-        Population pop(total, dim, 1, Encoding::Real, 0, -5.12, 5.12);
+        Population<> pop(total, dim, 1, 0, -5.12, 5.12);
 
         // Random initialization
         auto& rng = Random::instance();
@@ -168,7 +168,7 @@ TimingResult run_mu_lambda_es(const std::string& label,
                 [&](int a, int b) { return pop.objective(a, 0) < pop.objective(b, 0); });
 
             // Copy best to positions 0..pop_size-1
-            Population new_pop(pop_size, dim, 1, Encoding::Real, 0, -5.12, 5.12);
+            Population<> new_pop(pop_size, dim, 1, 0, -5.12, 5.12);
             for (int i = 0; i < pop_size; ++i) {
                 for (int j = 0; j < dim; ++j) {
                     new_pop.gene(i, j) = pop.gene(indices[i], j);

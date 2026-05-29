@@ -26,7 +26,7 @@ struct SphereFn {
     explicit SphereFn(int d = 30) : dim(d) {}
     static constexpr int num_objectives() { return 1; }
     int dimension() const { return dim; }
-    void evaluate(ea::Population& pop, int idx) const {
+    void evaluate(ea::Population<>& pop, int idx) const {
         double sum = 0;
         for (int j = 0; j < dim; ++j) sum += pop.gene(idx, j) * pop.gene(idx, j);
         pop.objective(idx, 0) = sum;
@@ -38,7 +38,7 @@ struct RastriginFn {
     explicit RastriginFn(int d = 30) : dim(d) {}
     static constexpr int num_objectives() { return 1; }
     int dimension() const { return dim; }
-    void evaluate(ea::Population& pop, int idx) const {
+    void evaluate(ea::Population<>& pop, int idx) const {
         double sum = 10.0 * dim;
         for (int j = 0; j < dim; ++j) {
             double x = pop.gene(idx, j);
@@ -69,7 +69,7 @@ TimingResult bench_evaluation(const char* label, Problem& prob, int dim, int n_o
     double total_wall = 0;
 
     for (int r = 0; r < runs; ++r) {
-        Population pop(pop_size, dim, n_obj, Encoding::Real, 0, -5.12, 5.12);
+        Population<> pop(pop_size, dim, n_obj, 0, -5.12, 5.12);
         auto& rng = Random::instance();
         for (int i = 0; i < pop_size; ++i)
             for (int j = 0; j < dim; ++j)
@@ -107,7 +107,7 @@ TimingResult bench_operator_throughput(const char* label, int pop_size, int dim,
     double total_wall = 0;
 
     for (int r = 0; r < runs; ++r) {
-        Population pop(pop_size * 2, dim, 2, Encoding::Real, 0, -5.12, 5.12);
+        Population<> pop(pop_size * 2, dim, 2, 0, -5.12, 5.12);
         auto& rng = Random::instance();
         for (int i = 0; i < pop_size * 2; ++i)
             for (int j = 0; j < dim; ++j)
@@ -157,7 +157,7 @@ TimingResult bench_nsga2(const char* label, Problem& prob, int dim, int n_obj, i
     double total_wall = 0;
 
     for (int r = 0; r < runs; ++r) {
-        Population pop(pop_size, dim, n_obj, Encoding::Real, 0, 0.0, 1.0);
+        Population<> pop(pop_size, dim, n_obj, 0, 0.0, 1.0);
 
         NSGAII<SBXCrossover, PolynomialMutation> nsga;
         nsga.crossover.distribution_index = 20.0;
@@ -166,7 +166,7 @@ TimingResult bench_nsga2(const char* label, Problem& prob, int dim, int n_obj, i
         nsga.pop_size = pop_size;
         nsga.max_evals = max_evals;
 
-        auto evaluator = [&prob](Population& p, int i) { prob.evaluate(p, i); };
+        auto evaluator = [&prob](Population<>& p, int i) { prob.evaluate(p, i); };
 
         Timer timer;
         timer.start();
@@ -198,7 +198,7 @@ TimingResult bench_scalability(const char* label, int pop_size, int dim, int gen
     double total_wall = 0;
 
     for (int r = 0; r < runs; ++r) {
-        Population pop(pop_size, dim, 2, Encoding::Real, 0, 0.0, 1.0);
+        Population<> pop(pop_size, dim, 2, 0, 0.0, 1.0);
         ZDT1 prob(dim);
 
         NSGAII<SBXCrossover, PolynomialMutation> nsga;
@@ -208,7 +208,7 @@ TimingResult bench_scalability(const char* label, int pop_size, int dim, int gen
         nsga.pop_size = pop_size;
         nsga.max_evals = pop_size * generations;
 
-        auto evaluator = [&prob](Population& p, int i) { prob.evaluate(p, i); };
+        auto evaluator = [&prob](Population<>& p, int i) { prob.evaluate(p, i); };
 
         Timer timer;
         timer.start();
@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
     {
         // ZDT1 = 2 objectives
         ea::ZDT1 prob(30);
-        ea::Population pop(100, 30, 2, ea::Encoding::Real, 0, 0.0, 1.0);
+        ea::Population<> pop(100, 30, 2, 0, 0.0, 1.0);
         double total = 0;
         for (int r = 0; r < runs; ++r) {
             ea::bench::Timer timer;

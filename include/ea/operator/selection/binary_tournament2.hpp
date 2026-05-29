@@ -17,10 +17,10 @@ namespace ea {
 /// Typically used with strength-based fitness (SPEA2).
 struct BinaryTournament2Selection {
     /// Select mating pool from population using strength/fitness values.
-    /// @param pop Population
+    /// @param pop Population<>
     /// @param mating_pool Output indices (will be resized to 2 * pop_size)
     /// @param fitness Fitness value of each individual (lower = better)
-    void select(this BinaryTournament2Selection& self, Population& pop,
+    void select(this BinaryTournament2Selection& self, Population<>& pop,
                 std::vector<int>& mating_pool, const std::vector<double>& fitness) {
         auto& rng = Random::instance();
         mating_pool.resize(2 * pop.pop_size);

@@ -62,12 +62,12 @@ struct MOEAD_DE {
     std::vector<double> nadir_point_;
     int evals_ = 0;
 
-    enum class NeighborType : uint8_t { Neighbor, Population };
+    enum class NeighborType : uint8_t { Neighbor, WholePopulation };
 
     /// Run MOEA/D-DE on the given population.
-    /// @param pop Population with genes initialized and bounds set.
-    /// @param problem Callable: void(Population&, int) — evaluates individual
-    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
+    /// @param pop Population<> with genes initialized and bounds set.
+    /// @param problem Callable: void(Population<>&, int) — evaluates individual
+    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
         const int n = self.pop_size;
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
@@ -130,7 +130,7 @@ struct MOEAD_DE {
 
                 // Apply polynomial mutation on trial vector
                 // We need a temporary population slot for the trial
-                Population trial_pop(1, dim, n_obj, pop.encoding, pop.n_const);
+                Population<> trial_pop(1, dim, n_obj, pop.n_const);
                 trial_pop.lower_bounds = pop.lower_bounds;
                 trial_pop.upper_bounds = pop.upper_bounds;
                 for (int j = 0; j < dim; ++j) {
@@ -198,7 +198,7 @@ private:
 
     NeighborType choose_neighbor_type(this auto& self) {
         return Random::instance().coin_flip(self.neighborhood_prob) ? NeighborType::Neighbor
-                                                                    : NeighborType::Population;
+                                                                    : NeighborType::WholePopulation;
     }
 
     std::vector<int> mating_selection(this auto& self, int subproblem_id,
@@ -225,7 +225,7 @@ private:
         return selected;
     }
 
-    double fitness(this auto& self, const Population& pop, int idx, int w_idx, int n_obj) {
+    double fitness(this auto& self, const Population<>& pop, int idx, int w_idx, int n_obj) {
         AggregationFunction aggr;
         aggr.type = self.aggregation_type;
         aggr.normalize = self.normalize;
@@ -233,21 +233,21 @@ private:
                             self.ideal_point_.data(), self.nadir_point_.data(), n_obj);
     }
 
-    void update_ideal_point(this auto& self, const Population& pop, int idx) {
+    void update_ideal_point(this auto& self, const Population<>& pop, int idx) {
         for (int o = 0; o < pop.n_obj; ++o) {
             double val = pop.objective(idx, o);
             if (val < self.ideal_point_[o]) self.ideal_point_[o] = val;
         }
     }
 
-    void update_nadir_point(this auto& self, const Population& pop, int idx) {
+    void update_nadir_point(this auto& self, const Population<>& pop, int idx) {
         for (int o = 0; o < pop.n_obj; ++o) {
             double val = pop.objective(idx, o);
             if (val > self.nadir_point_[o]) self.nadir_point_[o] = val;
         }
     }
 
-    void update_neighborhood(this auto& self, Population& pop, const Population& offspring,
+    void update_neighborhood(this auto& self, Population<>& pop, const Population<>& offspring,
                              int sub_problem_id, NeighborType ntype, int n, int T) {
         int size = (ntype == NeighborType::Neighbor) ? T : n;
         int n_obj = pop.n_obj;

@@ -17,7 +17,7 @@ struct TestProblem3D {
     std::vector<double> upper_bounds() const { return std::vector<double>(7, 1.0); }
 
     // Callable operator for NSGA-III algorithm
-    void operator()(ea::Population& pop, int idx) const {
+    void operator()(ea::Population<>& pop, int idx) const {
         const int k = 5;
         double g = 0.0;
         for (int i = num_objectives() - 1; i < dimension(); ++i) {
@@ -64,7 +64,7 @@ int main() {
         std::cout << "  All reference points sum to 1.0 ✓\n";
     }
 
-    // Test 2: Population size computation
+    // Test 2: Population<> size computation
     {
         assert(ea::compute_population_size(15) == 16);
         assert(ea::compute_population_size(91) == 92);
@@ -80,7 +80,7 @@ int main() {
 
         // Create population with correct size
         int pop_size = ea::compute_population_size(15);  // 16
-        ea::Population pop(pop_size, 7, 3);
+        ea::Population<> pop(pop_size, 7, 3);
 
         // Initialize with random values
         auto& rng = ea::Random::instance();

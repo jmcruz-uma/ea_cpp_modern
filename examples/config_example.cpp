@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
     std::cout << "Mutation: " << cfg.mutation_type << "\n";
 
     // Initialize population
-    ea::Population pop(cfg.pop_size, cfg.dim, cfg.n_obj);
+    ea::Population<> pop(cfg.pop_size, cfg.dim, cfg.n_obj);
     pop.lower_bounds = std::vector<double>(cfg.dim, 0.0);
     pop.upper_bounds = std::vector<double>(cfg.dim, 1.0);
 
@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
     // Note: In production, use a factory pattern or switch statement
     // This example shows the Config struct usage
     ea::ZDT1 problem(cfg.dim);
-    auto problem_fn = [&problem](ea::Population& p, int idx) {
+    auto problem_fn = [&problem](ea::Population<>& p, int idx) {
         problem.evaluate(p, idx);
     };
 

@@ -2,7 +2,7 @@
 /// @file pmx.hpp
 /// @brief Partially Mapped Crossover (PMX) for permutation encodings.
 /// Reference: jMetal PMXCrossover — https://github.com/jMetal/jMetal
-/// C++23 with deducing this, SoA Population access.
+/// C++23 with deducing this, SoA Population<> access.
 
 #include <algorithm>
 #include <ea/core/encoding.hpp>
@@ -14,7 +14,7 @@ namespace ea {
 
 /// Partially Mapped Crossover (PMX) for permutation-based encodings.
 /// Produces two children from two parents while preserving valid permutations.
-/// Genes are integers stored as doubles in the Population array.
+/// Genes are integers stored as doubles in the Population<> array.
 struct PMXCrossover {
     double crossover_probability = 1.0; ///< Probability of applying crossover
 
@@ -22,7 +22,7 @@ struct PMXCrossover {
     static constexpr Encoding encoding() { return Encoding::Permutation; }
 
     /// Apply PMX crossover. Produces 2 children starting at child_start.
-    void apply(this PMXCrossover& self, Population& pop, int parent_a, int parent_b,
+    void apply(this PMXCrossover& self, Population<>& pop, int parent_a, int parent_b,
                int child_start) {
         auto& rng = Random::instance();
         int dim = pop.dim;

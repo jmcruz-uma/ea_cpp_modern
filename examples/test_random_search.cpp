@@ -19,7 +19,7 @@ int main() {
     ea::ZDT1 zdt1(dim);
 
     // Create population
-    ea::Population pop(pop_size, dim, n_obj);
+    ea::Population<> pop(pop_size, dim, n_obj);
     pop.lower_bounds = std::vector<double>(zdt1.lower_bounds().begin(), zdt1.lower_bounds().end());
     pop.upper_bounds = std::vector<double>(zdt1.upper_bounds().begin(), zdt1.upper_bounds().end());
 
@@ -29,7 +29,7 @@ int main() {
     rs.max_evals = max_evals;
 
     // Define problem evaluation
-    auto problem = [&zdt1](ea::Population& p, int idx) {
+    auto problem = [&zdt1](ea::Population<>& p, int idx) {
         zdt1.evaluate(p, idx);
     };
 

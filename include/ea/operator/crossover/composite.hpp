@@ -24,7 +24,7 @@ namespace ea {
 /// that determines its selection probability.
 struct CompositeCrossover {
     /// Type-erased crossover application function
-    using CrossoverFn = std::function<void(Population&, int, int, int)>;
+    using CrossoverFn = std::function<void(Population<>&, int, int, int)>;
 
     std::vector<CrossoverFn> operators; ///< Child crossover operators
     std::vector<double> weights;        ///< Selection weights (proportional)
@@ -35,14 +35,14 @@ struct CompositeCrossover {
     /// Add a crossover operator with given weight.
     template <typename CX> void add_crossover(CX&& cx, double weight = 1.0) {
         operators.emplace_back(
-            [cx = std::forward<CX>(cx)](Population& pop, int a, int b, int child) mutable {
+            [cx = std::forward<CX>(cx)](Population<>& pop, int a, int b, int child) mutable {
                 cx.apply(pop, a, b, child);
             });
         weights.push_back(weight > 0.0 ? weight : 1.0);
     }
 
     /// Apply one randomly selected crossover operator.
-    void apply(this CompositeCrossover& self, Population& pop, int parent_a, int parent_b,
+    void apply(this CompositeCrossover& self, Population<>& pop, int parent_a, int parent_b,
                int child_start) {
         if (self.operators.empty()) {
             // No operators registered — just copy parents

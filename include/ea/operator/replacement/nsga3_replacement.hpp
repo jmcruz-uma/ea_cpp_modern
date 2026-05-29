@@ -32,11 +32,11 @@ struct NSGAIIIReplacement {
         : reference_points(std::move(refs)) {}
 
     /// Perform NSGA-III environmental selection on a combined population.
-    std::vector<int> replace(this NSGAIIIReplacement& self, Population& combined, int target_size);
+    std::vector<int> replace(this NSGAIIIReplacement& self, Population<>& combined, int target_size);
 
 private:
     /// Compute ideal point from front
-    static void compute_ideal_point(Population& pop, const std::vector<int>& front,
+    static void compute_ideal_point(Population<>& pop, const std::vector<int>& front,
                                     std::vector<double>& ideal, int n_obj) {
         ideal.assign(n_obj, std::numeric_limits<double>::max());
         for (int idx : front) {
@@ -97,7 +97,7 @@ private:
 };
 
 inline std::vector<int> NSGAIIIReplacement::replace(this NSGAIIIReplacement& self,
-                                                    Population& combined, int target_size) {
+                                                    Population<>& combined, int target_size) {
     const int n_obj = combined.n_obj;
 
     // Non-dominated sort

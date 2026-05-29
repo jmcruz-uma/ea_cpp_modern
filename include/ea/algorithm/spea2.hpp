@@ -31,7 +31,7 @@ template <typename CX, typename MT> struct SPEA2 {
     static constexpr std::string_view name() { return "SPEA2"; }
 
     /// Run SPEA2 on the given population.
-    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
+    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
         const int N = self.pop_size;
@@ -47,13 +47,13 @@ template <typename CX, typename MT> struct SPEA2 {
         }
 
         // Archive population
-        Population archive(N, dim, n_obj, pop.encoding, pop.n_const);
+        Population<> archive(N, dim, n_obj, pop.n_const);
         archive.lower_bounds = pop.lower_bounds;
         archive.upper_bounds = pop.upper_bounds;
         int archive_count = 0;
 
         // Union population (population + archive)
-        Population union_pop(2 * N, dim, n_obj, pop.encoding, pop.n_const);
+        Population<> union_pop(2 * N, dim, n_obj, pop.n_const);
         union_pop.lower_bounds = pop.lower_bounds;
         union_pop.upper_bounds = pop.upper_bounds;
 
@@ -84,7 +84,7 @@ template <typename CX, typename MT> struct SPEA2 {
             archive_count = spea2_environmental_selection(union_pop, fitness, archive, N);
 
             // === Selection + Crossover + Mutation → new population ===
-            Population offspring(N, dim, n_obj, pop.encoding, pop.n_const);
+            Population<> offspring(N, dim, n_obj, pop.n_const);
             offspring.lower_bounds = pop.lower_bounds;
             offspring.upper_bounds = pop.upper_bounds;
 
@@ -142,7 +142,7 @@ private:
     /// R(i) = sum of strengths of solutions dominating i
     /// D(i) = 1 / (sigma_k + 2) where sigma_k is distance to k-th nearest neighbor
     /// Fitness(i) = R(i) + D(i)  (lower is better; < 1 means non-dominated)
-    static void compute_spea2_fitness(const Population& pop, std::vector<double>& fitness) {
+    static void compute_spea2_fitness(const Population<>& pop, std::vector<double>& fitness) {
         const int n = pop.pop_size;
         fitness.resize(n);
 
@@ -200,9 +200,9 @@ private:
     }
 
     /// SPEA2 environmental selection: select best N solutions from union
-    static int spea2_environmental_selection(const Population& union_pop,
+    static int spea2_environmental_selection(const Population<>& union_pop,
                                              const std::vector<double>& fitness,
-                                             Population& archive, int archive_size) {
+                                             Population<>& archive, int archive_size) {
         const int n = union_pop.pop_size;
         const int dim = union_pop.dim;
         const int n_obj = union_pop.n_obj;
@@ -287,7 +287,7 @@ private:
     }
 
     /// Binary tournament selection based on SPEA2 fitness
-    static int spea2_tournament(const Population& archive, int archive_count,
+    static int spea2_tournament(const Population<>& archive, int archive_count,
                                 const std::vector<double>& fitness, int offset, Random& rng) {
         int a = rng.uniform_int(0, archive_count - 1);
         int b = rng.uniform_int(0, archive_count - 1);

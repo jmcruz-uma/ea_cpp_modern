@@ -30,7 +30,7 @@ template <typename CX, typename MT> struct SMSEMOA {
     static constexpr std::string_view name() { return "SMS-EMOA"; }
 
     /// Run SMS-EMOA.
-    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
+    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
 
@@ -51,7 +51,7 @@ template <typename CX, typename MT> struct SMSEMOA {
         compute_reference_point(pop, ref_point, 0.1);
 
         // Combined population (pop + offspring)
-        Population combined(self.pop_size + 1, dim, n_obj, pop.encoding, pop.n_const);
+        Population<> combined(self.pop_size + 1, dim, n_obj, pop.n_const);
         combined.lower_bounds = pop.lower_bounds;
         combined.upper_bounds = pop.upper_bounds;
 
@@ -63,7 +63,7 @@ template <typename CX, typename MT> struct SMSEMOA {
             int p2 = rng.uniform_int(0, self.pop_size - 1);
 
             // Create offspring by crossover + mutation
-            Population offspring(2, dim, n_obj, pop.encoding, pop.n_const);
+            Population<> offspring(2, dim, n_obj, pop.n_const);
             offspring.lower_bounds = pop.lower_bounds;
             offspring.upper_bounds = pop.upper_bounds;
 
@@ -77,7 +77,7 @@ template <typename CX, typename MT> struct SMSEMOA {
             self.crossover.apply(pop, p1, p2, 0);
 
             // Copy crossover result to a temp individual
-            Population child(1, dim, n_obj, pop.encoding, pop.n_const);
+            Population<> child(1, dim, n_obj, pop.n_const);
             child.lower_bounds = pop.lower_bounds;
             child.upper_bounds = pop.upper_bounds;
             for (int j = 0; j < dim; ++j) {
@@ -149,7 +149,7 @@ template <typename CX, typename MT> struct SMSEMOA {
     }
 
 private:
-    static void compute_reference_point(const Population& pop, std::vector<double>& ref_point,
+    static void compute_reference_point(const Population<>& pop, std::vector<double>& ref_point,
                                         double margin) {
         const int n_obj = pop.n_obj;
         for (int o = 0; o < n_obj; ++o) {
@@ -161,7 +161,7 @@ private:
         }
     }
 
-    static int find_worst_by_hv_contribution(Population& combined,
+    static int find_worst_by_hv_contribution(Population<>& combined,
                                              const std::vector<double>& ref_point) {
         const int n = combined.pop_size;
         const int n_obj = combined.n_obj;

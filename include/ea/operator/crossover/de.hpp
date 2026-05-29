@@ -157,7 +157,7 @@ struct DECrossover {
     /// Apply DE crossover. Produces 1 child at child_start.
     /// Parents: [0] = target/current, [1..n] = difference vector parents.
     /// best_idx is the index of the best solution in the population (for BEST variants).
-    void apply(this auto& self, Population& pop, const int* parent_indices, int num_parents,
+    void apply(this auto& self, Population<>& pop, const int* parent_indices, int num_parents,
                int child_start, int best_idx = -1) {
         auto& rng = Random::instance();
         (void)num_parents; // may be unused in some paths
@@ -205,7 +205,7 @@ struct DECrossover {
 
 private:
     /// Compute mutant value for a single gene
-    double mutate(this auto& self, Population& pop, const int* parent_indices, int gene_idx,
+    double mutate(this auto& self, Population<>& pop, const int* parent_indices, int gene_idx,
                   DEMutationType mut_type, int best_idx, int n_diff) {
         switch (mut_type) {
         case DEMutationType::Rand: {

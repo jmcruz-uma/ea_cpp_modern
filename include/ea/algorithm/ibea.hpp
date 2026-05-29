@@ -37,7 +37,7 @@ template <typename CX, typename MT> struct IBEA {
 
     static constexpr std::string_view name() { return "IBEA"; }
 
-    void run(this auto& self, Population& pop, auto&& problem) {
+    void run(this auto& self, Population<>& pop, auto&& problem) {
         const int n = self.pop_size;
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
@@ -58,7 +58,7 @@ template <typename CX, typename MT> struct IBEA {
 
         while (evals < self.max_evals) {
             // === 1. Generate offspring ===
-            Population offspring(n, dim, n_obj);
+            Population<> offspring(n, dim, n_obj);
             offspring.lower_bounds = pop.lower_bounds;
             offspring.upper_bounds = pop.upper_bounds;
 
@@ -90,7 +90,7 @@ template <typename CX, typename MT> struct IBEA {
             }
 
             // === 2. Combine parent + offspring ===
-            Population combined(2 * n, dim, n_obj);
+            Population<> combined(2 * n, dim, n_obj);
             combined.lower_bounds = pop.lower_bounds;
             combined.upper_bounds = pop.upper_bounds;
             for (int i = 0; i < n; ++i) {

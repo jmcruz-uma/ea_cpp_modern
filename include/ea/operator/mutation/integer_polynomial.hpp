@@ -22,7 +22,7 @@ struct IntegerPolynomialMutation {
 
     static constexpr Encoding encoding() { return Encoding::Integer; }
 
-    void apply(this IntegerPolynomialMutation& self, Population& pop, int idx) {
+    void apply(this IntegerPolynomialMutation& self, Population<>& pop, int idx) {
         auto& rng = Random::instance();
         double rate = self.mutation_rate < 0 ? 1.0 / pop.dim : self.mutation_rate;
         double mut_pow = 1.0 / (self.distribution_index + 1.0);

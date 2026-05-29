@@ -21,11 +21,11 @@ namespace ea {
 /// Elitist: parents survive if they dominate offspring.
 struct MuPlusLambdaReplacement {
     /// Replace population with best μ individuals from parents ∪ offspring.
-    /// @param pop Population (after offspring have been appended)
+    /// @param pop Population<> (after offspring have been appended)
     /// @param offspring_indices Indices of offspring in pop (typically [μ, μ+λ))
     /// @param mu Target population size (μ)
     /// @return Indices of the selected μ individuals
-    std::vector<int> replace(Population& pop, const std::vector<int>& offspring_indices, int mu) {
+    std::vector<int> replace(Population<>& pop, const std::vector<int>& offspring_indices, int mu) {
         // Merge parent indices [0, mu) with offspring_indices
         std::vector<int> merged;
         merged.reserve(mu + offspring_indices.size());
@@ -108,7 +108,7 @@ struct MuPlusLambdaReplacement {
 
 private:
     /// Fast non-dominated sort for a subset of indices.
-    std::vector<std::vector<int>> fast_non_dominated_sort_subset(Population& pop,
+    std::vector<std::vector<int>> fast_non_dominated_sort_subset(Population<>& pop,
                                                                  const std::vector<int>& indices) {
         const int n = static_cast<int>(indices.size());
         std::vector<int> domination_count(n, 0);
@@ -157,7 +157,7 @@ private:
     }
 
     /// Compute crowding distances for a subset of indices.
-    void compute_crowding_distance_subset(const Population& pop, const std::vector<int>& indices,
+    void compute_crowding_distance_subset(const Population<>& pop, const std::vector<int>& indices,
                                           std::vector<double>& crowding_dist) {
         const int n = static_cast<int>(indices.size());
         crowding_dist.assign(n, 0.0);

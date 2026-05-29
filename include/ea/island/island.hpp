@@ -30,8 +30,8 @@ struct Island {
     MigrationPolicy migration_policy;       ///< Migration policy for this island
     MigrationOperator migrator;            ///< Migration operator (selection + integration)
 
-    Population population;                  ///< Local sub-population
-    int pop_size = 0;                       ///< Population size for this island
+    Population<> population;                  ///< Local sub-population
+    int pop_size = 0;                       ///< Population<> size for this island
     int dim = 0;                            ///< Number of decision variables
     int n_obj = 0;                          ///< Number of objectives
 
@@ -44,7 +44,7 @@ struct Island {
     /// Construct an island with given algorithm and parameters.
     /// @param algo Algorithm instance (copied)
     /// @param policy Migration policy
-    /// @param island_pop_size Population size for this island
+    /// @param island_pop_size Population<> size for this island
     /// @param dim Number of decision variables
     /// @param n_obj Number of objectives
     Island(Algorithm algo, MigrationPolicy policy, int island_pop_size, int dim, int n_obj)
@@ -57,10 +57,10 @@ struct Island {
     /// Initialize the island population with random individuals within bounds.
     /// @param lb Lower bounds (span of size dim)
     /// @param ub Upper bounds (span of size dim)
-    /// @param problem Evaluation function: void(Population&, int)
+    /// @param problem Evaluation function: void(Population<>&, int)
     template <typename Problem>
     void initialize(std::span<const double> lb, std::span<const double> ub, Problem&& problem) {
-        population = Population(pop_size, dim, n_obj);
+        population = Population<>(pop_size, dim, n_obj);
         population.lower_bounds.assign(lb.begin(), lb.end());
         population.upper_bounds.assign(ub.begin(), ub.end());
 
@@ -109,22 +109,22 @@ struct Island {
     }
 
     /// Select and export migrants from this island.
-    /// @return Population containing the selected migrants
-    [[nodiscard]] Population migrate_out() const {
+    /// @return Population<> containing the selected migrants
+    [[nodiscard]] Population<> migrate_out() const {
         int nm = migration_policy.migrants_to_send(population.pop_size);
         return migrator.select_migrants(population, nm, migration_policy.migrant_selection);
     }
 
     /// Import and integrate incoming migrants.
     /// @param migrants Incoming migrants to integrate
-    void migrate_in(const Population& migrants) {
+    void migrate_in(const Population<>& migrants) {
         migrator.integrate_migrants(population, migrants);
     }
 
     /// Get the current non-dominated front of this island's population.
     /// @return Vector of indices of non-dominated individuals
     [[nodiscard]] std::vector<int> non_dominated_front() const {
-        Population pop_copy = population;
+        Population<> pop_copy = population;
         auto fronts = fast_non_dominated_sort(pop_copy);
         if (fronts.empty()) return {};
         return fronts[0];

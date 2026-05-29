@@ -73,7 +73,7 @@ BenchmarkResult run_benchmark(const std::string& algo_name, const std::string& p
     const int dim = prob.dimension();
     const int n_obj = prob.num_objectives();
 
-    ea::Population pop(pop_size, dim, n_obj);
+    ea::Population<> pop(pop_size, dim, n_obj);
     pop.lower_bounds = std::vector<double>(prob.lower_bounds().begin(), prob.lower_bounds().end());
     pop.upper_bounds = std::vector<double>(prob.upper_bounds().begin(), prob.upper_bounds().end());
 
@@ -85,7 +85,7 @@ BenchmarkResult run_benchmark(const std::string& algo_name, const std::string& p
         pop.set_evaluated(i, false);
     }
 
-    auto problem = [&prob](ea::Population& p, int idx) {
+    auto problem = [&prob](ea::Population<>& p, int idx) {
         prob.evaluate(p, idx);
     };
 

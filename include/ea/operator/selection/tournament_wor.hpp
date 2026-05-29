@@ -24,11 +24,11 @@ struct TournamentWithoutReplacement {
     int tournament_size = 2; ///< Number of individuals in each tournament
 
     /// Select mating pool without replacement.
-    /// @param pop            Population
+    /// @param pop            Population<>
     /// @param mating_pool    Output: selected indices (resized to 2 * pop_size)
     /// @param ranks          Rank of each individual (lower = better)
     /// @param crowding_dist  Crowding distance of each individual (higher = better)
-    void select(this TournamentWithoutReplacement& self, Population& pop,
+    void select(this TournamentWithoutReplacement& self, Population<>& pop,
                 std::vector<int>& mating_pool, const std::vector<int>& ranks,
                 const std::vector<double>& crowding_dist) {
         assert(self.tournament_size >= 1);

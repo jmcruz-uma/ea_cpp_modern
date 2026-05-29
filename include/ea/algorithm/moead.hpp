@@ -5,7 +5,7 @@
 /// on Decomposition", IEEE Trans. Evol. Comput., 2007.
 ///
 /// This is the classic MOEA/D with Tchebycheff or Weighted Sum aggregation.
-/// Uses the SoA Population, deducing this, and Concepts.
+/// Uses the SoA Population<>, deducing this, and Concepts.
 ///
 /// jMetal reference classes:
 /// - org.uma.jmetal.algorithm.multiobjective.moead.AbstractMOEAD
@@ -85,12 +85,12 @@ template <typename CX, typename MT> struct MOEAD {
     std::vector<double> nadir_point_;            ///< Nadir point [n_obj]
     int evals_ = 0;
 
-    enum class NeighborType : uint8_t { Neighbor, Population };
+    enum class NeighborType : uint8_t { Neighbor, WholePopulation };
 
     /// Run MOEA/D on the given population.
-    /// @param pop Population with genes initialized and bounds set.
-    /// @param problem Callable: void(Population&, int) — evaluates individual's objectives
-    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
+    /// @param pop Population<> with genes initialized and bounds set.
+    /// @param problem Callable: void(Population<>&, int) — evaluates individual's objectives
+    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
         const int n = self.pop_size;
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
@@ -132,7 +132,7 @@ template <typename CX, typename MT> struct MOEAD {
         // Scratch population for offspring (single offspring per subproblem per iteration)
         // We need at least 2 slots for arity-2 crossover operators (SBX writes 2 children)
         // And up to what DE crossover needs. Use a scratch population with enough room.
-        Population scratch(std::max(4, CX::arity() + 1), dim, n_obj, pop.encoding, pop.n_const);
+        Population<> scratch(std::max(4, CX::arity() + 1), dim, n_obj, pop.n_const);
         scratch.lower_bounds = pop.lower_bounds;
         scratch.upper_bounds = pop.upper_bounds;
 
@@ -332,7 +332,7 @@ private:
     /// Choose whether to use neighborhood or whole population for mating.
     NeighborType choose_neighbor_type(this auto& self) {
         return Random::instance().coin_flip(self.neighborhood_prob) ? NeighborType::Neighbor
-                                                                    : NeighborType::Population;
+                                                                    : NeighborType::WholePopulation;
     }
 
     // ============================================================
@@ -388,7 +388,7 @@ private:
 
     /// Compute scalar fitness for individual i in population pop
     /// using weight vector w_idx.
-    double fitness(this auto& self, const Population& pop, int individual_idx, int w_idx,
+    double fitness(this auto& self, const Population<>& pop, int individual_idx, int w_idx,
                    int n_obj) {
         AggregationFunction aggr;
         aggr.type = self.aggregation_type;
@@ -403,7 +403,7 @@ private:
     // ============================================================
 
     /// Update ideal point with individual's objectives.
-    void update_ideal_point(this auto& self, const Population& pop, int idx) {
+    void update_ideal_point(this auto& self, const Population<>& pop, int idx) {
         for (int o = 0; o < pop.n_obj; ++o) {
             double val = pop.objective(idx, o);
             if (val < self.ideal_point_[o]) {
@@ -413,7 +413,7 @@ private:
     }
 
     /// Update nadir point with individual's objectives.
-    void update_nadir_point(this auto& self, const Population& pop, int idx) {
+    void update_nadir_point(this auto& self, const Population<>& pop, int idx) {
         for (int o = 0; o < pop.n_obj; ++o) {
             double val = pop.objective(idx, o);
             if (val > self.nadir_point_[o]) {
@@ -428,7 +428,7 @@ private:
 
     /// Update neighborhood with the new offspring.
     /// Replace at most max_replaced_solutions neighbors that are improved.
-    void update_neighborhood(this auto& self, Population& pop, const Population& offspring,
+    void update_neighborhood(this auto& self, Population<>& pop, const Population<>& offspring,
                              int sub_problem_id, NeighborType neighbor_type, int n, int T) {
         int size = (neighbor_type == NeighborType::Neighbor) ? T : n;
         int n_obj = pop.n_obj;

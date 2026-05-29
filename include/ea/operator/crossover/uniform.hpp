@@ -2,7 +2,7 @@
 /// @file uniform.hpp
 /// @brief Uniform Crossover for real-valued and binary encodings.
 /// Reference: jMetal UniformCrossover — https://github.com/jMetal/jMetal
-/// C++23 with deducing this, SoA Population access.
+/// C++23 with deducing this, SoA Population<> access.
 
 #include <algorithm>
 #include <ea/core/encoding.hpp>
@@ -23,7 +23,7 @@ struct UniformCrossover {
     // Note: Also works for Binary encoding at runtime
 
     /// Apply Uniform crossover. Produces 2 children starting at child_start.
-    void apply(this UniformCrossover& self, Population& pop, int parent_a, int parent_b,
+    void apply(this UniformCrossover& self, Population<>& pop, int parent_a, int parent_b,
                int child_start) {
         auto& rng = Random::instance();
         int dim = pop.dim;

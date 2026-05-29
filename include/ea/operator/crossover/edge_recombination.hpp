@@ -2,7 +2,7 @@
 /// @file edge_recombination.hpp
 /// @brief Edge Recombination Crossover (ERX) for permutation encodings.
 /// Reference: jMetal EdgeRecombinationCrossover — https://github.com/jMetal/jMetal
-/// C++23 with deducing this, SoA Population access.
+/// C++23 with deducing this, SoA Population<> access.
 
 #include <algorithm>
 #include <ea/core/encoding.hpp>
@@ -16,7 +16,7 @@ namespace ea {
 /// Edge Recombination Crossover (ERX) for permutation-based encodings.
 /// Constructs offspring by preserving adjacency (edge) information from parents.
 /// Builds an edge map and constructs offspring by traversing it.
-/// Genes are integers stored as doubles in the Population array.
+/// Genes are integers stored as doubles in the Population<> array.
 struct EdgeRecombinationCrossover {
     double crossover_probability = 1.0; ///< Probability of applying crossover
 
@@ -24,7 +24,7 @@ struct EdgeRecombinationCrossover {
     static constexpr Encoding encoding() { return Encoding::Permutation; }
 
     /// Apply Edge Recombination crossover. Produces 2 children starting at child_start.
-    void apply(this EdgeRecombinationCrossover& self, Population& pop, int parent_a, int parent_b,
+    void apply(this EdgeRecombinationCrossover& self, Population<>& pop, int parent_a, int parent_b,
                int child_start) {
         auto& rng = Random::instance();
         int dim = pop.dim;
@@ -52,7 +52,7 @@ struct EdgeRecombinationCrossover {
 
 private:
     /// Build a child using edge recombination from two parents.
-    void build_child(this EdgeRecombinationCrossover&, Population& pop, int parent_from,
+    void build_child(this EdgeRecombinationCrossover&, Population<>& pop, int parent_from,
                      int parent_to, int child_idx, Random& rng) {
         int dim = pop.dim;
 

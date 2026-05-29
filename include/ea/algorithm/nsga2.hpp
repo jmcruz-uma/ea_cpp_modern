@@ -5,7 +5,7 @@
 /// NSGA-II" IEEE Trans. Evol. Comput., 2002.
 ///
 /// Template composition for zero-overhead dispatch when types are known at compile time.
-/// Uses SoA Population, deducing this, and Concepts.
+/// Uses SoA Population<>, deducing this, and Concepts.
 
 #include <algorithm>
 #include <ea/core/comparator.hpp>
@@ -38,9 +38,9 @@ template <typename CX, typename MT> struct NSGAII {
     static constexpr std::string_view name() { return "NSGA-II"; }
 
     /// Run NSGA-II on the given population.
-    /// @param pop Population with genes initialized and bounds set. Must have pop_size individuals.
-    /// @param problem Callable: void(Population&, int) — evaluates individual's objectives
-    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
+    /// @param pop Population<> with genes initialized and bounds set. Must have pop_size individuals.
+    /// @param problem Callable: void(Population<>&, int) — evaluates individual's objectives
+    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
         // === Validate parameters ===
         if (self.pop_size % 2 != 0) {
             std::cerr << "[ea::NSGAII] Warning: pop_size must be even (got " << self.pop_size
@@ -72,11 +72,11 @@ template <typename CX, typename MT> struct NSGAII {
         int evals = n;
 
         // Allocate offspring + combined populations
-        Population offspring(n, dim, n_obj, pop.encoding, pop.n_const);
+        Population<> offspring(n, dim, n_obj, pop.n_const);
         offspring.lower_bounds = pop.lower_bounds;
         offspring.upper_bounds = pop.upper_bounds;
 
-        Population combined(2 * n, dim, n_obj, pop.encoding, pop.n_const);
+        Population<> combined(2 * n, dim, n_obj, pop.n_const);
         combined.lower_bounds = pop.lower_bounds;
         combined.upper_bounds = pop.upper_bounds;
 

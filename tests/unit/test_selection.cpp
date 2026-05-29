@@ -11,7 +11,7 @@ int main() {
     {
         NaryTournamentSelection sel;
         sel.tournament_size = 3;
-        Population pop(10, 2, 2);
+        Population<> pop(10, 2, 2);
         std::vector<int> mating_pool;
         std::vector<int> ranks(10, 0);
         std::vector<double> cd(10, 0.0);
@@ -23,7 +23,7 @@ int main() {
     // Test RandomSelection
     {
         RandomSelection sel;
-        Population pop(10, 2, 2);
+        Population<> pop(10, 2, 2);
         std::vector<int> mating_pool;
         sel.select(pop, mating_pool);
         std::cout << "RandomSelection: " << mating_pool.size() << " indices\n";

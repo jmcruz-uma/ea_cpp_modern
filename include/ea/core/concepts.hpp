@@ -17,7 +17,7 @@ namespace ea {
 
 /// A Crossover operator takes two parents and produces a child.
 template <typename T>
-concept Crossover = requires(T& cx, Population& pop, int a, int b, int child) {
+concept Crossover = requires(T& cx, Population<>& pop, int a, int b, int child) {
     { cx.apply(pop, a, b, child) } -> std::same_as<void>;
     { cx.arity() } -> std::convertible_to<int>;
     { cx.encoding() } -> std::convertible_to<Encoding>;
@@ -25,21 +25,21 @@ concept Crossover = requires(T& cx, Population& pop, int a, int b, int child) {
 
 /// A Mutation operator modifies a single individual in-place.
 template <typename T>
-concept Mutation = requires(T& mut, Population& pop, int idx) {
+concept Mutation = requires(T& mut, Population<>& pop, int idx) {
     { mut.apply(pop, idx) } -> std::same_as<void>;
     { mut.encoding() } -> std::convertible_to<Encoding>;
 };
 
 /// A Selection operator selects individuals from a population.
 template <typename T>
-concept Selection = requires(T& sel, Population& pop, std::vector<int>& mating_pool) {
+concept Selection = requires(T& sel, Population<>& pop, std::vector<int>& mating_pool) {
     { sel.select(pop, mating_pool) } -> std::same_as<void>;
 };
 
 /// A Replacement operator merges parents and offspring.
 template <typename T>
 concept Replacement =
-    requires(T& repl, Population& pop, std::vector<int>& offspring_indices, int pop_size) {
+    requires(T& repl, Population<>& pop, std::vector<int>& offspring_indices, int pop_size) {
         { repl.replace(pop, offspring_indices, pop_size) } -> std::same_as<std::vector<int>>;
     };
 
@@ -49,7 +49,7 @@ concept Replacement =
 
 /// A Problem evaluates objectives (and optionally constraints) for individuals.
 template <typename T>
-concept Problem = requires(T& prob, Population& pop, int idx) {
+concept Problem = requires(T& prob, Population<>& pop, int idx) {
     { prob.num_objectives() } -> std::convertible_to<int>;
     { prob.dimension() } -> std::convertible_to<int>;
     { prob.evaluate(pop, idx) } -> std::same_as<void>;
@@ -59,7 +59,7 @@ concept Problem = requires(T& prob, Population& pop, int idx) {
 
 /// A Problem that supports batch evaluation (SIMD-friendly).
 template <typename T>
-concept BatchProblem = Problem<T> && requires(T& prob, Population& pop, int start, int count) {
+concept BatchProblem = Problem<T> && requires(T& prob, Population<>& pop, int start, int count) {
     { prob.evaluate_batch(pop, start, count) } -> std::same_as<void>;
 };
 
@@ -75,7 +75,7 @@ concept ConstrainedProblem = Problem<T> && requires(T& prob) {
 
 /// An Evolutionary Algorithm runs on a population.
 template <typename T>
-concept Algorithm = requires(T& algo, Population& pop) {
+concept Algorithm = requires(T& algo, Population<>& pop) {
     { algo.run(pop) } -> std::same_as<void>;
     { algo.name() } -> std::convertible_to<std::string_view>;
 };
@@ -101,14 +101,14 @@ concept PermutationCrossover = Crossover<T>;
 
 /// A comparator for dominance-based ranking.
 template <typename T>
-concept DominanceComparator = requires(T& cmp, Population& pop, int a, int b) {
+concept DominanceComparator = requires(T& cmp, Population<>& pop, int a, int b) {
     { cmp.compare(pop, a, b) } -> std::convertible_to<int>;
     // -1: a dominates b, 0: non-dominated, 1: b dominates a
 };
 
 /// A comparator for crowding distance sorting.
 template <typename T>
-concept CrowdingComparator = requires(T& cmp, Population& pop, int a, int b) {
+concept CrowdingComparator = requires(T& cmp, Population<>& pop, int a, int b) {
     { cmp.crowding_distance(pop, a) } -> std::convertible_to<double>;
 };
 

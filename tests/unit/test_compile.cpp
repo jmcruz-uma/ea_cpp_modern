@@ -3,7 +3,7 @@
 
 int main() {
     // Create a population
-    ea::Population pop(100, 30, 2);
+    ea::Population<> pop(100, 30, 2);
 
     // Create operators
     ea::SBXCrossover sbx;

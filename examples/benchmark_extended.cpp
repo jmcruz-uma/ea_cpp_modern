@@ -60,7 +60,7 @@ std::vector<std::vector<double>> zdt6_ref() {
 }
 
 // === IGD ===
-double compute_igd(const ea::Population& pop, const std::vector<std::vector<double>>& ref_front) {
+double compute_igd(const ea::Population<>& pop, const std::vector<std::vector<double>>& ref_front) {
     if (ref_front.empty() || pop.pop_size == 0) return 0.0;
     int n_obj = pop.n_obj;
     double sum = 0.0;
@@ -81,7 +81,7 @@ struct ProblemConfig {
     std::string name;
     int dim, n_obj, pop_size, max_evals;
     std::vector<std::vector<double>> ref_front;
-    std::function<void(ea::Population&, int)> evaluate;
+    std::function<void(ea::Population<>&, int)> evaluate;
     std::vector<double> lower_bounds, upper_bounds;
 };
 
@@ -89,7 +89,7 @@ std::vector<ProblemConfig> get_problems() {
     std::vector<ProblemConfig> problems;
     auto add = [&](auto& p, std::string name, int pop, int evals, std::vector<std::vector<double>> ref) {
         problems.push_back({name, p.dim_, 2, pop, evals, std::move(ref),
-            [p](ea::Population& pop, int i) mutable { p.evaluate(pop, i); },
+            [p](ea::Population<>& pop, int i) mutable { p.evaluate(pop, i); },
             std::vector<double>(p.lower_bounds().begin(), p.lower_bounds().end()),
             std::vector<double>(p.upper_bounds().begin(), p.upper_bounds().end())});
     };
@@ -100,8 +100,8 @@ std::vector<ProblemConfig> get_problems() {
     return problems;
 }
 
-ea::Population init_pop(const ProblemConfig& pc) {
-    ea::Population pop(pc.pop_size, pc.dim, pc.n_obj);
+ea::Population<> init_pop(const ProblemConfig& pc) {
+    ea::Population<> pop(pc.pop_size, pc.dim, pc.n_obj);
     pop.lower_bounds = pc.lower_bounds;
     pop.upper_bounds = pc.upper_bounds;
     auto& rng = ea::Random::instance();

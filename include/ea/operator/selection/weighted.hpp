@@ -23,10 +23,10 @@ namespace ea {
 /// Probability proportional to inverted fitness (for minimization).
 struct WeightedSelection {
     /// Select mating pool using fitness-proportionate selection.
-    /// @param pop          Population
+    /// @param pop          Population<>
     /// @param mating_pool  Output indices (resized to 2 * pop_size)
     /// @param fitness      Fitness of each individual (lower = better)
-    void select(this WeightedSelection& self, Population& pop,
+    void select(this WeightedSelection& self, Population<>& pop,
                 std::vector<int>& mating_pool, const std::vector<double>& fitness) {
         (void)self;
         auto& rng = Random::instance();

@@ -2,7 +2,7 @@
 /// @file position_based.hpp
 /// @brief Position-Based Crossover for permutation encodings.
 /// Reference: jMetal PositionBasedCrossover — https://github.com/jMetal/jMetal
-/// C++23 with deducing this, SoA Population access.
+/// C++23 with deducing this, SoA Population<> access.
 
 #include <algorithm>
 #include <ea/core/encoding.hpp>
@@ -15,7 +15,7 @@ namespace ea {
 /// Position-Based Crossover for permutation-based encodings.
 /// Selects random positions to inherit genes from one parent.
 /// Remaining genes are filled from the other parent in order of appearance.
-/// Genes are integers stored as doubles in the Population array.
+/// Genes are integers stored as doubles in the Population<> array.
 struct PositionBasedCrossover {
     double crossover_probability = 1.0; ///< Probability of applying crossover
 
@@ -23,7 +23,7 @@ struct PositionBasedCrossover {
     static constexpr Encoding encoding() { return Encoding::Permutation; }
 
     /// Apply Position-Based crossover. Produces 2 children starting at child_start.
-    void apply(this PositionBasedCrossover& self, Population& pop, int parent_a, int parent_b,
+    void apply(this PositionBasedCrossover& self, Population<>& pop, int parent_a, int parent_b,
                int child_start) {
         auto& rng = Random::instance();
         int dim = pop.dim;
@@ -51,7 +51,7 @@ struct PositionBasedCrossover {
 
 private:
     /// Build a child using position-based crossover from two parents.
-    void build_child(this PositionBasedCrossover&, Population& pop, int parent_from, int parent_to,
+    void build_child(this PositionBasedCrossover&, Population<>& pop, int parent_from, int parent_to,
                      int child_idx, Random& rng) {
         int dim = pop.dim;
 

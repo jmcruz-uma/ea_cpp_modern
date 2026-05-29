@@ -49,7 +49,7 @@ struct ZDT1 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         double g = eval_g(pop, idx);
         double f1 = pop.gene(idx, 0);
         double h = eval_h(f1, g);
@@ -57,13 +57,13 @@ struct ZDT1 {
         pop.objective(idx, 1) = h * g;
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
 
 protected:
-    double eval_g(const Population& pop, int idx) const {
+    double eval_g(const Population<>& pop, int idx) const {
         double g = 0.0;
         for (int i = 1; i < dim_; ++i) {
             g += pop.gene(idx, i);
@@ -100,7 +100,7 @@ struct ZDT2 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         double g = eval_g(pop, idx);
         double f1 = pop.gene(idx, 0);
         double h = eval_h(f1, g);
@@ -108,13 +108,13 @@ struct ZDT2 {
         pop.objective(idx, 1) = h * g;
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
 
 protected:
-    double eval_g(const Population& pop, int idx) const {
+    double eval_g(const Population<>& pop, int idx) const {
         double g = 0.0;
         for (int i = 1; i < dim_; ++i) {
             g += pop.gene(idx, i);
@@ -151,7 +151,7 @@ struct ZDT3 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         double g = eval_g(pop, idx);
         double f1 = pop.gene(idx, 0);
         double h = eval_h(f1, g);
@@ -159,13 +159,13 @@ struct ZDT3 {
         pop.objective(idx, 1) = h * g;
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
 
 protected:
-    double eval_g(const Population& pop, int idx) const {
+    double eval_g(const Population<>& pop, int idx) const {
         double g = 0.0;
         for (int i = 1; i < dim_; ++i) {
             g += pop.gene(idx, i);
@@ -213,7 +213,7 @@ struct ZDT4 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         double g = eval_g(pop, idx);
         double f1 = pop.gene(idx, 0);
         double h = eval_h(f1, g);
@@ -221,13 +221,13 @@ struct ZDT4 {
         pop.objective(idx, 1) = h * g;
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
 
 protected:
-    double eval_g(const Population& pop, int idx) const {
+    double eval_g(const Population<>& pop, int idx) const {
         double g = 0.0;
         for (int i = 1; i < dim_; ++i) {
             double xi = pop.gene(idx, i);
@@ -281,7 +281,7 @@ struct ZDT5 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         double u1 = u(pop.gene(idx, 0), 0);
         double f1 = 1.0 + u1;
         double g = eval_g(pop, idx);
@@ -290,7 +290,7 @@ struct ZDT5 {
         pop.objective(idx, 1) = h * g;
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
@@ -301,7 +301,7 @@ protected:
 
     double eval_v(double y) const { return (y < 5.0) ? (2.0 + y) : 1.0; }
 
-    double eval_g(const Population& pop, int idx) const {
+    double eval_g(const Population<>& pop, int idx) const {
         double g = 0.0;
         for (int i = 1; i < dim_; ++i) {
             double ui = u(pop.gene(idx, i), i);
@@ -341,7 +341,7 @@ struct ZDT6 {
     std::span<const double> lower_bounds() const { return std::span(lower_bounds_); }
     std::span<const double> upper_bounds() const { return std::span(upper_bounds_); }
 
-    void evaluate(Population& pop, int idx) const {
+    void evaluate(Population<>& pop, int idx) const {
         double x1 = pop.gene(idx, 0);
         double f1 = 1.0 - std::exp(-4.0 * x1) * std::pow(std::sin(6.0 * M_PI * x1), 6);
         double g = eval_g(pop, idx);
@@ -350,13 +350,13 @@ struct ZDT6 {
         pop.objective(idx, 1) = h * g;
     }
 
-    void evaluate_batch(Population& pop, int start, int count) const {
+    void evaluate_batch(Population<>& pop, int start, int count) const {
         for (int i = start; i < start + count; ++i)
             evaluate(pop, i);
     }
 
 protected:
-    double eval_g(const Population& pop, int idx) const {
+    double eval_g(const Population<>& pop, int idx) const {
         double g = 0.0;
         for (int i = 1; i < dim_; ++i) {
             g += pop.gene(idx, i);

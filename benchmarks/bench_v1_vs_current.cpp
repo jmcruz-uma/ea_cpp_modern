@@ -99,7 +99,7 @@ TimingResult run_nsga2_zdt_typed(const std::string& label,
     double total_wall = 0, total_cpu = 0;
 
     for (int r = 0; r < cfg.runs; ++r) {
-        Population pop(cfg.pop_size, cfg.dim, 2,
+        Population<> pop(cfg.pop_size, cfg.dim, 2,
                        Encoding::Real, 0, 0.0, 1.0);
 
         NSGAII<SBXCrossover, PolynomialMutation> nsga;
@@ -110,7 +110,7 @@ TimingResult run_nsga2_zdt_typed(const std::string& label,
         nsga.max_evals = cfg.max_evals;
 
         // Wrap evaluate() as callable for NSGA-II
-        auto evaluator = [&prob](Population& p, int i) { prob.evaluate(p, i); };
+        auto evaluator = [&prob](Population<>& p, int i) { prob.evaluate(p, i); };
 
         Timer timer;
         timer.start();
@@ -157,7 +157,7 @@ TimingResult run_nsga2_dtlz_typed(const std::string& label,
     double total_wall = 0, total_cpu = 0;
 
     for (int r = 0; r < cfg.runs; ++r) {
-        Population pop(cfg.pop_size, dim, n_obj,
+        Population<> pop(cfg.pop_size, dim, n_obj,
                        Encoding::Real, 0, 0.0, 1.0);
 
         NSGAII<SBXCrossover, PolynomialMutation> nsga;
@@ -168,7 +168,7 @@ TimingResult run_nsga2_dtlz_typed(const std::string& label,
         nsga.max_evals = cfg.max_evals;
 
         // wrap evaluate() as callable for NSGA-II
-        auto evaluator = [&prob](Population& p, int i) { prob.evaluate(p, i); };
+        auto evaluator = [&prob](Population<>& p, int i) { prob.evaluate(p, i); };
 
         Timer timer;
         timer.start();

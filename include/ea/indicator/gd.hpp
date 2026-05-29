@@ -17,12 +17,12 @@ namespace ea {
 
 /// Generational Distance indicator.
 ///
-/// @param pop            Population containing the approximated front
+/// @param pop            Population<> containing the approximated front
 /// @param indices        Indices of individuals in the approximated front
 /// @param reference_front Reference Pareto front
 /// @param p              Power parameter (default 2.0 for Euclidean)
 /// @return GD value (lower is better)
-inline double gd(const Population& pop, const std::vector<int>& indices,
+inline double gd(const Population<>& pop, const std::vector<int>& indices,
                  const std::vector<std::vector<double>>& reference_front, double p = 2.0) {
     if (reference_front.empty() || indices.empty())
         return 0.0;
@@ -86,7 +86,7 @@ inline double gd(const std::vector<std::vector<double>>& front,
 struct GDIndicator {
     double p = 2.0;
 
-    double compute(this GDIndicator& self, const Population& pop, const std::vector<int>& indices,
+    double compute(this GDIndicator& self, const Population<>& pop, const std::vector<int>& indices,
                    const std::vector<std::vector<double>>& reference_front) {
         return gd(pop, indices, reference_front, self.p);
     }

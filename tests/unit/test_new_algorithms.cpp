@@ -55,7 +55,7 @@ TEST(NewAlgorithms, MOCellCompiles) {
 // ============================================================
 
 TEST(NewAlgorithms, SMPSORunsOnZDT1) {
-    Population pop(30, 30, 2);
+    Population<> pop(30, 30, 2);
     ZDT1 zdt1;
     
     auto& rng = Random::instance();
@@ -70,7 +70,7 @@ TEST(NewAlgorithms, SMPSORunsOnZDT1) {
     smpso.max_evals = 500;
     smpso.archive_size = 30;
     
-    auto problem = [&zdt1](Population& p, int idx) { zdt1.evaluate(p, idx); };
+    auto problem = [&zdt1](Population<>& p, int idx) { zdt1.evaluate(p, idx); };
     smpso.run(pop, problem);
     
     // Archive or population should have evaluated individuals
@@ -86,7 +86,7 @@ TEST(NewAlgorithms, SMPSORunsOnZDT1) {
 }
 
 TEST(NewAlgorithms, AGEMOEARunsOnZDT1) {
-    Population pop(30, 30, 2);
+    Population<> pop(30, 30, 2);
     ZDT1 zdt1;
     
     auto& rng = Random::instance();
@@ -102,7 +102,7 @@ TEST(NewAlgorithms, AGEMOEARunsOnZDT1) {
     agemoea.crossover.distribution_index = 20.0;
     agemoea.mutation.distribution_index = 20.0;
     
-    auto problem = [&zdt1](Population& p, int idx) { zdt1.evaluate(p, idx); };
+    auto problem = [&zdt1](Population<>& p, int idx) { zdt1.evaluate(p, idx); };
     agemoea.run(pop, problem);
     
     for (int i = 0; i < pop.pop_size; ++i) {
@@ -113,7 +113,7 @@ TEST(NewAlgorithms, AGEMOEARunsOnZDT1) {
 }
 
 TEST(NewAlgorithms, PAESRunsOnZDT1) {
-    Population pop(1, 30, 2); // PAES uses single individual
+    Population<> pop(1, 30, 2); // PAES uses single individual
     ZDT1 zdt1;
     
     auto& rng = Random::instance();
@@ -126,7 +126,7 @@ TEST(NewAlgorithms, PAESRunsOnZDT1) {
     paes.archive_size = 30;
     paes.mutation.distribution_index = 20.0;
     
-    auto problem = [&zdt1](Population& p, int idx) { zdt1.evaluate(p, idx); };
+    auto problem = [&zdt1](Population<>& p, int idx) { zdt1.evaluate(p, idx); };
     paes.run(pop, problem);
     
     // Result should be in archive (copied to pop)
@@ -139,7 +139,7 @@ TEST(NewAlgorithms, PAESRunsOnZDT1) {
 }
 
 TEST(NewAlgorithms, MOCellRunsOnZDT1) {
-    Population pop(30, 30, 2);
+    Population<> pop(30, 30, 2);
     ZDT1 zdt1;
     
     auto& rng = Random::instance();
@@ -156,7 +156,7 @@ TEST(NewAlgorithms, MOCellRunsOnZDT1) {
     mocell.crossover.distribution_index = 20.0;
     mocell.mutation.distribution_index = 20.0;
     
-    auto problem = [&zdt1](Population& p, int idx) { zdt1.evaluate(p, idx); };
+    auto problem = [&zdt1](Population<>& p, int idx) { zdt1.evaluate(p, idx); };
     mocell.run(pop, problem);
     
     EXPECT_GT(pop.pop_size, 0);

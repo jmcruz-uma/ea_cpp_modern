@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <string_view>
+#include <type_traits>
 
 namespace ea {
 
@@ -16,6 +17,18 @@ enum class Encoding : uint8_t {
     Integer,     ///< Integer-valued optimization
     Composite    ///< Mixed encoding (multiple sub-encodings)
 };
+
+/// Compile-time gene value type for a given encoding.
+/// Real → double (8 B), Binary → uint8_t (1 B), Integer/Permutation → int32_t (4 B).
+/// For Encoding::Real this resolves to exactly `double`, so Population<Real>
+/// generates identical machine code to a hardcoded std::vector<double> version.
+template <Encoding E>
+using gene_t =
+    std::conditional_t<E == Encoding::Real, double,
+    std::conditional_t<E == Encoding::Binary, uint8_t,
+    std::conditional_t<E == Encoding::Integer, int32_t,
+    std::conditional_t<E == Encoding::Permutation, int32_t,
+    double>>>>;
 
 /// Get encoding name for logging/debugging.
 constexpr std::string_view encoding_name(Encoding enc) {

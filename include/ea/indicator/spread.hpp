@@ -124,11 +124,11 @@ inline double spread(const std::vector<std::vector<double>>& front,
 
 /// Spread (Δ) indicator.
 ///
-/// @param pop             Population containing the approximated front
+/// @param pop             Population<> containing the approximated front
 /// @param indices         Indices of individuals in the approximated front
 /// @param reference_front Reference Pareto front
 /// @return Spread value (lower is better, 0 = perfect distribution)
-inline double spread(const Population& pop, const std::vector<int>& indices,
+inline double spread(const Population<>& pop, const std::vector<int>& indices,
                      const std::vector<std::vector<double>>& reference_front) {
     if (reference_front.empty() || indices.size() < 2)
         return 0.0;
@@ -147,7 +147,7 @@ inline double spread(const Population& pop, const std::vector<int>& indices,
 }
 
 struct SpreadIndicator {
-    double compute(this SpreadIndicator& self, const Population& pop,
+    double compute(this SpreadIndicator& self, const Population<>& pop,
                    const std::vector<int>& indices,
                    const std::vector<std::vector<double>>& reference_front) {
         return spread(pop, indices, reference_front);

@@ -30,8 +30,8 @@ struct SMPSOReplacement {
     /// @param candidate_idx     Index of candidate individual in source population
     /// @param source            Source population containing the candidate
     /// @return true if candidate was added to archive
-    bool add_to_archive(this SMPSOReplacement& self, Population& archive_pop,
-                        int candidate_idx, const Population& source) {
+    bool add_to_archive(this SMPSOReplacement& self, Population<>& archive_pop,
+                        int candidate_idx, const Population<>& source) {
         const int n_obj = source.n_obj;
         const int dim = source.dim;
         const int current_size = archive_pop.pop_size;
@@ -113,7 +113,7 @@ struct SMPSOReplacement {
 
     /// Compatibility: replace() signature for algorithm templates.
     /// Returns current archive indices (SMPSO updates in-place).
-    std::vector<int> replace(this SMPSOReplacement& self, Population& archive_pop,
+    std::vector<int> replace(this SMPSOReplacement& self, Population<>& archive_pop,
                              const std::vector<int>& offspring_indices, int target_size) {
         (void)target_size;
         // Add each offspring to archive
@@ -130,8 +130,8 @@ struct SMPSOReplacement {
 
 private:
     /// Compare dominance between individuals from different populations.
-    static Dominance compare_dominance_source(const Population& pop_a, int idx_a,
-                                               const Population& pop_b, int idx_b) {
+    static Dominance compare_dominance_source(const Population<>& pop_a, int idx_a,
+                                               const Population<>& pop_b, int idx_b) {
         const int n_obj = pop_a.n_obj;
         bool a_dominates_b = false;
         bool b_dominates_a = false;

@@ -32,7 +32,7 @@ template <typename MT> struct PAES {
     static constexpr std::string_view name() { return "PAES"; }
 
     /// Run PAES.
-    template <typename Problem> void run(this auto& self, Population& pop, Problem&& problem) {
+    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
         const int n_obj = pop.n_obj;
         const int dim = pop.dim;
 
@@ -69,7 +69,7 @@ template <typename MT> struct PAES {
         archive.add(init_genes, init_obj);
 
         // Working populations for current and mutant
-        Population current(1, dim, n_obj, pop.encoding, pop.n_const);
+        Population<> current(1, dim, n_obj, pop.n_const);
         current.lower_bounds = pop.lower_bounds;
         current.upper_bounds = pop.upper_bounds;
         current.copy_individual(0, 0); // Copy from pop[0] to current[0]
@@ -80,7 +80,7 @@ template <typename MT> struct PAES {
             current.objective(0, o) = pop.objective(0, o);
         current.flags[0] = pop.flags[0];
 
-        Population mutant(1, dim, n_obj, pop.encoding, pop.n_const);
+        Population<> mutant(1, dim, n_obj, pop.n_const);
         mutant.lower_bounds = pop.lower_bounds;
         mutant.upper_bounds = pop.upper_bounds;
 
@@ -179,7 +179,7 @@ template <typename MT> struct PAES {
 
 private:
     /// Compare dominance between two individuals in potentially different populations.
-    Dominance compare_dominance(this auto&, const Population& pop_a, int a, const Population& pop_b,
+    Dominance compare_dominance(this auto&, const Population<>& pop_a, int a, const Population<>& pop_b,
                                 int b) {
         const int n_obj = pop_a.n_obj;
         bool a_dominates_b = false;

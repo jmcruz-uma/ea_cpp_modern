@@ -18,7 +18,7 @@ struct ScrambleMutation {
 
     static constexpr Encoding encoding() { return Encoding::Permutation; }
 
-    void apply(this ScrambleMutation& self, Population& pop, int idx) {
+    void apply(this ScrambleMutation& self, Population<>& pop, int idx) {
         if (pop.dim <= 1)
             return;
 

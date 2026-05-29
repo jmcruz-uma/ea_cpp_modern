@@ -2,7 +2,7 @@
 /// @file oxd.hpp
 /// @brief Order Crossover with Duplicate Elimination (OXD) for permutation encodings.
 /// Reference: jMetal OXDCrossover — https://github.com/jMetal/jMetal
-/// C++23 with deducing this, SoA Population access.
+/// C++23 with deducing this, SoA Population<> access.
 
 #include <algorithm>
 #include <ea/core/encoding.hpp>
@@ -15,7 +15,7 @@ namespace ea {
 /// Order Crossover with Duplicate Elimination (OXD) for permutation-based encodings.
 /// Selects a subsequence from one parent and fills remaining positions from the other,
 /// maintaining order and avoiding duplicates to produce valid permutations.
-/// Genes are integers stored as doubles in the Population array.
+/// Genes are integers stored as doubles in the Population<> array.
 struct OXDCrossover {
     double crossover_probability = 1.0; ///< Probability of applying crossover
 
@@ -23,7 +23,7 @@ struct OXDCrossover {
     static constexpr Encoding encoding() { return Encoding::Permutation; }
 
     /// Apply OXD crossover. Produces 2 children starting at child_start.
-    void apply(this OXDCrossover& self, Population& pop, int parent_a, int parent_b,
+    void apply(this OXDCrossover& self, Population<>& pop, int parent_a, int parent_b,
                int child_start) {
         auto& rng = Random::instance();
         int dim = pop.dim;
@@ -60,7 +60,7 @@ struct OXDCrossover {
 
 private:
     /// Repair a child to ensure it contains a valid permutation.
-    void repair_child(this OXDCrossover&, Population& pop, int parent, int other_parent,
+    void repair_child(this OXDCrossover&, Population<>& pop, int parent, int other_parent,
                       int child_idx, int cp1, int cp2) {
         int dim = pop.dim;
 
