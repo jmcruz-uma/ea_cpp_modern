@@ -176,7 +176,11 @@ private:
     }
 
     /// Apply crossover producing exactly ONE child at offspring[child_idx].
-    /// Replicates the original: take the gene-by-gene BLX formula, write one child.
+    ///
+    /// ONE coin flip per pair (not per gene) — mirrors both ea_cpp_original
+    /// VariationOperator::apply() and jMetal BLXAlphaCrossover.doCrossover() line 98.
+    /// If the flip fails, child = verbatim copy of parent p1 (all genes).
+    /// If it fires, BLX-alpha is applied to every gene.
     template <typename CX2>
     static void apply_crossover_one_child(CX2& cx, const Population<>& parents,
                                           int p1, int p2,
@@ -184,15 +188,17 @@ private:
         auto& rng = Random::instance();
         const int dim = parents.dim;
 
+        // One gate per pair — copy parent p1 if crossover does not fire
+        if (!rng.coin_flip(cx.crossover_probability)) {
+            for (int j = 0; j < dim; ++j)
+                offspring.gene(child_idx, j) = parents.gene(p1, j);
+            offspring.set_evaluated(child_idx, false);
+            return;
+        }
+
         for (int j = 0; j < dim; ++j) {
             double a = parents.gene(p1, j);
             double b = parents.gene(p2, j);
-
-            if (!rng.coin_flip(cx.crossover_probability)) {
-                // No crossover for this gene — child keeps parent p1 value
-                offspring.gene(child_idx, j) = a;
-                continue;
-            }
 
             double lo = parents.lower_bounds[j];
             double hi = parents.upper_bounds[j];
