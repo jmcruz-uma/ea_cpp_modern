@@ -15,6 +15,7 @@
 #include <ea/operator/mutation/polynomial.hpp>
 #include <ea/util/random.hpp>
 #include <limits>
+#include <numeric>
 #include <string_view>
 #include <vector>
 
@@ -30,13 +31,13 @@ struct SMPSO {
     double c2_min = 1.5;            ///< Social coefficient min
     double c2_max = 2.5;            ///< Social coefficient max
     double weight_min = 0.1;        ///< Inertia weight min
-    double weight_max = 0.5;        ///< Inertia weight max
+    double weight_max = 0.1;        ///< Inertia weight max (jMetal default: constant 0.1)
     double r1_min = 0.0;            ///< Random factor 1 min
     double r1_max = 1.0;            ///< Random factor 1 max
     double r2_min = 0.0;            ///< Random factor 2 min
     double r2_max = 1.0;            ///< Random factor 2 max
-    double change_velocity1 = -1.0; ///< Velocity damping on lower bound hit (<0 = no change)
-    double change_velocity2 = -1.0; ///< Velocity damping on upper bound hit (<0 = no change)
+    double change_velocity1 = -1.0; ///< Velocity multiplier on lower bound hit (-1 = bounce)
+    double change_velocity2 = -1.0; ///< Velocity multiplier on upper bound hit (-1 = bounce)
 
     // --- Algorithm parameters ---
     int pop_size = 100;
@@ -148,14 +149,10 @@ struct SMPSO {
 
                     if (new_x < lb) {
                         new_x = lb;
-                        if (self.change_velocity1 > 0) {
-                            self.speed_[i][j] *= self.change_velocity1;
-                        }
+                        self.speed_[i][j] *= self.change_velocity1;
                     } else if (new_x > ub) {
                         new_x = ub;
-                        if (self.change_velocity2 > 0) {
-                            self.speed_[i][j] *= self.change_velocity2;
-                        }
+                        self.speed_[i][j] *= self.change_velocity2;
                     }
 
                     pop.gene(i, j) = new_x;
@@ -282,15 +279,22 @@ private:
             }
             self.archive_count_++;
         } else {
-            // Archive full — add if improves diversity (simpler: random replacement)
-            // More sophisticated: crowding-based replacement
-            auto& rng = Random::instance();
-            int replace_idx = rng.uniform_int(0, self.archive_size - 1);
+            // Archive full — replace the most crowded individual (lowest crowding distance).
+            // Matches jMetal CrowdingDistanceArchive pruning.
+            auto crowding = self.compute_archive_crowding();
+            int worst_idx = 0;
+            double worst_cd = crowding[0];
+            for (int i = 1; i < self.archive_count_; ++i) {
+                if (crowding[i] < worst_cd) {
+                    worst_cd = crowding[i];
+                    worst_idx = i;
+                }
+            }
             for (int j = 0; j < dim; ++j) {
-                self.archive_genes_[replace_idx][j] = pop.gene(idx, j);
+                self.archive_genes_[worst_idx][j] = pop.gene(idx, j);
             }
             for (int o = 0; o < n_obj; ++o) {
-                self.archive_obj_[replace_idx][o] = pop.objective(idx, o);
+                self.archive_obj_[worst_idx][o] = pop.objective(idx, o);
             }
         }
     }
@@ -306,7 +310,8 @@ private:
         self.archive_count_--;
     }
 
-    /// Select leader from archive using binary tournament (crowding distance).
+    /// Select leader from archive using binary tournament on NSGA-II crowding distance.
+    /// Matches jMetal BinaryTournamentSelection with CrowdingDistanceComparator.
     int select_leader(this auto& self) {
         auto& rng = Random::instance();
         if (self.archive_count_ <= 1)
@@ -315,39 +320,53 @@ private:
         int a = rng.uniform_int(0, self.archive_count_ - 1);
         int b = rng.uniform_int(0, self.archive_count_ - 1);
 
-        // Simple comparison: prefer one that is less crowded
-        // For now, random selection (crowding distance would need recompute)
-        // In jMetal, they use archive.comparator() which is crowding-based
-        // Here we do random tournament
         if (a == b)
             return a;
 
-        // Compute simple crowding: compare distance to nearest neighbor in archive
-        double dist_a = self.archive_distance(a);
-        double dist_b = self.archive_distance(b);
-
-        return (dist_a > dist_b) ? a : b;
+        auto crowding = self.compute_archive_crowding();
+        return (crowding[a] >= crowding[b]) ? a : b;
     }
 
-    /// Compute approximate crowding distance for archive individual.
-    double archive_distance(this auto& self, int idx) {
-        if (self.archive_count_ <= 1)
-            return std::numeric_limits<double>::infinity();
+    /// NSGA-II crowding distance for all archive members (normalized per objective).
+    /// Matches jMetal CrowdingDistance.computeDensityEstimator().
+    std::vector<double> compute_archive_crowding(this auto& self) {
+        const int n = self.archive_count_;
+        const int m = static_cast<int>(self.archive_obj_[0].size());
+        std::vector<double> crowding(n, 0.0);
 
-        const int n_obj = static_cast<int>(self.archive_obj_[0].size());
-        double min_dist = std::numeric_limits<double>::infinity();
-
-        for (int i = 0; i < self.archive_count_; ++i) {
-            if (i == idx)
-                continue;
-            double dist = 0.0;
-            for (int o = 0; o < n_obj; ++o) {
-                double d = self.archive_obj_[idx][o] - self.archive_obj_[i][o];
-                dist += d * d;
-            }
-            min_dist = std::min(min_dist, std::sqrt(dist));
+        if (n <= 2) {
+            for (int i = 0; i < n; ++i)
+                crowding[i] = std::numeric_limits<double>::infinity();
+            return crowding;
         }
-        return min_dist;
+
+        for (int o = 0; o < m; ++o) {
+            std::vector<int> order(n);
+            std::iota(order.begin(), order.end(), 0);
+            std::sort(order.begin(), order.end(), [&](int a, int b) {
+                return self.archive_obj_[a][o] < self.archive_obj_[b][o];
+            });
+
+            crowding[order[0]]     = std::numeric_limits<double>::infinity();
+            crowding[order[n - 1]] = std::numeric_limits<double>::infinity();
+
+            double obj_min = self.archive_obj_[order[0]][o];
+            double obj_max = self.archive_obj_[order[n - 1]][o];
+            double range   = obj_max - obj_min;
+
+            if (range < 1e-14)
+                continue;
+
+            for (int i = 1; i < n - 1; ++i) {
+                if (crowding[order[i]] != std::numeric_limits<double>::infinity()) {
+                    double prev_obj = self.archive_obj_[order[i - 1]][o];
+                    double next_obj = self.archive_obj_[order[i + 1]][o];
+                    crowding[order[i]] += (next_obj - prev_obj) / range;
+                }
+            }
+        }
+
+        return crowding;
     }
 
     /// Velocity constriction — clamp velocity to bounds.
@@ -367,7 +386,7 @@ private:
         return 2.0 / (2.0 - rho - std::sqrt(rho * rho - 4.0 * rho));
     }
 
-    /// Inertia weight (constant in original SMPSO, could be linearly decreasing).
+    /// Inertia weight — constant. jMetal SMPSO ignores iter/wmin, always returns weightMax.
     double inertia_weight(this auto& self, int /*iteration*/) { return self.weight_max; }
 };
 
