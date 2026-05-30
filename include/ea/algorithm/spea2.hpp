@@ -237,43 +237,86 @@ private:
         } else if (static_cast<int>(nondominated.size()) == archive_size) {
             selected = nondominated;
         } else {
-            // Too many non-dominated — truncate using density
-            // Remove solutions with smallest k-th nearest neighbor distance
+            // Too many non-dominated — truncate using density.
+            // Matches jMetal EnvironmentalSelection: iteratively remove the solution
+            // with minimum 1st-nearest-neighbor distance; lexicographic tie-breaking
+            // (compare 2nd, 3rd, ... neighbor distances when 1st distances are equal).
             selected = nondominated;
+            int nd_size = static_cast<int>(selected.size());
 
-            // Compute pairwise distances for non-dominated set
-            while (static_cast<int>(selected.size()) > archive_size) {
-                // Find solution with minimum distance to k-th nearest neighbor
-                int worst_idx = -1;
-                double min_dist = std::numeric_limits<double>::max();
+            // Build sorted distance lists (each entry = sorted distances to other selected members).
+            // distlists[si][k] = k-th nearest distance from selected[si] to other selected members.
+            std::vector<std::vector<double>> distlists(nd_size);
+            for (int si = 0; si < nd_size; ++si) {
+                int i = selected[si];
+                distlists[si].reserve(nd_size - 1);
+                for (int sj = 0; sj < nd_size; ++sj) {
+                    if (si == sj) continue;
+                    int j = selected[sj];
+                    double dist = 0.0;
+                    for (int o = 0; o < n_obj; ++o) {
+                        double diff = union_pop.objective(i, o) - union_pop.objective(j, o);
+                        dist += diff * diff;
+                    }
+                    distlists[si].push_back(std::sqrt(dist));
+                }
+                std::sort(distlists[si].begin(), distlists[si].end());
+            }
 
-                for (size_t si = 0; si < selected.size(); ++si) {
+            // Track which entries are still active (not yet removed)
+            std::vector<bool> active(nd_size, true);
+            int remaining = nd_size;
+
+            while (remaining > archive_size) {
+                // Find the solution to remove: minimum 1st-NN distance,
+                // with lexicographic tie-breaking (matches jMetal)
+                int to_remove = -1;
+                for (int si = 0; si < nd_size; ++si) {
+                    if (!active[si]) continue;
+                    if (to_remove == -1) { to_remove = si; continue; }
+                    // Lexicographic comparison of distance lists
+                    int len = static_cast<int>(
+                        std::min(distlists[si].size(), distlists[to_remove].size()));
+                    for (int k = 0; k < len; ++k) {
+                        if (distlists[si][k] < distlists[to_remove][k]) {
+                            to_remove = si;
+                            break;
+                        } else if (distlists[si][k] > distlists[to_remove][k]) {
+                            break;
+                        }
+                    }
+                }
+                if (to_remove < 0) break;
+
+                // Remove to_remove: deactivate and update all distance lists
+                // (remove the entry corresponding to to_remove from each active list)
+                active[to_remove] = false;
+                remaining--;
+
+                // Rebuild distance lists for remaining active members without to_remove
+                int remove_union_idx = selected[to_remove];
+                for (int si = 0; si < nd_size; ++si) {
+                    if (!active[si]) continue;
                     int i = selected[si];
-                    std::vector<double> distances;
-                    for (size_t sj = 0; sj < selected.size(); ++sj) {
-                        if (si == sj)
-                            continue;
+                    distlists[si].clear();
+                    for (int sj = 0; sj < nd_size; ++sj) {
+                        if (!active[sj] || si == sj) continue;
                         int j = selected[sj];
                         double dist = 0.0;
                         for (int o = 0; o < n_obj; ++o) {
                             double diff = union_pop.objective(i, o) - union_pop.objective(j, o);
                             dist += diff * diff;
                         }
-                        distances.push_back(std::sqrt(dist));
+                        distlists[si].push_back(std::sqrt(dist));
                     }
-                    std::sort(distances.begin(), distances.end());
-                    if (!distances.empty() && distances[0] < min_dist) {
-                        min_dist = distances[0];
-                        worst_idx = static_cast<int>(si);
-                    }
-                }
-
-                if (worst_idx >= 0) {
-                    selected.erase(selected.begin() + worst_idx);
-                } else {
-                    break;
+                    std::sort(distlists[si].begin(), distlists[si].end());
                 }
             }
+
+            // Collect active solutions
+            selected.clear();
+            for (int si = 0; si < nd_size; ++si)
+                if (active[si]) selected.push_back(nondominated[si]);
         }
 
         // Copy selected to archive
