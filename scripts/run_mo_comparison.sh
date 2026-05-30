@@ -173,6 +173,37 @@ check_prereqs
 mkdir -p "${OUTDIR}"
 measure_idle_temp
 
+# ── Capturar entorno de ejecución (para reproducibilidad del paper) ───────────
+{
+    echo "# Entorno de benchmark MO"
+    echo ""
+    echo "## Fecha"
+    date -u +%Y-%m-%dT%H:%M:%SZ
+    echo ""
+    echo "## Hardware"
+    grep 'model name' /proc/cpuinfo | head -1 || echo "CPU: desconocida"
+    grep MemTotal /proc/meminfo || echo "RAM: desconocida"
+    echo ""
+    echo "## Sistema operativo"
+    uname -a
+    echo ""
+    echo "## Compilador C++"
+    g++-14 --version | head -1
+    echo "Flags: -std=c++23 -O3 -march=native -DNDEBUG"
+    echo ""
+    echo "## Java"
+    java -version 2>&1 | head -1 || echo "Java: no instalado"
+    echo ""
+    echo "## Parámetros del benchmark"
+    echo "Algoritmo : NSGA-II"
+    echo "Problemas : ZDT1 (d=30), ZDT2 (d=30), ZDT3 (d=30), ZDT4 (d=10)"
+    echo "pop_size  : ${POP_SIZE:-100}"
+    echo "max_evals : ${MAX_EVALS:-25000}"
+    echo "Runs      : ${NUMRUNS}"
+    echo "Base seed : 42"
+} > "${OUTDIR}/environment.md"
+echo "Entorno documentado → ${OUTDIR}/environment.md"
+
 build_cpp
 
 if [[ "$SKIP_JAVA" == "0" ]]; then
