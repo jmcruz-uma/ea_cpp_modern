@@ -108,7 +108,8 @@ std::pair<double, double> run_once(Problem& prob, const std::string& prob_name, 
     // Extraer frente no dominado (igual que jMetal: algorithm.result())
     auto fronts = ea::fast_non_dominated_sort(pop);
     auto ref    = make_ref_front(prob_name);
-    double igd_val = ea::igd(pop, fronts[0], ref);
+    // p=1.0: media aritmética de distancias mínimas — igual que jMetal y el estándar de la literatura
+    double igd_val = ea::igd(pop, fronts[0], ref, 1.0);
 
     return {time_ms, igd_val};
 }

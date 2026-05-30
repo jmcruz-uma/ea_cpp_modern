@@ -80,7 +80,7 @@ build_jmetal() {
     fi
     echo "[2/4] Construyendo jMetal 7.4 con Maven (puede tardar varios minutos)..."
     cd "${JMETAL_ROOT}"
-    mvn clean install -DskipTests -q
+    mvn clean install -DskipTests -Dgpg.skip=true -q
     echo "      jMetal construido."
     cd "${MODERN_ROOT}"
 }
@@ -88,16 +88,14 @@ build_jmetal() {
 build_java_benchmark() {
     echo "[3/4] Compilando JMetalNSGA2Benchmark.java..."
 
-    # Construir classpath con los jars de jMetal 7.4
+    # Construir classpath con los jars principales de jMetal 7.4
+    # Excluye sources, javadoc y fat-jar para evitar conflictos
     local cp=""
-    for jar in \
-        "${JMETAL_ROOT}/jmetal-core/target/jmetal-core-"*.jar \
-        "${JMETAL_ROOT}/jmetal-algorithm/target/jmetal-algorithm-"*.jar \
-        "${JMETAL_ROOT}/jmetal-problem/target/jmetal-problem-"*.jar \
-        "${JMETAL_ROOT}/jmetal-component/target/jmetal-component-"*.jar; do
-        if [[ -f "$jar" ]]; then
-            cp="${cp}:${jar}"
-        fi
+    for jar in "${JMETAL_ROOT}"/*/target/jmetal-*.jar; do
+        [[ "$jar" == *"-sources.jar"              ]] && continue
+        [[ "$jar" == *"-javadoc.jar"              ]] && continue
+        [[ "$jar" == *"-jar-with-dependencies.jar" ]] && continue
+        [[ -f "$jar" ]] && cp="${cp}:${jar}"
     done
     cp="${cp:1}" # quitar ':' inicial
 
