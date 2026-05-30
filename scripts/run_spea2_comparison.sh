@@ -223,6 +223,7 @@ if [[ "$SKIP_JAVA" == "0" ]]; then
     echo "── Ejecutando jMetal 7.4 (Java) ────────────────────────────────────"
     START=$(date +%s%N)
     java -server -Xms512m -Xmx2g \
+        -XX:+UseG1GC -XX:+AlwaysPreTouch -XX:+DisableExplicitGC \
         -cp "${JMETAL_CP}:${OUTDIR}" \
         JMetalSPEA2Benchmark "${JAVA_CSV}" "${NUMRUNS}" 42
     END=$(date +%s%N)
