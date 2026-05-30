@@ -84,30 +84,32 @@ template <typename CX, typename MT> struct SPEA2 {
             archive_count = spea2_environmental_selection(union_pop, fitness, archive, N);
 
             // === Selection + Crossover + Mutation → new population ===
-            Population<> offspring(N, dim, n_obj, pop.n_const);
+            // offspring[N] is scratch space for the discarded second SBX child (matches
+            // jMetal which calls offspring.get(0) only, discarding offspring.get(1)).
+            Population<> offspring(N + 1, dim, n_obj, pop.n_const);
             offspring.lower_bounds = pop.lower_bounds;
             offspring.upper_bounds = pop.upper_bounds;
 
             auto& rng = Random::instance();
-            for (int i = 0; i < N; i += 2) {
-                // Binary tournament selection from archive
-                int p1 = spea2_tournament(archive, archive_count, fitness, N, rng);
-                int p2 = spea2_tournament(archive, archive_count, fitness, N, rng);
+            for (int i = 0; i < N; i++) {
+                // Binary tournament selection from archive (dominance-based, matches
+                // jMetal BinaryTournamentSelection(DominanceWithConstraintsComparator))
+                int p1 = spea2_tournament(archive, archive_count, rng);
+                int p2 = spea2_tournament(archive, archive_count, rng);
 
-                // Copy parents to offspring
+                // Copy parents: p1 → child slot i, p2 → scratch slot N
                 for (int j = 0; j < dim; ++j) {
                     offspring.gene(i, j) = archive.gene(p1, j);
-                    offspring.gene(i + 1, j) = archive.gene(p2, j);
+                    offspring.gene(N, j) = archive.gene(p2, j);
                 }
                 std::copy_n(archive.objectives_ptr(p1), n_obj, offspring.objectives_ptr(i));
-                std::copy_n(archive.objectives_ptr(p2), n_obj, offspring.objectives_ptr(i + 1));
+                std::copy_n(archive.objectives_ptr(p2), n_obj, offspring.objectives_ptr(N));
 
-                // Apply crossover
-                self.crossover.apply(offspring, i, i + 1, i);
+                // Crossover writes to [i] (kept) and [N] (discarded)
+                self.crossover.apply(offspring, i, N, i);
 
-                // Apply mutation
+                // Mutate first child only (matches jMetal: mutationOperator.execute(offspring.get(0)))
                 self.mutation.apply(offspring, i);
-                self.mutation.apply(offspring, i + 1);
             }
 
             // Evaluate offspring
@@ -193,8 +195,11 @@ private:
             // Sort distances
             std::sort(distances.begin(), distances.end());
 
-            // k-th nearest neighbor distance
-            double sigma_k = distances[k];
+            // k-th nearest neighbor distance.
+            // distances excludes self (size n-1), so distances[0] = 1st neighbor.
+            // jMetal includes self in its n×n matrix → distance[i][k] = k-th neighbor.
+            // To match jMetal with k=1: use distances[k-1].
+            double sigma_k = distances[k - 1];
             fitness[i] += 1.0 / (sigma_k + 2.0);
         }
     }
@@ -286,13 +291,15 @@ private:
         return count;
     }
 
-    /// Binary tournament selection based on SPEA2 fitness
-    static int spea2_tournament(const Population<>& archive, int archive_count,
-                                const std::vector<double>& fitness, int offset, Random& rng) {
+    /// Binary tournament selection — dominance-based, matching jMetal's
+    /// BinaryTournamentSelection(DominanceWithConstraintsComparator):
+    /// return b if b dominates a, otherwise return a.
+    static int spea2_tournament(const Population<>& archive, int archive_count, Random& rng) {
         int a = rng.uniform_int(0, archive_count - 1);
         int b = rng.uniform_int(0, archive_count - 1);
-        // Lower fitness is better
-        return (fitness[a + offset] < fitness[b + offset]) ? a : b;
+        if (compare_dominance(archive, b, a) == Dominance::Dominates)
+            return b;
+        return a;
     }
 };
 
