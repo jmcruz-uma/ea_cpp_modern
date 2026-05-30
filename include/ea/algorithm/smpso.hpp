@@ -71,8 +71,9 @@ struct SMPSO {
         self.speed_.assign(n, std::vector<double>(dim, 0.0));
         self.personal_best_.resize(n, std::vector<double>(dim));
         self.personal_best_obj_.resize(n, std::vector<double>(n_obj));
-        self.archive_genes_.resize(self.archive_size, std::vector<double>(dim));
-        self.archive_obj_.resize(self.archive_size, std::vector<double>(n_obj));
+        // +1 para el slot temporal que usa add_to_archive cuando el archivo está lleno
+        self.archive_genes_.resize(self.archive_size + 1, std::vector<double>(dim));
+        self.archive_obj_.resize(self.archive_size + 1, std::vector<double>(n_obj));
         self.archive_count_ = 0;
 
         // Compute delta max/min for velocity constriction
@@ -279,23 +280,26 @@ private:
             }
             self.archive_count_++;
         } else {
-            // Archive full — replace the most crowded individual (lowest crowding distance).
-            // Matches jMetal CrowdingDistanceArchive pruning.
-            auto crowding = self.compute_archive_crowding();
-            int worst_idx = 0;
-            double worst_cd = crowding[0];
-            for (int i = 1; i < self.archive_count_; ++i) {
-                if (crowding[i] < worst_cd) {
-                    worst_cd = crowding[i];
-                    worst_idx = i;
-                }
+            // Archive full — protocolo jMetal CrowdingDistanceArchive.prune():
+            // 1. Escribe el nuevo en el slot +1 (temporal).
+            // 2. Recalcula crowding para archive_count_+1 soluciones (incluyendo la nueva).
+            // 3. Elimina la de menor crowding distance — puede ser la nueva.
+            int slot = self.archive_count_; // slot temporal pre-alojado
+            for (int j = 0; j < dim; ++j)
+                self.archive_genes_[slot][j] = pop.gene(idx, j);
+            for (int o = 0; o < n_obj; ++o)
+                self.archive_obj_[slot][o] = pop.objective(idx, o);
+
+            auto crowding = self.compute_archive_crowding(self.archive_count_ + 1);
+            int worst_idx = static_cast<int>(
+                std::min_element(crowding.begin(), crowding.end()) - crowding.begin());
+
+            if (worst_idx < self.archive_count_) {
+                // Un miembro existente es el más crowded: sustituirlo por el nuevo
+                self.archive_genes_[worst_idx] = self.archive_genes_[slot];
+                self.archive_obj_[worst_idx]   = self.archive_obj_[slot];
             }
-            for (int j = 0; j < dim; ++j) {
-                self.archive_genes_[worst_idx][j] = pop.gene(idx, j);
-            }
-            for (int o = 0; o < n_obj; ++o) {
-                self.archive_obj_[worst_idx][o] = pop.objective(idx, o);
-            }
+            // else worst_idx == slot: el nuevo es el más crowded, se descarta (no se toca archive_count_)
         }
     }
 
@@ -327,10 +331,11 @@ private:
         return (crowding[a] >= crowding[b]) ? a : b;
     }
 
-    /// NSGA-II crowding distance for all archive members (normalized per objective).
+    /// NSGA-II crowding distance para las primeras n entradas del archivo.
+    /// n=-1 (default) → usa archive_count_. Acepta n=archive_count_+1 para prune.
     /// Matches jMetal CrowdingDistance.computeDensityEstimator().
-    std::vector<double> compute_archive_crowding(this auto& self) {
-        const int n = self.archive_count_;
+    std::vector<double> compute_archive_crowding(this auto& self, int n = -1) {
+        if (n < 0) n = self.archive_count_;
         const int m = static_cast<int>(self.archive_obj_[0].size());
         std::vector<double> crowding(n, 0.0);
 
