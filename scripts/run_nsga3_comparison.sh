@@ -238,7 +238,7 @@ if [[ "$SKIP_JAVA" == "0" && -f "${CPP_CSV}" && -f "${JAVA_CSV}" ]]; then
     echo "[6/4] Análisis estadístico (Mann-Whitney U + speedup)..."
     if command -v python3 &>/dev/null && python3 -c "import scipy" &>/dev/null 2>&1; then
         python3 "${SCRIPT_DIR}/analyze_mo_comparison.py" \
-            "${CPP_CSV}" "${JAVA_CSV}" 2>&1 | tee "${OUTDIR}/analysis.txt"
+            "${OUTDIR}" --csv 2>&1 | tee "${OUTDIR}/analysis.txt"
     else
         echo "      AVISO: scipy no disponible — análisis omitido."
         echo "      Instalar: pip3 install scipy pandas"

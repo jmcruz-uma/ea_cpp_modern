@@ -83,13 +83,11 @@ def main():
     cpp_data = load_csv(cpp_path)
     jmetal_data = load_csv(jmetal_path) if jmetal_path.exists() else {}
 
-    problems = ["ZDT1", "ZDT2", "ZDT3", "ZDT4"]
-    # solo los problemas con datos
-    problems = [p for p in problems if p in cpp_data or p in jmetal_data]
+    problems = sorted(set(list(cpp_data.keys()) + list(jmetal_data.keys())))
 
     print("=" * 68)
     print("  Comparativa multiobjetivo: ea_cpp_modern vs jMetal 7.4")
-    print("  NSGA-II | pop=100 | max_evals=25000 | SBX+PM (jMetal protocol)")
+    print(f"  Problemas: {', '.join(problems)}")
     print("=" * 68)
 
     summary_rows = []
