@@ -4,7 +4,6 @@
 
 #include <ea/ea.hpp>
 #include <ea/algorithm/nsga2.hpp>
-#include <ea/algorithm/rvea.hpp>
 #include <ea/algorithm/ibea.hpp>
 #include <ea/algorithm/random_search.hpp>
 #include <ea/indicator/igd.hpp>
@@ -149,8 +148,6 @@ int main(int argc, char** argv) {
     run_benchmark<NSGAII<SBXCrossover, PolynomialMutation>, ZDT6>(
         cfg, "NSGAII", "ZDT6", out);
 
-    run_benchmark<RVEA<SBXCrossover, PolynomialMutation>, ZDT1>(
-        cfg, "RVEA", "ZDT1", out);
     run_benchmark<IBEA<SBXCrossover, PolynomialMutation>, ZDT1>(
         cfg, "IBEA", "ZDT1", out);
     run_benchmark<RandomSearch, ZDT1>(

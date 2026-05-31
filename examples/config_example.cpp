@@ -53,11 +53,6 @@ int main(int argc, char** argv) {
         alg.mutation.distribution_index = cfg.mt_distribution_index;
         alg.mutation.mutation_rate = cfg.mt_rate;
         alg.run(pop, problem_fn);
-    } else if (cfg.algorithm == "RVEA") {
-        ea::RVEA<ea::SBXCrossover, ea::PolynomialMutation> alg;
-        alg.pop_size = cfg.pop_size;
-        alg.max_evals = cfg.max_evals;
-        alg.run(pop, problem_fn);
     } else if (cfg.algorithm == "IBEA") {
         ea::IBEA<ea::SBXCrossover, ea::PolynomialMutation> alg;
         alg.pop_size = cfg.pop_size;

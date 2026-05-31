@@ -2,7 +2,7 @@
 
 ## Abstract
 
-We present ea-cpp, a high-performance evolutionary algorithm framework implementing state-of-the-art multi-objective optimizers in modern C++23. Our framework achieves **algorithmic parity** with jMetal (the reference Java implementation) while being **12× faster** and **15× more temporally stable**. Using zero-overhead abstraction via concepts, deducing-this, and Structure-of-Arrays (SoA) population representation, ea-cpp eliminates the performance penalty typically associated with high-level algorithmic frameworks. We validate our implementation across 22 benchmark problems (ZDT, DTLZ, WFG families) and 10 algorithms (NSGA-II, NSGA-III, MOEA/D, SPEA2, RVEA, IBEA, etc.), demonstrating that modern C++ can match the expressiveness of Java while achieving near-bare-metal performance.
+We present ea-cpp, a high-performance evolutionary algorithm framework implementing state-of-the-art multi-objective optimizers in modern C++23. Our framework achieves **algorithmic parity** with jMetal (the reference Java implementation) while being **12× faster** and **15× more temporally stable**. Using zero-overhead abstraction via concepts, deducing-this, and Structure-of-Arrays (SoA) population representation, ea-cpp eliminates the performance penalty typically associated with high-level algorithmic frameworks. We validate our implementation across 22 benchmark problems (ZDT, DTLZ, WFG families) and 13 algorithms (NSGA-II, NSGA-III, MOEA/D, SPEA2, IBEA, SMPSO, etc.), demonstrating that modern C++ can match the expressiveness of Java while achieving near-bare-metal performance.
 
 **Keywords:** Evolutionary algorithms, Multi-objective optimization, C++23, Zero-overhead abstraction, jMetal
 
@@ -170,7 +170,6 @@ Per-child betaq calculation with bound-aware scaling:
 | AGE-MOEA | ✅ | Panichella, 2019 |
 | PAES | ✅ | Knowles & Corne, 1999 |
 | MOCell | ✅ | Nebro et al., 2009 |
-| RVEA | ✅ | Cheng et al., 2016 |
 | IBEA | ✅ | Zitzler & Kunzli, 2004 |
 | RandomSearch | ✅ | Baseline |
 

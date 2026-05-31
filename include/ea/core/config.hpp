@@ -8,7 +8,6 @@
 #include <ea/algorithm/ibea.hpp>
 #include <ea/algorithm/nsga2.hpp>
 #include <ea/algorithm/random_search.hpp>
-#include <ea/algorithm/rvea.hpp>
 #include <ea/core/population.hpp>
 #include <ea/operator/crossover/blx_alpha.hpp>
 #include <ea/operator/crossover/sbx.hpp>

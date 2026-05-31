@@ -41,7 +41,7 @@ make benchmark-full
 ea-cpp/
 ├── include/ea/
 │   ├── core/          # Population (SoA), Encoding, Concepts, Comparators, Config
-│   ├── algorithm/     # 13 algorithms (NSGA-II, NSGA-III, MOEA/D, SPEA2, RVEA, IBEA, ...)
+│   ├── algorithm/     # 13 algorithms (NSGA-II, NSGA-III, MOEA/D, SPEA2, IBEA, SMPSO, ...)
 │   ├── operator/
 │   │   ├── crossover/ # 21 operators (SBX, BLX-αβ, DE, PMX, ERX, ...)
 │   │   ├── mutation/  # 17 operators (Polynomial, BitFlip, Swap, Inversion, ...)
@@ -77,7 +77,6 @@ Extended benchmarks (5 runs):
 | NSGAII | ZDT2 | 0.00020 | 163 |
 | NSGAII | ZDT3 | 0.00948 | 161 |
 | NSGAII | ZDT6 | 0.00892 | 198 |
-| RVEA | ZDT1 | 0.01060 | 178 |
 | IBEA | ZDT1 | 0.20652 | 233 |
 | RandomSearch | ZDT1 | 0.05339 | 6265 |
 
@@ -155,7 +154,7 @@ make test
 |---------|------|----------|
 | v0.1.0 | 2026-05-16 | Framework base, 76 headers, jMetal parity |
 | v0.2.0 | 2026-05-17 | Robustez, tests, Spread indicator, CI GitHub Actions |
-| v0.3.0 | 2026-05-17 | RVEA, IBEA, RandomSearch algorithms |
+| v0.3.0 | 2026-05-17 | IBEA, RandomSearch algorithms |
 | v0.4.0 | 2026-05-17 | Epsilon, R2, Hausdorff indicators |
 | v0.5.0 | 2026-05-17 | Makefile, README, benchmark script |
 | v0.6.0 | 2026-05-17 | JSON configuration without recompiling |

@@ -31,8 +31,7 @@
 ## v0.3.0 ✅ (2026-05-17) — Algoritmos adicionales
 
 - [x] RandomSearch (baseline de comparación)
-- [x] RVEA — Reference Vector-guided EA (many-objective)
-- [x] IBEA — Indicator-Based EA (Hypervolume/Epsilon selection)
+- [x] IBEA — Indicator-Based EA (HVI selection, equivalente jMetal)
 - [x] MOEA/D-DE — DE variant of MOEA/D (Li & Zhang 2009)
 - [x] SMS-EMOA verificación — fixed evaluate API call
 - [x] BinaryTournament2 — strength-based (SPEA2)
@@ -65,8 +64,8 @@
 
 - [x] Config struct con JSON parsing (nlohmann/json)
 - [x] JSON config reader (from_file, from_json)
-- [x] Ejemplo config_example.cpp con NSGAII/RVEA/IBEA
-- [x] Archivos de ejemplo: config_nsga2.json, config_rvea.json
+- [x] Ejemplo config_example.cpp con NSGAII/IBEA
+- [x] Archivos de ejemplo: config_nsga2.json
 
 ## v1.0.0 ✅ (2026-05-17) — Paper-ready
 
@@ -90,7 +89,6 @@
 
 - [ ] Doxygen documentation for all 104 public headers
 - [ ] Fix IBEA IGD (kappa normalization)
-- [ ] Fix RVEA on 3-obj (verify stability)
 - [ ] Benchmark: 30 runs complete suite → paper tables
 - [ ] GitHub Actions CI (needs workflow scope on token)
 

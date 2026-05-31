@@ -3,7 +3,6 @@
 // Usage: ./benchmark_extended [runs] > results.csv
 
 #include <ea/ea.hpp>
-#include <ea/algorithm/rvea.hpp>
 #include <ea/algorithm/ibea.hpp>
 #include <ea/algorithm/random_search.hpp>
 #include <chrono>

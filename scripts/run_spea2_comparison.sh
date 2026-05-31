@@ -84,22 +84,25 @@ build_jmetal() {
 build_java_benchmark() {
     echo "[3/4] Compilando JMetalSPEA2Benchmark.java..."
 
-    local cp=""
-    for jar in "${JMETAL_ROOT}"/*/target/jmetal-*.jar; do
-        [[ "$jar" == *"-sources.jar"              ]] && continue
-        [[ "$jar" == *"-javadoc.jar"              ]] && continue
-        [[ "$jar" == *"-jar-with-dependencies.jar" ]] && continue
-        [[ -f "$jar" ]] && cp="${cp}:${jar}"
-    done
-    cp="${cp:1}"
+    # Individual module jars (matching ea_cpp_jmetal protocol)
+    local CORE_JAR ALGO_JAR PROB_JAR
+    CORE_JAR=$(ls "${JMETAL_ROOT}/jmetal-core/target/jmetal-core-"*.jar 2>/dev/null | grep -v 'sources\|javadoc\|dependencies' | head -1)
+    ALGO_JAR=$(ls "${JMETAL_ROOT}/jmetal-algorithm/target/jmetal-algorithm-"*.jar 2>/dev/null | grep -v 'sources\|javadoc\|dependencies' | head -1)
+    PROB_JAR=$(ls "${JMETAL_ROOT}/jmetal-problem/target/jmetal-problem-"*.jar 2>/dev/null | grep -v 'sources\|javadoc\|dependencies' | head -1)
+    local COMMONS_JAR
+    COMMONS_JAR=$(find "${HOME}/.m2/repository/org/apache/commons/commons-lang3" -name "commons-lang3-*.jar" 2>/dev/null | sort -V | tail -1)
 
-    if [[ -z "$cp" ]]; then
+    if [[ -z "$CORE_JAR" || -z "$ALGO_JAR" || -z "$PROB_JAR" ]]; then
         echo "ERROR: no se encontraron los jars de jMetal."
         echo "Ejecuta primero: cd ${JMETAL_ROOT} && mvn clean install -DskipTests"
         exit 1
     fi
+    if [[ -z "$COMMONS_JAR" ]]; then
+        echo "ERROR: commons-lang3 no encontrado en ~/.m2"
+        exit 1
+    fi
 
-    JMETAL_CP="$cp"
+    JMETAL_CP="${CORE_JAR}:${ALGO_JAR}:${PROB_JAR}:${COMMONS_JAR}"
     export JMETAL_CP
 
     javac -cp "${JMETAL_CP}" "${BENCH_DIR}/JMetalSPEA2Benchmark.java" -d "${OUTDIR}"
@@ -224,6 +227,7 @@ if [[ "$SKIP_JAVA" == "0" ]]; then
     START=$(date +%s%N)
     java -server -Xms512m -Xmx2g \
         -XX:+UseG1GC -XX:+AlwaysPreTouch -XX:+DisableExplicitGC \
+        -Djava.awt.headless=true \
         -cp "${JMETAL_CP}:${OUTDIR}" \
         JMetalSPEA2Benchmark "${JAVA_CSV}" "${NUMRUNS}" 42
     END=$(date +%s%N)

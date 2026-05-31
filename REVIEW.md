@@ -12,7 +12,7 @@
 ea-cpp/
 ├── include/ea/          # 76 headers, código fuente
 │   ├── core/            # Population, Config
-│   ├── algorithm/       # 13 algoritmos (NSGAII, RVEA, IBEA, etc.)
+│   ├── algorithm/       # 13 algoritmos (NSGAII, IBEA, MOEAD, etc.)
 │   ├── operator/        # Crossover, Mutation, Selection, Replacement
 │   ├── problem/         # ZDT, DTLZ, WFG families
 │   ├── indicator/       # IGD, GD, Spread, Hypervolume, Epsilon, R2, Hausdorff
