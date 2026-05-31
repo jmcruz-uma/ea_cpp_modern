@@ -247,7 +247,7 @@ inline double inclusive_hv4(const Point& p, const Point& q, const Point& r, cons
 
 // Forward declarations
 void make_dominated_bit(Front& ps, int p, int n_obj, std::vector<Front>& fs, int& fr, int& safe);
-double hv(const Front& ps, int n_obj, std::vector<Front>& fs, int& fr, int& safe);
+double hv(Front& ps, int n_obj, std::vector<Front>& fs, int& fr, int& safe);
 
 inline double excl_hv(Front& ps, int p, int n_obj, std::vector<Front>& fs, int& fr, int& safe) {
     make_dominated_bit(ps, p, n_obj, fs, fr, safe);
