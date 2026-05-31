@@ -2,12 +2,18 @@
 /// @file nsga3_replacement.hpp
 /// @brief NSGA-III Environmental Selection — reference-point-based niching.
 ///
-/// Implements Algorithm 4 from the NSGA-III paper:
-/// 1. Normalize objectives using ideal point and intercepts
-/// 2. Associate individuals with reference points
-/// 3. Niching-based selection from critical front
+/// Full implementation of Algorithm 2 (normalize) + Algorithm 3 (associate) +
+/// Algorithm 4 (niching) from Deb & Jain, IEEE TEVC 2014.
 ///
-/// Reference: Deb & Jain, IEEE TEVC 2014.
+/// jMetal reference: EnvironmentalSelection.java (nsgaiii/util/)
+///
+/// Bug history (corrected vs previous implementation):
+///   - find_closest_ref used Euclidean distance to ref position; must use
+///     perpendicular distance to the LINE from origin through ref direction.
+///   - No hyperplane fitting: missing ASF extreme-point search, Gaussian
+///     elimination, and normalization by (intercept - ideal).
+///   - Niching always picked closest member; must pick RANDOM when
+///     member_count > 0 (Algorithm 4, Section IV-E in the paper).
 
 #include <algorithm>
 #include <cmath>
@@ -21,78 +27,67 @@
 namespace ea {
 
 /// NSGA-III environmental selection (replacement operator).
-/// Uses reference-point-based niching for many-objective selection.
 struct NSGAIIIReplacement {
     std::vector<ReferencePoint> reference_points;
-    int n_obj = 0;
-    int pop_size = 100;
 
     NSGAIIIReplacement() = default;
     explicit NSGAIIIReplacement(std::vector<ReferencePoint> refs)
         : reference_points(std::move(refs)) {}
 
-    /// Perform NSGA-III environmental selection on a combined population.
-    std::vector<int> replace(this NSGAIIIReplacement& self, Population<>& combined, int target_size);
+    /// Environmental selection on a combined (2N) population.
+    /// Returns target_size indices from combined to keep as the next population.
+    std::vector<int> replace(this NSGAIIIReplacement& self, Population<>& combined,
+                             int target_size);
 
 private:
-    /// Compute ideal point from front
-    static void compute_ideal_point(Population<>& pop, const std::vector<int>& front,
-                                    std::vector<double>& ideal, int n_obj) {
-        ideal.assign(n_obj, std::numeric_limits<double>::max());
-        for (int idx : front) {
-            for (int o = 0; o < n_obj; ++o) {
-                ideal[o] = std::min(ideal[o], pop.objective(idx, o));
-            }
+    /// Perpendicular distance from `point` to the LINE from origin through `dir`.
+    static double perp_dist(const double* point, const double* dir, int m) {
+        double dot = 0.0, dir_sq = 0.0;
+        for (int i = 0; i < m; ++i) {
+            dot += point[i] * dir[i];
+            dir_sq += dir[i] * dir[i];
         }
-    }
-
-    /// Compute ASF (Achievement Scalarizing Function) for extreme point finding
-    static double asf(const std::vector<double>& objectives, int axis, int n_obj) {
-        double max_val = -std::numeric_limits<double>::max();
-        for (int i = 0; i < n_obj; ++i) {
-            double weight = (i == axis) ? 1.0 : 1e-6;
-            double val = objectives[i] / weight;
-            max_val = std::max(max_val, val);
-        }
-        return max_val;
-    }
-
-    /// Compute perpendicular distance from a point to a reference direction
-    static double perpendicular_distance(const double* point, const double* direction, int n_obj) {
-        // Project point onto direction
-        double dot = 0.0, dir_norm_sq = 0.0;
-        for (int i = 0; i < n_obj; ++i) {
-            dot += point[i] * direction[i];
-            dir_norm_sq += direction[i] * direction[i];
-        }
-
-        // Perpendicular component
         double dist_sq = 0.0;
-        for (int i = 0; i < n_obj; ++i) {
-            double proj = (dir_norm_sq > 1e-14) ? (dot / dir_norm_sq) * direction[i] : 0.0;
+        for (int i = 0; i < m; ++i) {
+            double proj = (dir_sq > 1e-14) ? dot / dir_sq * dir[i] : 0.0;
             double diff = point[i] - proj;
             dist_sq += diff * diff;
         }
         return std::sqrt(dist_sq);
     }
 
-    /// Find which reference point is closest to a normalized point
-    static int find_closest_ref(const double* normalized, const std::vector<ReferencePoint>& refs,
-                                int n_obj) {
-        int closest = 0;
-        double min_dist = std::numeric_limits<double>::max();
-        for (size_t r = 0; r < refs.size(); ++r) {
-            double dist = 0.0;
-            for (int o = 0; o < n_obj; ++o) {
-                double diff = normalized[o] - refs[r].position[o];
-                dist += diff * diff;
-            }
-            if (dist < min_dist) {
-                min_dist = dist;
-                closest = static_cast<int>(r);
+    /// ASF (Achievement Scalarization Function) on translated objectives.
+    /// axis f: weight_f = 1.0, weight_i = 1e-6 for i != f.
+    /// jMetal: EnvironmentalSelection.ASF()
+    static double asf(const double* obj, int f, int m) {
+        double max_val = -std::numeric_limits<double>::max();
+        for (int i = 0; i < m; ++i) {
+            double w = (i == f) ? 1.0 : 1e-6;
+            max_val = std::max(max_val, obj[i] / w);
+        }
+        return max_val;
+    }
+
+    /// Gaussian elimination (no partial pivoting, matching jMetal exactly).
+    /// A is an n x (n+1) augmented matrix [M | b] modified in-place.
+    /// jMetal: EnvironmentalSelection.guassianElimination()
+    static std::vector<double> gaussian_elimination(std::vector<std::vector<double>> A, int n) {
+        for (int base = 0; base < n - 1; ++base) {
+            for (int target = base + 1; target < n; ++target) {
+                if (std::abs(A[base][base]) < 1e-14)
+                    continue;
+                double ratio = A[target][base] / A[base][base];
+                for (int col = 0; col <= n; ++col)
+                    A[target][col] -= A[base][col] * ratio;
             }
         }
-        return closest;
+        std::vector<double> x(n, 0.0);
+        for (int i = n - 1; i >= 0; --i) {
+            for (int k = i + 1; k < n; ++k)
+                A[i][n] -= A[i][k] * x[k];
+            x[i] = (std::abs(A[i][i]) > 1e-14) ? A[i][n] / A[i][i] : 0.0;
+        }
+        return x;
     }
 };
 
@@ -100,132 +95,164 @@ inline std::vector<int> NSGAIIIReplacement::replace(this NSGAIIIReplacement& sel
                                                     Population<>& combined, int target_size) {
     const int n_obj = combined.n_obj;
 
-    // Non-dominated sort
+    // ── Step 1: Non-dominated sort, fill complete fronts ──────────────────
     auto fronts = fast_non_dominated_sort(combined);
 
-    // Step 1: Fill with complete fronts until one doesn't fit
     std::vector<int> selected;
-    int last_front_idx = -1;
-
-    for (int f = 0; f < static_cast<int>(fronts.size()); ++f) {
-        if (static_cast<int>(selected.size() + fronts[f].size()) <= target_size) {
+    int last_f = -1;
+    for (int f = 0; f < (int)fronts.size(); ++f) {
+        if ((int)(selected.size() + fronts[f].size()) <= target_size) {
             selected.insert(selected.end(), fronts[f].begin(), fronts[f].end());
         } else {
-            last_front_idx = f;
+            last_f = f;
             break;
         }
     }
 
-    // If we already have enough, return
-    if (static_cast<int>(selected.size()) >= target_size || last_front_idx < 0) {
+    if ((int)selected.size() >= target_size || last_f < 0) {
         selected.resize(target_size);
         return selected;
     }
 
-    // Step 2: Niching selection for the last front
-    auto& last_front = fronts[last_front_idx];
-    int remaining = target_size - static_cast<int>(selected.size());
+    const auto& last_front = fronts[last_f];
+    int remaining = target_size - (int)selected.size();
 
-    // Compute ideal point from all selected + last front
+    // ── Step 2: Ideal point from first front (Algorithm 2, line 1) ────────
+    // jMetal: translateObjectives() — "min values must appear in the first front"
     std::vector<double> ideal(n_obj, std::numeric_limits<double>::max());
-    for (int idx : selected) {
-        for (int o = 0; o < n_obj; ++o) {
+    for (int idx : fronts[0]) {
+        for (int o = 0; o < n_obj; ++o)
             ideal[o] = std::min(ideal[o], combined.objective(idx, o));
-        }
-    }
-    for (int idx : last_front) {
-        for (int o = 0; o < n_obj; ++o) {
-            ideal[o] = std::min(ideal[o], combined.objective(idx, o));
-        }
     }
 
-    // Normalize objectives (subtract ideal point)
-    // Then associate each individual with nearest reference point
-    std::vector<int> association(last_front.size());
-    std::vector<int> niche_counts(self.reference_points.size(), 0);
+    // Helper: translated objective (obj - ideal)
+    auto trans = [&](int idx, int o) { return combined.objective(idx, o) - ideal[o]; };
 
-    // Count niche members from already-selected individuals
-    for (int idx : selected) {
-        std::vector<double> normalized(n_obj);
-        for (int o = 0; o < n_obj; ++o) {
-            normalized[o] = combined.objective(idx, o) - ideal[o];
-        }
-        int ref = find_closest_ref(normalized.data(), self.reference_points, n_obj);
-        niche_counts[ref]++;
-    }
-
-    // Associate last front individuals
-    for (size_t i = 0; i < last_front.size(); ++i) {
-        std::vector<double> normalized(n_obj);
-        for (int o = 0; o < n_obj; ++o) {
-            normalized[o] = combined.objective(last_front[i], o) - ideal[o];
-        }
-        association[i] = find_closest_ref(normalized.data(), self.reference_points, n_obj);
-    }
-
-    // Niching: pick from last front, preferring reference points with fewer members
-    std::vector<int> selected_from_front;
-    std::vector<bool> chosen(last_front.size(), false);
-
-    for (int pick = 0; pick < remaining; ++pick) {
-        // Find reference point with minimum niche count
-        int min_count = std::numeric_limits<int>::max();
-        std::vector<int> min_refs;
-
-        for (size_t r = 0; r < self.reference_points.size(); ++r) {
-            if (niche_counts[r] < min_count) {
-                min_count = niche_counts[r];
-                min_refs.clear();
-                min_refs.push_back(static_cast<int>(r));
-            } else if (niche_counts[r] == min_count) {
-                min_refs.push_back(static_cast<int>(r));
-            }
-        }
-
-        // Pick a random ref from minimum-niche refs
-        auto& rng = Random::instance();
-        int chosen_ref = min_refs[rng.uniform_int(0, static_cast<int>(min_refs.size()) - 1)];
-
-        // Find closest individual from last front associated with this ref
-        int best_idx = -1;
-        double best_dist = std::numeric_limits<double>::max();
-        for (size_t i = 0; i < last_front.size(); ++i) {
-            if (chosen[i])
-                continue;
-            if (association[i] != chosen_ref)
-                continue;
-
-            std::vector<double> normalized(n_obj);
-            for (int o = 0; o < n_obj; ++o) {
-                normalized[o] = combined.objective(last_front[i], o) - ideal[o];
-            }
-            double dist = perpendicular_distance(
-                normalized.data(), self.reference_points[chosen_ref].position.data(), n_obj);
-
-            if (dist < best_dist) {
-                best_dist = dist;
-                best_idx = static_cast<int>(i);
-            }
-        }
-
-        if (best_idx >= 0) {
-            selected_from_front.push_back(last_front[best_idx]);
-            chosen[best_idx] = true;
-            niche_counts[chosen_ref]++;
-        } else {
-            // No individual for this ref — pick any remaining
-            for (size_t i = 0; i < last_front.size(); ++i) {
-                if (!chosen[i]) {
-                    selected_from_front.push_back(last_front[i]);
-                    chosen[i] = true;
-                    niche_counts[association[i]]++;
-                    break;
+    // ── Step 3: Extreme points via ASF, from first front ──────────────────
+    // jMetal: findExtremePoints()
+    std::vector<int> extreme(n_obj);
+    {
+        std::vector<double> buf(n_obj);
+        for (int f = 0; f < n_obj; ++f) {
+            double best = std::numeric_limits<double>::max();
+            extreme[f] = fronts[0][0];
+            for (int idx : fronts[0]) {
+                for (int o = 0; o < n_obj; ++o)
+                    buf[o] = trans(idx, o);
+                double v = asf(buf.data(), f, n_obj);
+                if (v < best) {
+                    best = v;
+                    extreme[f] = idx;
                 }
             }
         }
     }
 
-    selected.insert(selected.end(), selected_from_front.begin(), selected_from_front.end());
+    // ── Step 4: Hyperplane — construct intercepts ──────────────────────────
+    // jMetal: constructHyperplane() — uses ORIGINAL (not translated) objectives
+    bool duplicate = false;
+    for (int i = 0; i < n_obj && !duplicate; ++i)
+        for (int j = i + 1; j < n_obj && !duplicate; ++j)
+            duplicate = (extreme[i] == extreme[j]);
+
+    std::vector<double> intercept(n_obj);
+    if (!duplicate) {
+        // Solve A x = b where A[i][j] = extreme[i].obj[j], b = [1,...,1]
+        std::vector<std::vector<double>> A(n_obj, std::vector<double>(n_obj + 1, 0.0));
+        for (int i = 0; i < n_obj; ++i) {
+            for (int j = 0; j < n_obj; ++j)
+                A[i][j] = combined.objective(extreme[i], j);
+            A[i][n_obj] = 1.0;
+        }
+        auto x = gaussian_elimination(std::move(A), n_obj);
+        for (int f = 0; f < n_obj; ++f)
+            intercept[f] = (std::abs(x[f]) > 1e-14) ? 1.0 / x[f] : 1e14;
+    } else {
+        // Fallback: original objective value of the extreme point for each axis
+        for (int f = 0; f < n_obj; ++f)
+            intercept[f] = combined.objective(extreme[f], f);
+    }
+
+    // Helper: normalized objective (translated then divided by intercept span)
+    // jMetal: normalizeObjectives() — denom = intercept[f] - ideal[f]
+    auto norm_obj = [&](int idx, int o) {
+        double denom = intercept[o] - ideal[o];
+        return trans(idx, o) / (std::abs(denom) > 1e-9 ? denom : 1e-9);
+    };
+
+    // Helper: associate individual with nearest reference point (perpendicular distance)
+    // Returns {ref_index, distance}. jMetal: associate()
+    auto associate = [&](int idx) -> std::pair<int, double> {
+        std::vector<double> nrm(n_obj);
+        for (int o = 0; o < n_obj; ++o)
+            nrm[o] = norm_obj(idx, o);
+        int best_r = 0;
+        double best_d = std::numeric_limits<double>::max();
+        for (int r = 0; r < (int)self.reference_points.size(); ++r) {
+            double d = perp_dist(nrm.data(), self.reference_points[r].position.data(), n_obj);
+            if (d < best_d) {
+                best_d = d;
+                best_r = r;
+            }
+        }
+        return {best_r, best_d};
+    };
+
+    // ── Step 5: Associate all individuals with reference points ────────────
+    for (auto& rp : self.reference_points)
+        rp.clear();
+
+    // Non-critical fronts → member counts
+    for (int idx : selected) {
+        auto [r, d] = associate(idx);
+        (void)d;
+        self.reference_points[r].add_member();
+    }
+
+    // Critical front → potential members with distance
+    for (int idx : last_front) {
+        auto [r, d] = associate(idx);
+        self.reference_points[r].add_potential_member(idx, d);
+    }
+
+    // Sort potential members ascending by distance (closest first)
+    for (auto& rp : self.reference_points)
+        rp.sort_potential_members();
+
+    // ── Step 6: Niching selection (Algorithm 4) ────────────────────────────
+    // - Pick reference point with fewest members (random among ties)
+    // - member_count == 0 → FindClosestMember; member_count >= 1 → RandomMember
+    // jMetal: SelectClusterMember()
+    auto& rng = Random::instance();
+    std::vector<int> from_last;
+    from_last.reserve(remaining);
+
+    while ((int)from_last.size() < remaining) {
+        // Minimum member count among refs that still have potential members
+        int min_cnt = std::numeric_limits<int>::max();
+        for (const auto& rp : self.reference_points)
+            if (rp.has_potential_members() && rp.member_count < min_cnt)
+                min_cnt = rp.member_count;
+
+        if (min_cnt == std::numeric_limits<int>::max())
+            break; // no potential members left (shouldn't happen)
+
+        std::vector<int> cands;
+        for (int r = 0; r < (int)self.reference_points.size(); ++r)
+            if (self.reference_points[r].has_potential_members() &&
+                self.reference_points[r].member_count == min_cnt)
+                cands.push_back(r);
+
+        int cr = cands[rng.uniform_int(0, (int)cands.size() - 1)];
+        auto& rp = self.reference_points[cr];
+
+        int sel = (rp.member_count == 0) ? rp.remove_closest_member()
+                                         : rp.remove_random_member(rng.engine());
+        rp.add_member();
+        from_last.push_back(sel);
+    }
+
+    selected.insert(selected.end(), from_last.begin(), from_last.end());
     return selected;
 }
 

@@ -76,9 +76,13 @@ int main() {
     {
         ea::NSGAIII<ea::SBXCrossover, ea::PolynomialMutation> nsga3;
         nsga3.divisions = 4;  // Small for fast test
-        nsga3.max_evals = 200;
+        // 256 = 16 * 16: ensures clean termination (no partial last generation).
+        // With pop_size=16, each generation uses exactly 16 evals; at evals=256
+        // the final offspring is evaluated before the break, so all individuals
+        // in the resulting population are fully evaluated.
+        nsga3.max_evals = 256;
 
-        // Create population with correct size
+        // Create population with correct size (pop_size=0 derives from ref points)
         int pop_size = ea::compute_population_size(15);  // 16
         ea::Population<> pop(pop_size, 7, 3);
 
