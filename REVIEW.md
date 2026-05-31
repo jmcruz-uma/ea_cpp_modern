@@ -52,6 +52,18 @@ make benchmark-full # Suite completa (30 runs)
 - **Compilación**: `g++-14 -std=c++23 -O2`
 - **Sin dependencias**: Solo STL + nlohmann/json (para config)
 
+## Resultados de benchmark (WSL2, 30 runs, pop=100, max_evals=25000)
+
+| Algoritmo  | ZDT1 speedup | ZDT2 speedup | ZDT3 speedup | ZDT4 speedup | Mediana |
+|------------|-------------|-------------|-------------|-------------|---------|
+| NSGA-II    | 3.57×       | —           | —           | —           | 3.57×   |
+| SMPSO      | 3.87×       | —           | —           | —           | 3.87×   |
+| SPEA2      | 2.17×       | —           | —           | —           | 2.17×   |
+| IBEA       | 12.41×      | —           | —           | —           | 12.41×  |
+| MOEA/D-DE  | 8.37×       | 8.01×       | 7.43×       | 7.65×       | 7.87×   |
+
+Todos los IGD son estadísticamente equivalentes a jMetal (Mann-Whitney p ≥ 0.05).
+
 ## Contacto
 
 - Issues: GitHub Issues

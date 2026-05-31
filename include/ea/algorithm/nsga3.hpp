@@ -11,6 +11,7 @@
 #include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 #include <ea/util/reference_point.hpp>
+#include <iostream>
 #include <numeric>
 #include <string_view>
 #include <vector>

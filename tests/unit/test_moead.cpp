@@ -51,8 +51,8 @@ TEST(Aggregation, WeightedSumNormalized) {
     double nadir[] = {5.0, 5.0};
     
     double result = ws.compute(obj, weight, ideal, nadir, 2);
-    // (2/5)*0.5 + (3/5)*0.5 = 0.2 + 0.3 = 0.5
-    EXPECT_DOUBLE_EQ(result, 0.5);
+    // (2/(5+eps))*0.5 + (3/(5+eps))*0.5 ≈ 0.5
+    EXPECT_NEAR(result, 0.5, 1e-5);
 }
 
 TEST(Aggregation, TchebycheffBasic) {
@@ -112,14 +112,14 @@ TEST(Aggregation, AggregationFunctionDispatch) {
 TEST(MOEAD, RunsOnZDT1WithTchebycheff) {
     Population<> pop(50, 30, 2);
     ZDT1 zdt1;
-    
+
     auto& rng = Random::instance();
     for (int i = 0; i < pop.pop_size; ++i) {
         for (int j = 0; j < pop.dim; ++j) {
             pop.gene(i, j) = rng.uniform();
         }
     }
-    
+
     MOEAD<SBXCrossover, PolynomialMutation> moead;
     moead.pop_size = 50;
     moead.max_evals = 1000;
@@ -127,8 +127,8 @@ TEST(MOEAD, RunsOnZDT1WithTchebycheff) {
     moead.aggregation_type = AggregationType::Tchebycheff;
     moead.crossover.distribution_index = 20.0;
     moead.mutation.distribution_index = 20.0;
-    
-    moead.run(pop, zdt1);
+
+    moead.run(pop, [&](Population<>& p, int i){ zdt1.evaluate(p, i); });
     
     // Should have performed evaluations
     EXPECT_GE(moead.evals_, 50);  // at least initial population
@@ -145,14 +145,14 @@ TEST(MOEAD, RunsOnZDT1WithTchebycheff) {
 TEST(MOEAD, RunsOnZDT1WithWeightedSum) {
     Population<> pop(50, 30, 2);
     ZDT1 zdt1;
-    
+
     auto& rng = Random::instance();
     for (int i = 0; i < pop.pop_size; ++i) {
         for (int j = 0; j < pop.dim; ++j) {
             pop.gene(i, j) = rng.uniform();
         }
     }
-    
+
     MOEAD<SBXCrossover, PolynomialMutation> moead;
     moead.pop_size = 50;
     moead.max_evals = 1000;
@@ -160,8 +160,8 @@ TEST(MOEAD, RunsOnZDT1WithWeightedSum) {
     moead.aggregation_type = AggregationType::WeightedSum;
     moead.crossover.distribution_index = 20.0;
     moead.mutation.distribution_index = 20.0;
-    
-    moead.run(pop, zdt1);
+
+    moead.run(pop, [&](Population<>& p, int i){ zdt1.evaluate(p, i); });
     
     EXPECT_GE(moead.evals_, 50);
     EXPECT_LE(moead.evals_, 1000);
@@ -172,23 +172,22 @@ TEST(MOEAD, RunsOnZDT1WithWeightedSum) {
 }
 
 TEST(MOEAD, WeightVectorsInitializedCorrectly) {
-    // 2-objective case: weights should be uniformly distributed
     Population<> pop(10, 5, 2);
     ZDT1 zdt1;
-    
+
     auto& rng = Random::instance();
     for (int i = 0; i < pop.pop_size; ++i) {
         for (int j = 0; j < pop.dim; ++j) {
             pop.gene(i, j) = rng.uniform();
         }
     }
-    
+
     MOEAD<SBXCrossover, PolynomialMutation> moead;
     moead.pop_size = 10;
-    moead.max_evals = 10;  // Just init
+    moead.max_evals = 10;
     moead.neighbor_size = 2;
-    
-    moead.run(pop, zdt1);
+
+    moead.run(pop, [&](Population<>& p, int i){ zdt1.evaluate(p, i); });
     
     // Check weights sum to ~1
     for (int i = 0; i < 10; ++i) {
@@ -206,20 +205,20 @@ TEST(MOEAD, WeightVectorsInitializedCorrectly) {
 TEST(MOEAD, NeighborhoodInitializedCorrectly) {
     Population<> pop(20, 5, 2);
     ZDT1 zdt1;
-    
+
     auto& rng = Random::instance();
     for (int i = 0; i < pop.pop_size; ++i) {
         for (int j = 0; j < pop.dim; ++j) {
             pop.gene(i, j) = rng.uniform();
         }
     }
-    
+
     MOEAD<SBXCrossover, PolynomialMutation> moead;
     moead.pop_size = 20;
-    moead.max_evals = 20;  // Just init
+    moead.max_evals = 20;
     moead.neighbor_size = 3;
-    
-    moead.run(pop, zdt1);
+
+    moead.run(pop, [&](Population<>& p, int i){ zdt1.evaluate(p, i); });
     
     // Each subproblem should have T neighbors
     EXPECT_EQ(moead.neighborhood_.size(), 20u);
@@ -233,20 +232,20 @@ TEST(MOEAD, NeighborhoodInitializedCorrectly) {
 TEST(MOEAD, IdealPointUpdatesCorrectly) {
     Population<> pop(10, 5, 2);
     ZDT1 zdt1;
-    
+
     auto& rng = Random::instance();
     for (int i = 0; i < pop.pop_size; ++i) {
         for (int j = 0; j < pop.dim; ++j) {
             pop.gene(i, j) = rng.uniform();
         }
     }
-    
+
     MOEAD<SBXCrossover, PolynomialMutation> moead;
     moead.pop_size = 10;
-    moead.max_evals = 10;  // Just init
+    moead.max_evals = 10;
     moead.neighbor_size = 2;
-    
-    moead.run(pop, zdt1);
+
+    moead.run(pop, [&](Population<>& p, int i){ zdt1.evaluate(p, i); });
     
     // Ideal point should be <= all objectives
     for (int o = 0; o < 2; ++o) {

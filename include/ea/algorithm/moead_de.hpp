@@ -100,6 +100,11 @@ struct MOEAD_DE {
         }
         self.evals_ = n;
 
+        // Scratch population for trial vector — allocated once, reused every iteration
+        Population<> trial_pop(1, dim, n_obj, pop.n_const);
+        trial_pop.lower_bounds = pop.lower_bounds;
+        trial_pop.upper_bounds = pop.upper_bounds;
+
         // Main loop
         while (self.evals_ < self.max_evals) {
             auto permutation = Random::instance().permutation(n);
@@ -108,33 +113,28 @@ struct MOEAD_DE {
                 int sub_problem_id = permutation[i];
                 NeighborType ntype = self.choose_neighbor_type();
 
-                // === DE/rand/1: select target + 2 distinct neighbors ===
-                auto parents = self.mating_selection(sub_problem_id, 3, ntype, n, T);
-                // parents[0] = target (the current subproblem individual)
-                // parents[1], parents[2] = difference vector sources
+                // === DE/rand/1: select 2 distinct neighbors as difference vector sources ===
+                // Matches jMetal: matingSelection(subProblemId, 2, neighbourType)
+                auto parents = self.mating_selection(sub_problem_id, 2, ntype, n, T);
+                // parents[0] = r1, parents[1] = r2
+                // trial = current + F*(r1 - r2), BIN crossover with current as base
 
-                // Create trial vector via DE crossover
-                // target = pop[sub_problem_id], r1 = parents[1], r2 = parents[2]
-                std::vector<double> trial(dim);
+                // Create trial vector via DE crossover + clamp to bounds
+                // jMetal: DifferentialEvolutionCrossover.repairVariableValues() clips after DE
                 auto& rng = Random::instance();
                 int j_rand = rng.uniform_int(0, dim - 1);
                 for (int j = 0; j < dim; ++j) {
-                    if (rng.coin_flip(self.crossover.crossover_rate) || j == j_rand) {
-                        trial[j] = pop.gene(sub_problem_id, j) +
-                                   self.crossover.F *
-                                       (pop.gene(parents[1], j) - pop.gene(parents[2], j));
+                    double lb = trial_pop.lower_bounds[j];
+                    double ub = trial_pop.upper_bounds[j];
+                    double val;
+                    if (rng.coin_flip(self.crossover.cr) || j == j_rand) {
+                        val = pop.gene(sub_problem_id, j) +
+                              self.crossover.f *
+                                  (pop.gene(parents[0], j) - pop.gene(parents[1], j));
                     } else {
-                        trial[j] = pop.gene(sub_problem_id, j);
+                        val = pop.gene(sub_problem_id, j);
                     }
-                }
-
-                // Apply polynomial mutation on trial vector
-                // We need a temporary population slot for the trial
-                Population<> trial_pop(1, dim, n_obj, pop.n_const);
-                trial_pop.lower_bounds = pop.lower_bounds;
-                trial_pop.upper_bounds = pop.upper_bounds;
-                for (int j = 0; j < dim; ++j) {
-                    trial_pop.gene(0, j) = trial[j];
+                    trial_pop.gene(0, j) = std::clamp(val, lb, ub);
                 }
 
                 self.mutation.apply(trial_pop, 0);
@@ -218,7 +218,7 @@ private:
             for (int s : selected) {
                 if (s == candidate) { dup = true; break; }
             }
-            if (!dup && candidate != subproblem_id) {
+            if (!dup) {
                 selected.push_back(candidate);
             }
         }
