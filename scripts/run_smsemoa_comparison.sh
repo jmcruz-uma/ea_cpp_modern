@@ -82,14 +82,15 @@ build_jmetal() {
 build_java_benchmark() {
     echo "[3/4] Compilando JMetalSMSEMOABenchmark.java..."
 
-    local CORE_JAR ALGO_JAR PROB_JAR
+    local CORE_JAR ALGO_JAR PROB_JAR COMP_JAR
     CORE_JAR=$(ls "${JMETAL_ROOT}/jmetal-core/target/jmetal-core-"*.jar 2>/dev/null | grep -v 'sources\|javadoc\|dependencies' | head -1)
     ALGO_JAR=$(ls "${JMETAL_ROOT}/jmetal-algorithm/target/jmetal-algorithm-"*.jar 2>/dev/null | grep -v 'sources\|javadoc\|dependencies' | head -1)
     PROB_JAR=$(ls "${JMETAL_ROOT}/jmetal-problem/target/jmetal-problem-"*.jar 2>/dev/null | grep -v 'sources\|javadoc\|dependencies' | head -1)
+    COMP_JAR=$(ls "${JMETAL_ROOT}/jmetal-component/target/jmetal-component-"*.jar 2>/dev/null | grep -v 'sources\|javadoc\|dependencies' | head -1)
     local COMMONS_JAR
     COMMONS_JAR=$(find "${HOME}/.m2/repository/org/apache/commons/commons-lang3" -name "commons-lang3-*.jar" 2>/dev/null | sort -V | tail -1)
 
-    if [[ -z "$CORE_JAR" || -z "$ALGO_JAR" || -z "$PROB_JAR" ]]; then
+    if [[ -z "$CORE_JAR" || -z "$ALGO_JAR" || -z "$PROB_JAR" || -z "$COMP_JAR" ]]; then
         echo "ERROR: no se encontraron los jars de jMetal."
         echo "Ejecuta primero: cd ${JMETAL_ROOT} && mvn clean install -DskipTests"
         exit 1
@@ -99,7 +100,7 @@ build_java_benchmark() {
         exit 1
     fi
 
-    JMETAL_CP="${CORE_JAR}:${ALGO_JAR}:${PROB_JAR}:${COMMONS_JAR}"
+    JMETAL_CP="${CORE_JAR}:${ALGO_JAR}:${PROB_JAR}:${COMP_JAR}:${COMMONS_JAR}"
     export JMETAL_CP
 
     javac -cp "${JMETAL_CP}" "${BENCH_DIR}/JMetalSMSEMOABenchmark.java" -d "${OUTDIR}"
@@ -151,7 +152,7 @@ thermal_cooldown() {
 echo "============================================================"
 echo " Comparativa: ea_cpp_modern vs jMetal 7.4"
 echo "============================================================"
-echo " Algoritmo : SMS-EMOA (offset=100.0, PISAHypervolume)"
+echo " Algoritmo : SMS-EMOA (ref=max×1.1, SMSEMOAReplacement O(n log n) 2D)"
 echo " Problemas : ZDT1 (d=30), ZDT2 (d=30), ZDT3 (d=30), ZDT4 (d=10)"
 echo " Config    : pop=100, max_evals=25000"
 echo "             SBX(p=0.9, η=20), PolMut(p=1/dim, η=20)"

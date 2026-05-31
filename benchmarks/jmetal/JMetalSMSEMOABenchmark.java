@@ -1,5 +1,5 @@
-import org.uma.jmetal.algorithm.multiobjective.smsemoa.SMSEMOA;
-import org.uma.jmetal.algorithm.multiobjective.smsemoa.SMSEMOABuilder;
+import org.uma.jmetal.component.algorithm.EvolutionaryAlgorithm;
+import org.uma.jmetal.component.algorithm.multiobjective.SMSEMOABuilder;
 import org.uma.jmetal.operator.crossover.impl.SBXCrossover;
 import org.uma.jmetal.operator.mutation.impl.PolynomialMutation;
 import org.uma.jmetal.problem.doubleproblem.DoubleProblem;
@@ -7,6 +7,7 @@ import org.uma.jmetal.problem.multiobjective.zdt.ZDT1;
 import org.uma.jmetal.problem.multiobjective.zdt.ZDT2;
 import org.uma.jmetal.problem.multiobjective.zdt.ZDT3;
 import org.uma.jmetal.problem.multiobjective.zdt.ZDT4;
+import org.uma.jmetal.component.catalogue.common.termination.impl.TerminationByEvaluations;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 
 import java.io.FileWriter;
@@ -15,13 +16,15 @@ import java.util.List;
 
 /**
  * jMetal 7.4 SMS-EMOA benchmark runner — ZDT1-ZDT4.
+ * Usa el componente moderno SMSEMOABuilder (jmetal-component) con SMSEMOAReplacement,
+ * que implementa la contribución HV 2D en O(n log n) igual que smsemoa.hpp.
  *
  * Parámetros (deben coincidir con smsemoa_runner.cpp):
  *   Population : 100
  *   Max evals  : 25000
  *   Crossover  : SBX,  pc=0.9,  eta_c=20
  *   Mutation   : PM,   pm=1/D,  eta_m=20
- *   Offset     : 100.0  (DEFAULT_OFFSET de SMSEMOABuilder)
+ *   Ref point  : max × 1.1  (REFERENCE_POINT_OFFSET_FACTOR en SMSEMOAReplacement)
  *   ZDT4       : dim=10  (resto: dim=30)
  *
  * Salida CSV: system,problem,run,time_ms,igd
@@ -51,8 +54,8 @@ public class JMetalSMSEMOABenchmark {
         int    numRuns  = (args.length > 1) ? Integer.parseInt(args[1])  : NUM_RUNS;
         long   baseSeed = (args.length > 2) ? Long.parseLong(args[2])    : BASE_SEED;
 
-        System.err.println("=== jMetal 7.4 SMS-EMOA Benchmark ===");
-        System.err.printf("pop=%d  max_evals=%d  offset=100.0  runs=%d  seed=%d%n",
+        System.err.println("=== jMetal 7.4 SMS-EMOA Benchmark (SMSEMOAReplacement) ===");
+        System.err.printf("pop=%d  max_evals=%d  ref_factor=1.1  runs=%d  seed=%d%n",
                           POP_SIZE, MAX_EVALS, numRuns, baseSeed);
 
         var specs = List.of(
@@ -98,13 +101,13 @@ public class JMetalSMSEMOABenchmark {
         double pm = 1.0 / problem.numberOfVariables();
         var algorithm = new SMSEMOABuilder<>(
                 problem,
+                POP_SIZE,
                 new SBXCrossover(CX_PROB, CX_ETA),
                 new PolynomialMutation(pm, MUT_ETA))
-            .setMaxEvaluations(MAX_EVALS)
-            .setPopulationSize(POP_SIZE)
+            .setTermination(new TerminationByEvaluations(MAX_EVALS))
             .build();
         algorithm.run();
-        return algorithm.result();
+        return (List<DoubleSolution>) algorithm.result();
     }
 
     static double computeIGD(String name, List<DoubleSolution> front) {
