@@ -53,7 +53,8 @@ struct SMPSO {
     std::vector<std::vector<double>> personal_best_; ///< [pop_size][dim] personal best genes
     std::vector<std::vector<double>>
         personal_best_obj_;                          ///< [pop_size][n_obj] personal best objectives
-    Population<> archive_;   ///< Non-dominated archive SoA (capacity = archive_size + 1)
+    std::vector<std::vector<double>> archive_genes_; ///< [archive_size][dim] archived genes
+    std::vector<std::vector<double>> archive_obj_;   ///< [archive_size][n_obj] archived objectives
     int archive_count_ = 0;
 
     static constexpr std::string_view name() { return "SMPSO"; }
@@ -72,9 +73,8 @@ struct SMPSO {
         self.personal_best_.resize(n, std::vector<double>(dim));
         self.personal_best_obj_.resize(n, std::vector<double>(n_obj));
         // +1 para el slot temporal que usa add_to_archive cuando el archivo está lleno
-        self.archive_ = Population<>(self.archive_size + 1, dim, n_obj, pop.n_const);
-        self.archive_.lower_bounds = pop.lower_bounds;
-        self.archive_.upper_bounds = pop.upper_bounds;
+        self.archive_genes_.resize(self.archive_size + 1, std::vector<double>(dim));
+        self.archive_obj_.resize(self.archive_size + 1, std::vector<double>(n_obj));
         self.archive_count_ = 0;
 
         // Compute delta max/min for velocity constriction
@@ -132,7 +132,7 @@ struct SMPSO {
                     double v = self.speed_[i][j];
                     double pb = self.personal_best_[i][j];
                     double x = pop.gene(i, j);
-                    double gb = self.archive_.gene(leader_idx, j);
+                    double gb = self.archive_genes_[leader_idx][j];
 
                     v = chi * (w * v + c1 * r1 * (pb - x) + c2 * r2 * (gb - x));
 
@@ -245,7 +245,7 @@ private:
             bool new_dominates_a = false;
 
             for (int o = 0; o < n_obj; ++o) {
-                double fa = self.archive_.objective(a, o);
+                double fa = self.archive_obj_[a][o];
                 double fb = pop.objective(idx, o);
                 if (fa < fb)
                     a_dominates_new = true;
@@ -273,8 +273,12 @@ private:
 
         if (self.archive_count_ < self.archive_size) {
             // Add directly
-            std::copy_n(pop.genes_ptr(idx), dim, self.archive_.genes_ptr(self.archive_count_));
-            std::copy_n(pop.objectives_ptr(idx), n_obj, self.archive_.objectives_ptr(self.archive_count_));
+            for (int j = 0; j < dim; ++j) {
+                self.archive_genes_[self.archive_count_][j] = pop.gene(idx, j);
+            }
+            for (int o = 0; o < n_obj; ++o) {
+                self.archive_obj_[self.archive_count_][o] = pop.objective(idx, o);
+            }
             self.archive_count_++;
         } else {
             // Archive full — protocolo jMetal CrowdingDistanceArchive.prune():
@@ -282,8 +286,10 @@ private:
             // 2. Recalcula crowding para archive_count_+1 soluciones (incluyendo la nueva).
             // 3. Elimina la de menor crowding distance — puede ser la nueva.
             int slot = self.archive_count_; // slot temporal pre-alojado
-            std::copy_n(pop.genes_ptr(idx), dim, self.archive_.genes_ptr(slot));
-            std::copy_n(pop.objectives_ptr(idx), n_obj, self.archive_.objectives_ptr(slot));
+            for (int j = 0; j < dim; ++j)
+                self.archive_genes_[slot][j] = pop.gene(idx, j);
+            for (int o = 0; o < n_obj; ++o)
+                self.archive_obj_[slot][o] = pop.objective(idx, o);
 
             auto crowding = self.compute_archive_crowding(self.archive_count_ + 1);
             int worst_idx = static_cast<int>(
@@ -291,7 +297,8 @@ private:
 
             if (worst_idx < self.archive_count_) {
                 // Un miembro existente es el más crowded: sustituirlo por el nuevo
-                self.archive_.copy_individual(slot, worst_idx);
+                self.archive_genes_[worst_idx] = self.archive_genes_[slot];
+                self.archive_obj_[worst_idx]   = self.archive_obj_[slot];
             }
             // else worst_idx == slot: el nuevo es el más crowded, se descarta (no se toca archive_count_)
         }
@@ -302,7 +309,8 @@ private:
         if (idx < 0 || idx >= self.archive_count_)
             return;
         for (int i = idx; i < self.archive_count_ - 1; ++i) {
-            self.archive_.copy_individual(i + 1, i);
+            self.archive_genes_[i] = self.archive_genes_[i + 1];
+            self.archive_obj_[i] = self.archive_obj_[i + 1];
         }
         self.archive_count_--;
     }
@@ -329,7 +337,7 @@ private:
     /// Matches jMetal CrowdingDistance.computeDensityEstimator().
     std::vector<double> compute_archive_crowding(this auto& self, int n = -1) {
         if (n < 0) n = self.archive_count_;
-        const int m = self.archive_.n_obj;
+        const int m = static_cast<int>(self.archive_obj_[0].size());
         std::vector<double> crowding(n, 0.0);
 
         if (n <= 2) {
@@ -342,14 +350,14 @@ private:
             std::vector<int> order(n);
             std::iota(order.begin(), order.end(), 0);
             std::sort(order.begin(), order.end(), [&](int a, int b) {
-                return self.archive_.objective(a, o) < self.archive_.objective(b, o);
+                return self.archive_obj_[a][o] < self.archive_obj_[b][o];
             });
 
             crowding[order[0]]     = std::numeric_limits<double>::infinity();
             crowding[order[n - 1]] = std::numeric_limits<double>::infinity();
 
-            double obj_min = self.archive_.objective(order[0], o);
-            double obj_max = self.archive_.objective(order[n - 1], o);
+            double obj_min = self.archive_obj_[order[0]][o];
+            double obj_max = self.archive_obj_[order[n - 1]][o];
             double range   = obj_max - obj_min;
 
             if (range < 1e-14)
@@ -357,8 +365,8 @@ private:
 
             for (int i = 1; i < n - 1; ++i) {
                 if (crowding[order[i]] != std::numeric_limits<double>::infinity()) {
-                    double prev_obj = self.archive_.objective(order[i - 1], o);
-                    double next_obj = self.archive_.objective(order[i + 1], o);
+                    double prev_obj = self.archive_obj_[order[i - 1]][o];
+                    double next_obj = self.archive_obj_[order[i + 1]][o];
                     crowding[order[i]] += (next_obj - prev_obj) / range;
                 }
             }

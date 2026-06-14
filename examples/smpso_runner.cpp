@@ -105,8 +105,8 @@ std::pair<double, double> run_once(Problem& prob, const std::string& prob_name, 
     archive_front.reserve(smpso.archive_count_);
     for (int i = 0; i < smpso.archive_count_; ++i) {
         archive_front.push_back(
-            std::vector<double>(smpso.archive_.objectives_ptr(i),
-                                smpso.archive_.objectives_ptr(i) + n_obj));
+            std::vector<double>(smpso.archive_obj_[i].begin(),
+                                smpso.archive_obj_[i].begin() + n_obj));
     }
 
     auto ref = make_ref_front(prob_name);
