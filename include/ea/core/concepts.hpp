@@ -41,17 +41,22 @@ concept Mutation = requires(T& mut, Population<>& pop, int idx) {
     { mut.encoding() } -> std::convertible_to<Encoding>;
 };
 
-/// A Selection operator selects individuals from a population.
+/// A context-free Selection operator fills a mating pool from a population.
+/// Note: tournament-based operators (BinaryTournamentSelection, NaryTournamentSelection)
+/// need additional context (ranks, crowding distances) and do NOT satisfy this concept.
+/// They are used as concrete embedded members, not template parameters.
 template <typename T>
 concept Selection = requires(T& sel, Population<>& pop, std::vector<int>& mating_pool) {
     { sel.select(pop, mating_pool) } -> std::same_as<void>;
 };
 
-/// A Replacement operator merges parents and offspring.
+/// A Replacement operator selects survivors from a combined population.
+/// Uniform API: replace(combined_pop, offspring_indices, target_size) → selected indices.
+/// offspring_indices may be ignored by operators that do full-population ranking (NSGA-II/III).
 template <typename T>
 concept Replacement =
-    requires(T& repl, Population<>& pop, std::vector<int>& offspring_indices, int pop_size) {
-        { repl.replace(pop, offspring_indices, pop_size) } -> std::same_as<std::vector<int>>;
+    requires(T& repl, Population<>& pop, const std::vector<int>& offspring_indices, int target_size) {
+        { repl.replace(pop, offspring_indices, target_size) } -> std::same_as<std::vector<int>>;
     };
 
 // ============================================================
@@ -84,10 +89,11 @@ concept ConstrainedProblem = Problem<T> && requires(T& prob) {
 // Algorithm concept
 // ============================================================
 
-/// An Evolutionary Algorithm runs on a population.
+/// An Evolutionary Algorithm has a name and a run() method.
+/// Note: run() takes a template EvalFunctor parameter and cannot be checked here
+/// without a concrete type. Only name() is verified. Use EvalFunctor at call sites.
 template <typename T>
-concept Algorithm = requires(T& algo, Population<>& pop) {
-    { algo.run(pop) } -> std::same_as<void>;
+concept Algorithm = requires(T& algo) {
     { algo.name() } -> std::convertible_to<std::string_view>;
 };
 
@@ -95,31 +101,35 @@ concept Algorithm = requires(T& algo, Population<>& pop) {
 // Encoding-specific concepts
 // ============================================================
 
-/// A crossover that works with real-valued encodings.
+/// A crossover for real-valued encodings (encoding() == Real at compile time).
 template <typename T>
-concept RealCrossover = Crossover<T> && requires(T& cx) {
-    { cx.encoding() } -> std::same_as<Encoding>;
-    requires cx.encoding() == Encoding::Real || true; // runtime check
+concept RealCrossover = Crossover<T> && requires {
+    requires T::encoding() == Encoding::Real;
 };
 
-/// A crossover that works with permutation encodings.
+/// A crossover for permutation encodings (encoding() == Permutation at compile time).
 template <typename T>
-concept PermutationCrossover = Crossover<T>;
+concept PermutationCrossover = Crossover<T> && requires {
+    requires T::encoding() == Encoding::Permutation;
+};
 
 // ============================================================
 // Comparator concepts
 // ============================================================
 
-/// A comparator for dominance-based ranking.
+/// A typed dominance comparator: compare(pop, a, b) → {-1, 0, 1}.
+/// Note: dominance is currently implemented as the free function fast_non_dominated_sort()
+/// in comparator.hpp. This concept is reserved for future typed comparator objects.
 template <typename T>
 concept DominanceComparator = requires(T& cmp, Population<>& pop, int a, int b) {
     { cmp.compare(pop, a, b) } -> std::convertible_to<int>;
-    // -1: a dominates b, 0: non-dominated, 1: b dominates a
 };
 
-/// A comparator for crowding distance sorting.
+/// A typed crowding-distance estimator: crowding_distance(pop, idx) → double.
+/// Note: crowding distance is currently compute_crowding_distance() free function.
+/// This concept is reserved for future typed estimator objects.
 template <typename T>
-concept CrowdingComparator = requires(T& cmp, Population<>& pop, int a, int b) {
+concept CrowdingComparator = requires(T& cmp, Population<>& pop, int a) {
     { cmp.crowding_distance(pop, a) } -> std::convertible_to<double>;
 };
 

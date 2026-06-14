@@ -143,7 +143,7 @@ template <Crossover CX, Mutation MT> struct NSGAIII {
             combined.pop_size = 2 * n;
 
             // ── Environmental selection (reference-point niching) ──────────
-            auto sel = replacement.replace(combined, n);
+            auto sel = replacement.replace(combined, {}, n);
 
             for (int i = 0; i < n; ++i) {
                 std::copy_n(combined.genes_ptr(sel[i]), dim, pop.genes_ptr(i));

@@ -35,9 +35,10 @@ struct NSGAIIIReplacement {
         : reference_points(std::move(refs)) {}
 
     /// Environmental selection on a combined (2N) population.
-    /// Returns target_size indices from combined to keep as the next population.
+    /// @param offspring_indices Ignored — NSGA-III ranks all combined solutions jointly.
+    /// @return target_size indices from combined to keep as the next population.
     std::vector<int> replace(this NSGAIIIReplacement& self, Population<>& combined,
-                             int target_size);
+                             const std::vector<int>& offspring_indices, int target_size);
 
 private:
     /// Perpendicular distance from `point` to the LINE from origin through `dir`.
@@ -92,7 +93,10 @@ private:
 };
 
 inline std::vector<int> NSGAIIIReplacement::replace(this NSGAIIIReplacement& self,
-                                                    Population<>& combined, int target_size) {
+                                                    Population<>& combined,
+                                                    const std::vector<int>& offspring_indices,
+                                                    int target_size) {
+    (void)offspring_indices;
     const int n_obj = combined.n_obj;
 
     // ── Step 1: Non-dominated sort, fill complete fronts ──────────────────

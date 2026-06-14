@@ -179,7 +179,7 @@ template <Crossover CX, Mutation MT> struct NSGAII {
             combined.pop_size = 2 * n;
 
             // === 5. Environmental selection ===
-            auto selected = self.replacement.replace(combined, n);
+            auto selected = self.replacement.replace(combined, {}, n);
 
             // Copy selected back to population
             for (int i = 0; i < n; ++i) {

@@ -19,10 +19,13 @@ namespace ea {
 struct NSGAIIReplacement {
 
     /// Perform NSGA-II environmental selection.
-    /// @param combined Population<> of size 2*pop_size (parents + offspring)
-    /// @param pop_size Target population size
+    /// @param combined          Population<> of size 2*pop_size (parents + offspring)
+    /// @param offspring_indices Ignored — NSGA-II ranks all combined solutions jointly.
+    /// @param pop_size          Target population size
     /// @return Vector of selected individual indices (sorted by rank, then crowding)
-    std::vector<int> replace(this NSGAIIReplacement&, Population<>& combined, int pop_size) {
+    std::vector<int> replace(this NSGAIIReplacement&, Population<>& combined,
+                             const std::vector<int>& offspring_indices, int pop_size) {
+        (void)offspring_indices;
         // Step 1: Fast non-dominated sort
         auto fronts = fast_non_dominated_sort(combined);
 
@@ -75,7 +78,7 @@ struct NSGAIIReplacement {
     /// Compact selected individuals into the first pop_size positions of the population.
     /// After calling this, indices [0, pop_size) contain the selected individuals.
     void compact(this NSGAIIReplacement& self, Population<>& combined, int pop_size) {
-        auto selected = self.replace(combined, 2 * pop_size);
+        auto selected = self.replace(combined, {}, pop_size);
 
         // Copy selected individuals to positions [0, pop_size)
         for (int i = 0; i < pop_size; ++i) {
