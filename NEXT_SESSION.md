@@ -37,7 +37,7 @@ Repos:
 |---------|:-------:|:--------:|:-----------:|
 | ZDT (6) | ✅ | parcial | ✅ ZDT1-4 (todos los algoritmos) |
 | DTLZ (7) | ✅ | ❌ | ✅ DTLZ1-4 (NSGA-III) |
-| WFG (9) | ✅ | ❌ | ❌ pendiente |
+| WFG (9) | ✅ | ✅ | ✅ WFG1-9 (NSGA-II, m=2 k=2 l=4) |
 | UF (10) | ✅ | ✅ | ✅ UF1-7 / ❌ UF8-10 |
 | LZ09 (9) | ✅ | ✅ | ✅ LZ09F1-F9 (NSGA-II+NSGA-III) |
 
@@ -90,79 +90,48 @@ Para el paper: speedup real, calidad comparable (mismo orden de magnitud).
 Infraestructura: `examples/lz09_runner.cpp`, `benchmarks/jmetal/JMetalLZ09Benchmark.java`,
 `scripts/run_lz09_comparison.sh`, `results/lz09_comparison/`.
 
+### WFG1-9 — COMPLETO ✅ (sesión 2026-06-14)
+
+NSGA-II, pop=100, max_evals=25000, 30 runs, k=2 l=4 M=2 dim=6 (jMetal DefaultWFGSettings).
+Frentes de referencia: CSVs precomputados de jMetal (~119-2600 pts por problema).
+
+**Auditoría: sin bugs.** wfg.hpp es fiel a jMetal canónico en todos los problemas.
+Únicas diferencias: (1) epsilon normalise 1e-10 C++ vs 1e-7 Java — irrelevante. (2) double C++ vs float Java — efecto en WFG8 (ver notas).
+
+| Problema | C++ med (ms) | Java med (ms) | Speedup | IGD p-val |
+|----------|:---:|:---:|:---:|:---:|
+| WFG1 | 125 | 417 | 3.33× | 0.009 ** |
+| WFG2 | 123 | 392 | 3.19× | 0.70 ns |
+| WFG3 | 108 | 398 | 3.69× | 0.36 ns |
+| WFG4 | 109 | 413 | 3.80× | 0.61 ns |
+| WFG5 | 104 | 416 | 4.01× | 0.21 ns |
+| WFG6 | 113 | 412 | 3.65× | 0.82 ns |
+| WFG7 | 111 | 416 | 3.76× | 0.43 ns |
+| WFG8 | 134 | 443 | 3.30× | <0.0001 *** |
+| WFG9 | 123 | 434 | 3.52× | 0.18 ns |
+| **mediana** | | | **3.65×** | 7/9 ns |
+
+**Nota WFG1** (p=0.009, Java IGD mejor — med 0.565 vs C++ 0.845):
+WFG1 tiene el bPoly(y, 0.02) sobre todas las variables → landscape muy plana y alta varianza de IGD
+(σ=0.19 C++, σ=0.33 Java). La diferencia podría ser seed effect (C++ seeds 42..71, Java 45..74),
+o efecto de float vs double en bPoly. Para el paper: reportar honestamente; speedup real 3.33×.
+
+**Nota WFG8** (p<0.0001, C++ IGD mejor — med 0.060 vs Java 0.125; W=0, 30/30 wins):
+bParam sobre variables de distancia usa rSum de variables previas. Con float en Java, la pequeña
+imprecisión en el parámetro u del bParam cambia el exponente (rango 0.02–50), alterando el
+landscape. C++ double produce función más diferenciada → mejor convergencia de NSGA-II.
+Cat-2 finding: precisión afecta la calidad de solución, no solo la exactitud numérica.
+
+Infraestructura: `examples/wfg_runner.cpp`, `benchmarks/jmetal/JMetalWFGBenchmark.java`,
+`scripts/run_wfg_comparison.sh`, `results/wfg_comparison/`.
+
 ---
 
-## PRÓXIMA TAREA: WFG1-9 (auditoría + benchmark)
+## PRÓXIMA TAREA: bare-metal validation + escritura del paper
 
-### Contexto general WFG
+**WFG1-9 completado en sesión 2026-06-14. Ver sección de resultados arriba.**
 
-El WFG (Walking Fish Group) es escalable en M objetivos y n_vars = k + l variables:
-- k: parámetros de posición (relacionados con el PS)
-- l: parámetros de distancia
-- Bounds: variable i ∈ [0, 2*(i+1)]
-
-Archivos clave:
-- `include/ea/problem/wfg.hpp` (995 líneas) — portado, **SIN AUDITAR**
-- `/home/alumno/jMetal/jmetal-problem/src/main/java/org/uma/jmetal/problem/multiobjective/wfg/WFG{1-9}.java` — referencia canónica
-- `/home/alumno/ea_cpp_jmetal/include/ea/problem/wfg.hpp` — fork secundario (NO de confianza ciega)
-
-### Configuración de benchmark (jMetal default)
-
-jMetal usa `new WFG1()` → k=2, l=4, M=2, n_vars=6.
-DefaultWFGSettings: `numberOfPositionParameters=2, numberOfDistanceParameters=4, numberOfObjectives=2`.
-
-**ATENCIÓN**: ea_cpp_modern WFG usa defaults distintos: `WFG1(int m=3, int k=-1, int l=20)`.
-Para el benchmark, instanciar con los parámetros jMetal: `WFG1(/*m=*/2, /*k=*/2, /*l=*/4)`.
-
-Algoritmo benchmark: **NSGA-II** (pop=100, max_evals=25000, SBX+PM), igual que WFGStudy.java.
-
-### Frentes de referencia
-
-jMetal tiene CSVs precomputados para todos WFG1-9, 2D y 3D:
-```
-/home/alumno/jMetal/resources/referenceFrontsCSV/WFG{1-9}.2D.csv
-```
-Formato: `f1,f2` (comma-separated), ~1113 puntos por archivo.
-**Usar estos CSVs como frente de referencia** — no hay frentes analíticos simples para WFG.
-
-### Protocolo de auditoría
-
-Orden obligatorio: jMetal canónico → ea_cpp_jmetal (solo como pista) → ea_cpp_modern.
-
-Archivos a auditar en jMetal (un archivo por problema):
-```
-WFG.java       — pipeline evaluate(): normalize → t1..tN → calculate_x → shape
-WFG1.java      — t1=bFlat+bPoly, t2=rSum, t3=rSum; shape: convex+mixed
-WFG2.java      — t3=rNonsep; shape: convex+disconnected
-WFG3.java      — t3=rNonsep; shape: linear (degenerate)
-WFG4.java      — t1=sMulti, t2=rSum, t3=rSum; shape: spherical
-WFG5.java      — t1=sDecept, ...; shape: spherical
-WFG6.java      — t3=rNonsep; shape: spherical
-WFG7.java      — t1=bParam, t2=rSum; shape: spherical
-WFG8.java      — t1=bParam (backward); shape: spherical
-WFG9.java      — t1=sDecept+bParam, t3=rNonsep; shape: spherical
-```
-
-Puntos especialmente críticos (fuente de bugs en otros portados):
-1. `correct_to_01`: tolerancia epsilon (Java usa float, C++ usa double — revisar precisión)
-2. `r_nonsep`: reduce con floor y mod (fácil de meter off-by-one)
-3. `b_param`: usa aleatoriedad interna en WFG7/WFG8 (¿cómo la maneja ea_cpp_modern?)
-4. `calculate_x`: fórmula x[i] = 2*(i+1)*y[i] (bounds-dependent)
-5. `s` array: `s[i] = 2*(i+1)` — escalado de objetivos
-6. Orden de transformaciones por problema: verificar t1→t2→t3 uno a uno
-
-### Archivos a crear (tras auditoría)
-
-1. `examples/wfg_runner.cpp` — NSGA-II sobre WFG1-9 (m=2, k=2, l=4)
-2. `benchmarks/jmetal/JMetalWFGBenchmark.java` — contraparte Java
-3. `scripts/run_wfg_comparison.sh` — patrón: run_uf_comparison.sh
-
-### Java imports para WFG
-
-```java
-import org.uma.jmetal.problem.multiobjective.wfg.WFG1; // ... hasta WFG9
-// Constructor: new WFG1() — usa DefaultWFGSettings: k=2, l=4, M=2
-```
+Todos los benchmarks de problemas están completos. La siguiente tarea es bare-metal validation.
 
 ---
 
