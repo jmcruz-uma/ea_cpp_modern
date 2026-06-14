@@ -92,41 +92,108 @@ Infraestructura: `examples/lz09_runner.cpp`, `benchmarks/jmetal/JMetalLZ09Benchm
 
 ---
 
-## Pendiente
+## PRÓXIMA TAREA: WFG1-9 (auditoría + benchmark)
 
-### UF8-10 (opcional, menor prioridad)
+### Contexto general WFG
 
-- 3 objetivos, 30 vars cada uno; x[0],x[1]∈[0,1], resto∈[-2,2].
-- Frente analítico: cuarto de esfera (f1²+f2²+f3²=1), misma que DTLZ2.
-- Algoritmo: NSGA-III (pop=92, divisions=12).
-- No prioritario para el paper si LZ09 ya cubre el benchmark 3-obj.
+El WFG (Walking Fish Group) es escalable en M objetivos y n_vars = k + l variables:
+- k: parámetros de posición (relacionados con el PS)
+- l: parámetros de distancia
+- Bounds: variable i ∈ [0, 2*(i+1)]
 
-### WFG (requiere auditoría previa)
+Archivos clave:
+- `include/ea/problem/wfg.hpp` (995 líneas) — portado, **SIN AUDITAR**
+- `/home/alumno/jMetal/jmetal-problem/src/main/java/org/uma/jmetal/problem/multiobjective/wfg/WFG{1-9}.java` — referencia canónica
+- `/home/alumno/ea_cpp_jmetal/include/ea/problem/wfg.hpp` — fork secundario (NO de confianza ciega)
 
-`wfg.hpp` existe en ea_cpp_modern pero no ha sido auditado contra jMetal.
-Antes de correr benchmarks WFG, auditar siguiendo el mismo protocolo (jMetal → ea_cpp_jmetal → ea_cpp_modern).
-WFG tiene 9 problemas (WFG1-9), configurable en número de objetivos y variables.
+### Configuración de benchmark (jMetal default)
+
+jMetal usa `new WFG1()` → k=2, l=4, M=2, n_vars=6.
+DefaultWFGSettings: `numberOfPositionParameters=2, numberOfDistanceParameters=4, numberOfObjectives=2`.
+
+**ATENCIÓN**: ea_cpp_modern WFG usa defaults distintos: `WFG1(int m=3, int k=-1, int l=20)`.
+Para el benchmark, instanciar con los parámetros jMetal: `WFG1(/*m=*/2, /*k=*/2, /*l=*/4)`.
+
+Algoritmo benchmark: **NSGA-II** (pop=100, max_evals=25000, SBX+PM), igual que WFGStudy.java.
+
+### Frentes de referencia
+
+jMetal tiene CSVs precomputados para todos WFG1-9, 2D y 3D:
+```
+/home/alumno/jMetal/resources/referenceFrontsCSV/WFG{1-9}.2D.csv
+```
+Formato: `f1,f2` (comma-separated), ~1113 puntos por archivo.
+**Usar estos CSVs como frente de referencia** — no hay frentes analíticos simples para WFG.
+
+### Protocolo de auditoría
+
+Orden obligatorio: jMetal canónico → ea_cpp_jmetal (solo como pista) → ea_cpp_modern.
+
+Archivos a auditar en jMetal (un archivo por problema):
+```
+WFG.java       — pipeline evaluate(): normalize → t1..tN → calculate_x → shape
+WFG1.java      — t1=bFlat+bPoly, t2=rSum, t3=rSum; shape: convex+mixed
+WFG2.java      — t3=rNonsep; shape: convex+disconnected
+WFG3.java      — t3=rNonsep; shape: linear (degenerate)
+WFG4.java      — t1=sMulti, t2=rSum, t3=rSum; shape: spherical
+WFG5.java      — t1=sDecept, ...; shape: spherical
+WFG6.java      — t3=rNonsep; shape: spherical
+WFG7.java      — t1=bParam, t2=rSum; shape: spherical
+WFG8.java      — t1=bParam (backward); shape: spherical
+WFG9.java      — t1=sDecept+bParam, t3=rNonsep; shape: spherical
+```
+
+Puntos especialmente críticos (fuente de bugs en otros portados):
+1. `correct_to_01`: tolerancia epsilon (Java usa float, C++ usa double — revisar precisión)
+2. `r_nonsep`: reduce con floor y mod (fácil de meter off-by-one)
+3. `b_param`: usa aleatoriedad interna en WFG7/WFG8 (¿cómo la maneja ea_cpp_modern?)
+4. `calculate_x`: fórmula x[i] = 2*(i+1)*y[i] (bounds-dependent)
+5. `s` array: `s[i] = 2*(i+1)` — escalado de objetivos
+6. Orden de transformaciones por problema: verificar t1→t2→t3 uno a uno
+
+### Archivos a crear (tras auditoría)
+
+1. `examples/wfg_runner.cpp` — NSGA-II sobre WFG1-9 (m=2, k=2, l=4)
+2. `benchmarks/jmetal/JMetalWFGBenchmark.java` — contraparte Java
+3. `scripts/run_wfg_comparison.sh` — patrón: run_uf_comparison.sh
+
+### Java imports para WFG
+
+```java
+import org.uma.jmetal.problem.multiobjective.wfg.WFG1; // ... hasta WFG9
+// Constructor: new WFG1() — usa DefaultWFGSettings: k=2, l=4, M=2
+```
+
+---
+
+## Pendiente (menor prioridad)
+
+### UF8-10 (opcional)
+
+- 3 objetivos, 30 vars; NSGA-III (pop=92, divisions=12).
+- LZ09F6 ya cubre el caso 3-obj → baja prioridad.
 
 ### Modelo distribuido island
 
-Ver `feedback_distributed_transport.md` en memoria: `taps_transport.hpp` de ea_cpp_jmetal
-es incorrecto; hay que reimplementar con otro middleware. Pendiente de decisión de diseño.
+`taps_transport.hpp` de ea_cpp_jmetal es incorrecto. Ver memoria `feedback_distributed_transport.md`.
+Pendiente de decisión de middleware. Baja prioridad para el paper.
 
 ### Bare-metal validation
 
-Repetir todos los benchmarks sin WSL2. Comandos:
+Repetir todos los benchmarks fuera de WSL2. Comandos:
 ```bash
 sudo cpupower frequency-set -g performance
 echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
 SKIP_JMETAL_BUILD=1 ./scripts/run_uf_comparison.sh results/uf_baremetal 30
+SKIP_JMETAL_BUILD=1 ./scripts/run_lz09_comparison.sh results/lz09_baremetal 30
 # ... (igual para todos los algoritmos)
 ```
+Bloquea la escritura del paper — hacer antes de redactar.
 
 ### Escritura del paper
 
-Ver `project_paper_framing.md` en memoria para encuadre Cat-1/2/3, tabla speedups,
-bugs reportables en jMetal (GDE3 doble NDS, PAES density). Pendiente hasta tener
-todos los benchmarks (incluido bare-metal).
+Ver `project_paper_framing.md` en memoria: Cat-1/2/3, tabla speedups,
+bugs reportables (GDE3 doble NDS, PAES density). Pendiente hasta bare-metal.
 
 ---
 
