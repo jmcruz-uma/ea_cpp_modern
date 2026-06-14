@@ -127,10 +127,80 @@ Infraestructura: `examples/wfg_runner.cpp`, `benchmarks/jmetal/JMetalWFGBenchmar
 
 ---
 
+## Framework C++23 — versión estable ✅ (sesión 2026-06-14)
+
+### C++20 Concepts — IMPLEMENTADO COMPLETAMENTE
+
+En esta sesión se han aplicado y corregido todos los C++20 Concepts del framework.
+El sistema ahora rechaza tipos incorrectos en tiempo de compilación con mensajes claros.
+
+#### Nuevo concepto: `EvalFunctor`
+
+```cpp
+template <typename F>
+concept EvalFunctor = requires(F& f, Population<>& pop, int idx) {
+    { f(pop, idx) } -> std::same_as<void>;
+};
+```
+
+`EvalFunctor` permite que `run()` acepte tanto lambdas como structs problem completos.
+Todos los `run()` de los 14 ficheros de algoritmo usan `template <EvalFunctor F>`.
+
+#### Constraints aplicadas
+
+| Template | Antes | Después |
+|---|---|---|
+| `NSGAII<CX,MT>` | `typename CX, typename MT` | `Crossover CX, Mutation MT` |
+| `NSGAIII<CX,MT>` | idem | idem |
+| `SPEA2<CX,MT>` | idem | idem |
+| `IBEA<CX,MT>` | idem | idem |
+| `SMSEMOA<CX,MT>` | idem | idem |
+| `AGEMOEA<CX,MT>` | idem | idem |
+| `MOCell<CX,MT>` | idem | idem |
+| `MOEAD<CX,MT>` | idem | idem |
+| `MuLambdaES<CX,MT>` | idem | idem |
+| `PAES<MT>` | `typename MT` | `Mutation MT` |
+| Todos los `run()` | `template <typename Problem>` | `template <EvalFunctor F>` |
+
+Pasar un tipo incorrecto produce un mensaje exacto: `template constraint failure for
+'template<class CX, class MT> requires (Crossover<CX>) && (Mutation<MT>) struct ea::NSGAII'`
+
+#### Concepts corregidos (estaban rotos)
+
+| Concepto | Bug anterior | Fix |
+|---|---|---|
+| `RealCrossover` | `requires cx.encoding()==Real \|\| true` siempre verdadero | `requires T::encoding() == Encoding::Real` |
+| `PermutationCrossover` | alias trivial de `Crossover` sin filtro de encoding | `requires T::encoding() == Encoding::Permutation` |
+| `Algorithm` | `run(pop)` sin problem — ningún algoritmo lo satisfacía | Solo verifica `name()`; run() no es expresable sin `F` concreto |
+| `Replacement` | 2 de 8 operators con API diferente (2 args vs 3 args) | Unificada a 3-arg; `NSGAIIReplacement` y `NSGAIIIReplacement` usan `(void)offspring_indices` |
+
+#### Concepts documentados (sin tipos concretos todavía)
+
+- `Selection`: cubre selección sin contexto (RandomSelection, NaryRandomSelection). Tournament operators necesitan ranks+crowding — son miembros concretos, no template params.
+- `DominanceComparator` / `CrowdingComparator`: API definida para futura OO; actualmente son funciones libres en `comparator.hpp`.
+- `Problem`, `BatchProblem`, `ConstrainedProblem`: correctos y verificables con `static_assert`; no usados como constraint en `run()` porque `run()` acepta lambdas.
+
+#### Verificación compile-time reutilizable
+
+`tests/unit/test_concepts.cpp` — zero runtime cost (puro `static_assert`):
+- Positivos: SBXCrossover ✓ Crossover ✓ RealCrossover, PMXCrossover ✓ PermutationCrossover, etc.
+- Negativos: PolynomialMutation ✗ Crossover, SBXCrossover ✗ RealCrossover, Empty ✗ Algorithm, etc.
+- Instantiation smoke-tests: todos los 9 algorithms con `<SBX, PM>` instancian sin error.
+- Añadir un operador nuevo: incluirlo aquí ANTES de integrarlo en un algoritmo.
+
+Build: `make test` incluye `test_concepts` (se compila desde cero en clean build).
+
+#### Bug latente corregido
+
+`gde3.hpp:149` llamaba `replacer.replace(combined, N)` con la API antigua (2 args).
+No causaba error en builds incrementales (binarios pre-built). Detectado con `rm -rf build && make test`.
+**Lección**: siempre hacer clean build antes de un commit de refactoring de API.
+
+---
+
 ## PRÓXIMA TAREA: bare-metal validation + escritura del paper
 
-**WFG1-9 completado en sesión 2026-06-14. Ver sección de resultados arriba.**
-
+**Framework en estado estable completo desde sesión 2026-06-14.**
 Todos los benchmarks de problemas están completos. La siguiente tarea es bare-metal validation.
 
 ---
