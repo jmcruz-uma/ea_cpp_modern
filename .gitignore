@@ -1,6 +1,8 @@
 build/
 zdt1_front.csv
 *.csv
+*.class
+results/
 Doxyfile.bak
 docs/html/
 docs/latex/
