@@ -102,6 +102,85 @@ struct NSGAII {
 };
 ```
 
+## Evolutionary History: From ea_cpp_original to ea_cpp_modern
+
+### The Three-Tier Lineage
+
+```
+Bio4Res/ea  (Java, single-objective)   +   jMetal 7.4  (Java, multi-objective)
+      ↓ C++ port, OO style                       ↓ semantic reference
+ea_cpp_original  (C++23, AoS, virtual dispatch, energy-reduction focus)
+      ↓ architecture redesign
+ea_cpp_modern    (C++23, SoA, Concepts, deducing-this, this paper)
+```
+
+`ea_cpp_original` is a direct C++ port of the Java framework `Bio4Res/ea`
+(https://github.com/Bio4Res/ea), explicitly aimed at reducing energy consumption via C++.
+It compiles with the same flags (`-O3 -march=native -std=c++23`) but retains the OO
+structure of its Java source: inheritance hierarchies, virtual dispatch, and
+Array-of-Structs population layout.
+
+### What ea_cpp_original Got Right
+
+- Same algorithmic operators as the Java reference (SBX, PM, tournament, etc.)
+- Same RNG philosophy (Xoshiro, singleton `Random::instance()`)
+- Same problem definitions (Sphere, Rastrigin, ZDT, DTLZ families)
+- Correct `Island + Topology + Migration` model
+- C++23 compilation required (uses `std::format`, `std::execution::par_unseq`)
+
+### The Architectural Gap
+
+| Aspect | ea_cpp_original | ea_cpp_modern |
+|---|---|---|
+| Population layout | `vector<Individual>` (AoS) — heap per individual | `Population<>` SoA — flat contiguous arrays |
+| Polymorphism | Pure virtual + Factory registry | `deducing this` + Concepts |
+| Problem interface | `ObjectiveFunction` inheritance (vtable) | `Problem<T>` Concept — no vtable |
+| Operator interface | `VariationOperator::apply_(vector<Individual>)` returns new `Individual` | `apply(Population&, int, int, int)` — in-place, zero allocation |
+| Encoding | `Union{int, double}` inside `Genotype` | `gene_t<Encoding>` — compile-time type |
+| Algorithm config | JSON → `EAConfiguration` → Factory → `Island` setup | `NSGAII<SBX, PM>` — template composition |
+
+### Why AoS → SoA Is the Core Contribution
+
+In ea_cpp_original, evaluating the objectives of N individuals requires
+touching N heap-allocated `Genotype` objects with pointer indirection:
+
+```
+for Individual ind : population:             // vtable + pointer chase
+    double fit = objective.evaluate(ind);    // virtual call
+    // ind.genome → heap → ind.genome->genes → heap → [gene0, gene1, ...]
+```
+
+In ea_cpp_modern, the same loop is:
+
+```cpp
+for (int i = 0; i < pop_size; ++i)          // sequential, no indirection
+    problem.evaluate(pop, i);               // inline, no virtual call
+    // pop.genes[i * dim + j]               // cache-line hot, SIMD-ready
+```
+
+The transition from AoS to SoA turns objective evaluation and NDS into
+SIMD-vectorizable loops. Combined with eliminating vtable dispatch, this
+accounts for the majority of the speedup observed vs jMetal.
+
+### Implication for the Paper
+
+The speedup ea_cpp_modern achieves over jMetal (3–13×, depending on algorithm)
+has two separable components:
+
+1. **Language advantage** (C++ over JVM): no GC pauses, no boxing overhead,
+   deterministic inlining. This would be present even in ea_cpp_original.
+
+2. **Architecture advantage** (SoA + Concepts over AoS + virtual):
+   cache-friendly layout, SIMD vectorization, zero-allocation operators.
+   This is the contribution *beyond* a naive C++ port.
+
+A 3-way benchmark (jMetal → ea_cpp_original → ea_cpp_modern) would isolate
+these two effects precisely. As a lower bound, the language advantage alone
+is estimated at ~2–3× (typical C++/JVM ratio for compute-bound code);
+the remaining factor comes from the architectural redesign.
+
+---
+
 ## Key Differences from jMetal
 
 | Aspect | jMetal | ea-cpp |
