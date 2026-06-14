@@ -99,7 +99,7 @@ std::pair<double, double> run_once_2obj(Problem& prob,
     ea::Random::instance().seed(seed);
 
     const int dim   = prob.dimension();
-    const int n_obj = Problem::num_objectives();
+    const int n_obj = prob.num_objectives();
 
     ea::Population<> pop(POP_SIZE, dim, n_obj);
     pop.lower_bounds.assign(prob.lower_bounds().begin(), prob.lower_bounds().end());
@@ -136,7 +136,7 @@ std::pair<double, double> run_once_3obj(ea::LZ09F6& prob,
     ea::Random::instance().seed(seed);
 
     const int dim   = prob.dimension();
-    const int n_obj = ea::LZ09F6::num_objectives();
+    const int n_obj = prob.num_objectives();
 
     std::vector<ea::ReferencePoint> tmp_refs;
     ea::generate_reference_points_das_dennis(tmp_refs, n_obj, DIVISIONS);

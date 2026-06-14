@@ -142,14 +142,10 @@ template <Crossover CX, Mutation MT> struct NSGAII {
             }
 
             // Evaluate offspring
-            for (int i = 0; i < n; ++i) {
-                if (!offspring.evaluated(i)) {
-                    problem(offspring, i);
-                    offspring.set_evaluated(i, true);
-                    evals++;
-                    if (evals >= self.max_evals)
-                        break;
-                }
+            for (int i = 0; i < n && evals < self.max_evals; ++i) {
+                problem(offspring, i);
+                offspring.set_evaluated(i, true);
+                evals++;
             }
 
             // === 4. Combine parent + offspring ===

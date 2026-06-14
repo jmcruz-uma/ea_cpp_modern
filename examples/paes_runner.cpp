@@ -76,7 +76,7 @@ std::pair<double, double> run_once(Problem& prob, const std::string& prob_name,
                                    uint64_t seed, int dim) {
     ea::Random::instance().seed(seed);
 
-    const int n_obj = Problem::num_objectives();
+    const int n_obj = prob.num_objectives();
 
     // PAES trabaja con un único individuo; Population lo gestiona como pop_size=1
     ea::Population<> pop(1, dim, n_obj);

@@ -78,7 +78,7 @@ std::pair<double, double> run_once(Problem& prob, const std::string& prob_name,
     ea::Random::instance().seed(seed);
 
     const int dim   = prob.dimension();
-    const int n_obj = Problem::num_objectives();
+    const int n_obj = prob.num_objectives();
 
     ea::Population<> pop(POP_SIZE, dim, n_obj);
     pop.lower_bounds.assign(prob.lower_bounds().begin(), prob.lower_bounds().end());

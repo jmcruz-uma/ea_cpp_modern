@@ -69,8 +69,9 @@ template <Crossover CX, Mutation MT> struct MOCell {
         const int ARC_CAP = self.archive_size;
         int arc_count = 0;
         bool arc_dirty = true;
-        std::vector<std::vector<double>> arc_genes(ARC_CAP + 1, std::vector<double>(dim));
-        std::vector<std::vector<double>> arc_objs(ARC_CAP + 1, std::vector<double>(n_obj));
+        Population<> arc(ARC_CAP + 1, dim, n_obj, pop.n_const);
+        arc.lower_bounds = pop.lower_bounds;
+        arc.upper_bounds = pop.upper_bounds;
         std::vector<double> arc_crowding(ARC_CAP + 1, 0.0);
 
         // Compute crowding distances for arc_count archive members.
@@ -87,16 +88,16 @@ template <Crossover CX, Mutation MT> struct MOCell {
             std::iota(sorted.begin(), sorted.end(), 0);
             for (int o = 0; o < n_obj; ++o) {
                 std::sort(sorted.begin(), sorted.end(),
-                          [&](int a, int b) { return arc_objs[a][o] < arc_objs[b][o]; });
-                double fmin = arc_objs[sorted[0]][o];
-                double fmax = arc_objs[sorted[arc_count - 1]][o];
+                          [&](int a, int b) { return arc.objective(a, o) < arc.objective(b, o); });
+                double fmin = arc.objective(sorted[0], o);
+                double fmax = arc.objective(sorted[arc_count - 1], o);
                 if (fmin == fmax) continue;
                 double range = fmax - fmin;
                 arc_crowding[sorted[0]] = std::numeric_limits<double>::infinity();
                 arc_crowding[sorted[arc_count - 1]] = std::numeric_limits<double>::infinity();
                 for (int i = 1; i < arc_count - 1; ++i) {
                     arc_crowding[sorted[i]] +=
-                        (arc_objs[sorted[i + 1]][o] - arc_objs[sorted[i - 1]][o]) / range;
+                        (arc.objective(sorted[i + 1], o) - arc.objective(sorted[i - 1], o)) / range;
                 }
             }
             arc_dirty = false;
@@ -110,8 +111,8 @@ template <Crossover CX, Mutation MT> struct MOCell {
             for (int a = 0; a < arc_count; ++a) {
                 bool arc_dom = false, new_dom = false;
                 for (int o = 0; o < n_obj; ++o) {
-                    if (arc_objs[a][o] < o_in[o]) arc_dom = true;
-                    else if (o_in[o] < arc_objs[a][o]) new_dom = true;
+                    if (arc.objective(a, o) < o_in[o]) arc_dom = true;
+                    else if (o_in[o] < arc.objective(a, o)) new_dom = true;
                 }
                 if (arc_dom && !new_dom) { dominated = true; break; }
                 if (new_dom && !arc_dom) to_remove.push_back(a);
@@ -121,16 +122,14 @@ template <Crossover CX, Mutation MT> struct MOCell {
             // Remove dominated archive members (swap-with-last, descending order)
             std::sort(to_remove.rbegin(), to_remove.rend());
             for (int r : to_remove) {
-                if (r != arc_count - 1) {
-                    arc_genes[r] = arc_genes[arc_count - 1];
-                    arc_objs[r]  = arc_objs[arc_count - 1];
-                }
+                if (r != arc_count - 1)
+                    arc.copy_individual(arc_count - 1, r);
                 arc_count--;
             }
 
             // Add new solution (slot arc_count, within ARC_CAP+1 pre-allocation)
-            arc_genes[arc_count] = g_in;
-            arc_objs[arc_count]  = o_in;
+            std::copy(g_in.begin(), g_in.end(), arc.genes_ptr(arc_count));
+            std::copy(o_in.begin(), o_in.end(), arc.objectives_ptr(arc_count));
             arc_count++;
 
             // Prune if over capacity: remove solution with minimum crowding distance
@@ -140,10 +139,8 @@ template <Crossover CX, Mutation MT> struct MOCell {
                 int worst = 0;
                 for (int a = 1; a < arc_count; ++a)
                     if (arc_crowding[a] < arc_crowding[worst]) worst = a;
-                if (worst != arc_count - 1) {
-                    arc_genes[worst] = arc_genes[arc_count - 1];
-                    arc_objs[worst]  = arc_objs[arc_count - 1];
-                }
+                if (worst != arc_count - 1)
+                    arc.copy_individual(arc_count - 1, worst);
                 arc_count--;
             }
             arc_dirty = true;
@@ -269,10 +266,8 @@ template <Crossover CX, Mutation MT> struct MOCell {
         };
 
         // ── Working populations ───────────────────────────────────────────────
-        Population<> parents(2, dim, n_obj, pop.n_const);
-        parents.lower_bounds = pop.lower_bounds;
-        parents.upper_bounds = pop.upper_bounds;
-        Population<> offspring(1, dim, n_obj, pop.n_const);
+        // slot 0 = child, slot 1 = second parent staging for crossover
+        Population<> offspring(2, dim, n_obj, pop.n_const);
         offspring.lower_bounds = pop.lower_bounds;
         offspring.upper_bounds = pop.upper_bounds;
 
@@ -287,28 +282,26 @@ template <Crossover CX, Mutation MT> struct MOCell {
             auto nbrs = get_neighbors(current);
             nbrs.push_back(current);  // index 8 = self
 
-            // 2. Parent 1: binary tournament from neighborhood
+            // 2. Parent 1: binary tournament from neighborhood → offspring[0]
             int p1 = tournament_pop(nbrs);
-            for (int j = 0; j < dim; ++j) parents.gene(0, j) = pop.gene(p1, j);
-            for (int o = 0; o < n_obj; ++o) parents.objective(0, o) = pop.objective(p1, o);
-            parents.set_evaluated(0, true);
+            for (int j = 0; j < dim; ++j) offspring.gene(0, j) = pop.gene(p1, j);
+            for (int o = 0; o < n_obj; ++o) offspring.objective(0, o) = pop.objective(p1, o);
+            offspring.set_evaluated(0, true);
 
-            // 3. Parent 2: binary tournament from archive (if size > 1), else neighborhood
+            // 3. Parent 2: binary tournament from archive (if size > 1), else neighborhood → offspring[1]
             if (arc_count > 1) {
                 int ai = tournament_archive();
-                for (int j = 0; j < dim; ++j) parents.gene(1, j) = arc_genes[ai][j];
-                for (int o = 0; o < n_obj; ++o) parents.objective(1, o) = arc_objs[ai][o];
+                std::copy_n(arc.genes_ptr(ai), dim, offspring.genes_ptr(1));
+                std::copy_n(arc.objectives_ptr(ai), n_obj, offspring.objectives_ptr(1));
             } else {
                 int p2 = tournament_pop(nbrs);
-                for (int j = 0; j < dim; ++j) parents.gene(1, j) = pop.gene(p2, j);
-                for (int o = 0; o < n_obj; ++o) parents.objective(1, o) = pop.objective(p2, o);
+                for (int j = 0; j < dim; ++j) offspring.gene(1, j) = pop.gene(p2, j);
+                for (int o = 0; o < n_obj; ++o) offspring.objective(1, o) = pop.objective(p2, o);
             }
-            parents.set_evaluated(1, true);
+            offspring.set_evaluated(1, true);
 
             // 4. Crossover + mutation → offspring[0]
-            for (int j = 0; j < dim; ++j) offspring.gene(0, j) = parents.gene(0, j);
-            self.crossover.apply(parents, 0, 1, 0);  // result in parents[0]
-            for (int j = 0; j < dim; ++j) offspring.gene(0, j) = parents.gene(0, j);
+            self.crossover.apply(offspring, 0, 1, 0);
             self.mutation.apply(offspring, 0);
 
             // 5. Evaluate and count
@@ -384,8 +377,8 @@ template <Crossover CX, Mutation MT> struct MOCell {
         // ── Result: copy archive to population ───────────────────────────────
         int result_size = std::min(arc_count, n);
         for (int i = 0; i < result_size; ++i) {
-            for (int j = 0; j < dim; ++j) pop.gene(i, j) = arc_genes[i][j];
-            for (int o = 0; o < n_obj; ++o) pop.objective(i, o) = arc_objs[i][o];
+            std::copy_n(arc.genes_ptr(i), dim, pop.genes_ptr(i));
+            std::copy_n(arc.objectives_ptr(i), n_obj, pop.objectives_ptr(i));
             pop.set_evaluated(i, true);
         }
         pop.pop_size = result_size;

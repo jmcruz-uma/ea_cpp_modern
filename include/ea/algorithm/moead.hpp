@@ -191,10 +191,8 @@ template <Crossover CX, Mutation MT> struct MOEAD {
                 self.mutation.apply(scratch, 0);
 
                 // Evaluate offspring
-                if (!scratch.evaluated(0)) {
-                    problem(scratch, 0);
-                    scratch.set_evaluated(0, true);
-                }
+                problem(scratch, 0);
+                scratch.set_evaluated(0, true);
                 self.evals_++;
 
                 // Update ideal and nadir points

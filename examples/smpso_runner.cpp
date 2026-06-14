@@ -74,7 +74,7 @@ std::pair<double, double> run_once(Problem& prob, const std::string& prob_name, 
     ea::Random::instance().seed(seed);
 
     const int dim   = prob.dimension();
-    const int n_obj = Problem::num_objectives();
+    const int n_obj = prob.num_objectives();
 
     ea::Population<> pop(POP_SIZE, dim, n_obj);
     pop.lower_bounds.assign(prob.lower_bounds().begin(), prob.lower_bounds().end());
@@ -105,8 +105,8 @@ std::pair<double, double> run_once(Problem& prob, const std::string& prob_name, 
     archive_front.reserve(smpso.archive_count_);
     for (int i = 0; i < smpso.archive_count_; ++i) {
         archive_front.push_back(
-            std::vector<double>(smpso.archive_obj_[i].begin(),
-                                smpso.archive_obj_[i].begin() + n_obj));
+            std::vector<double>(smpso.archive_.objectives_ptr(i),
+                                smpso.archive_.objectives_ptr(i) + n_obj));
     }
 
     auto ref = make_ref_front(prob_name);

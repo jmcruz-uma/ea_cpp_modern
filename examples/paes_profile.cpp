@@ -41,7 +41,7 @@ template <typename Problem>
 ProfCounters run_profiled(Problem& prob, int dim, int max_evals, int archive_size,
                           int bisections, uint64_t seed) {
     ea::Random::instance().seed(seed);
-    const int n_obj = Problem::num_objectives();
+    const int n_obj = prob.num_objectives();
 
     ea::Population<> pop(1, dim, n_obj);
     pop.lower_bounds.assign(prob.lower_bounds().begin(), prob.lower_bounds().end());
