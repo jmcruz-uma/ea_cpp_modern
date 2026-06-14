@@ -56,9 +56,6 @@ NSGA-II, pop=100, max_evals=25000, 30 runs, 30 vars cada uno:
 | UF7 | 164 | 590 | 3.61× | 0.58 ns |
 | **media** | | | **3.43×** | todos ns |
 
-Infraestructura: `examples/uf_runner.cpp`, `benchmarks/jmetal/JMetalUFBenchmark.java`,
-`scripts/run_uf_comparison.sh`, `results/uf_comparison/`.
-
 Nota UF6: σ C++=98ms por un único outlier (run 4 = seed 45) en el que NSGA-II encontró
 ambos segmentos del frente discontinuo → más no dominadas → NDS más caro. Sin ese run,
 σ=7ms (normal). El outlier tiene el MEJOR IGD — comportamiento algorítmico correcto.
@@ -86,9 +83,6 @@ Ambas distribuciones tienen alta varianza (min ~0.10, max ~0.54) — la diferenc
 pequeña (0.022). El speedup 2.64× es el más bajo de la familia LZ09. Causa probable:
 implementación NSGA-III de jMetal más madura en niching/normalización para este problema 3-obj.
 Para el paper: speedup real, calidad comparable (mismo orden de magnitud).
-
-Infraestructura: `examples/lz09_runner.cpp`, `benchmarks/jmetal/JMetalLZ09Benchmark.java`,
-`scripts/run_lz09_comparison.sh`, `results/lz09_comparison/`.
 
 ### WFG1-9 — COMPLETO ✅ (sesión 2026-06-14)
 
@@ -121,9 +115,6 @@ bParam sobre variables de distancia usa rSum de variables previas. Con float en 
 imprecisión en el parámetro u del bParam cambia el exponente (rango 0.02–50), alterando el
 landscape. C++ double produce función más diferenciada → mejor convergencia de NSGA-II.
 Cat-2 finding: precisión afecta la calidad de solución, no solo la exactitud numérica.
-
-Infraestructura: `examples/wfg_runner.cpp`, `benchmarks/jmetal/JMetalWFGBenchmark.java`,
-`scripts/run_wfg_comparison.sh`, `results/wfg_comparison/`.
 
 ---
 
@@ -162,39 +153,43 @@ Todos los `run()` de los 14 ficheros de algoritmo usan `template <EvalFunctor F>
 | `PAES<MT>` | `typename MT` | `Mutation MT` |
 | Todos los `run()` | `template <typename Problem>` | `template <EvalFunctor F>` |
 
-Pasar un tipo incorrecto produce un mensaje exacto: `template constraint failure for
-'template<class CX, class MT> requires (Crossover<CX>) && (Mutation<MT>) struct ea::NSGAII'`
-
-#### Concepts corregidos (estaban rotos)
-
-| Concepto | Bug anterior | Fix |
-|---|---|---|
-| `RealCrossover` | `requires cx.encoding()==Real \|\| true` siempre verdadero | `requires T::encoding() == Encoding::Real` |
-| `PermutationCrossover` | alias trivial de `Crossover` sin filtro de encoding | `requires T::encoding() == Encoding::Permutation` |
-| `Algorithm` | `run(pop)` sin problem — ningún algoritmo lo satisfacía | Solo verifica `name()`; run() no es expresable sin `F` concreto |
-| `Replacement` | 2 de 8 operators con API diferente (2 args vs 3 args) | Unificada a 3-arg; `NSGAIIReplacement` y `NSGAIIIReplacement` usan `(void)offspring_indices` |
-
-#### Concepts documentados (sin tipos concretos todavía)
-
-- `Selection`: cubre selección sin contexto (RandomSelection, NaryRandomSelection). Tournament operators necesitan ranks+crowding — son miembros concretos, no template params.
-- `DominanceComparator` / `CrowdingComparator`: API definida para futura OO; actualmente son funciones libres en `comparator.hpp`.
-- `Problem`, `BatchProblem`, `ConstrainedProblem`: correctos y verificables con `static_assert`; no usados como constraint en `run()` porque `run()` acepta lambdas.
-
-#### Verificación compile-time reutilizable
-
-`tests/unit/test_concepts.cpp` — zero runtime cost (puro `static_assert`):
-- Positivos: SBXCrossover ✓ Crossover ✓ RealCrossover, PMXCrossover ✓ PermutationCrossover, etc.
-- Negativos: PolynomialMutation ✗ Crossover, SBXCrossover ✗ RealCrossover, Empty ✗ Algorithm, etc.
-- Instantiation smoke-tests: todos los 9 algorithms con `<SBX, PM>` instancian sin error.
-- Añadir un operador nuevo: incluirlo aquí ANTES de integrarlo en un algoritmo.
-
-Build: `make test` incluye `test_concepts` (se compila desde cero en clean build).
-
 #### Bug latente corregido
 
 `gde3.hpp:149` llamaba `replacer.replace(combined, N)` con la API antigua (2 args).
 No causaba error en builds incrementales (binarios pre-built). Detectado con `rm -rf build && make test`.
 **Lección**: siempre hacer clean build antes de un commit de refactoring de API.
+
+---
+
+## Auditoría arquitectónica — sesión 2026-06-14
+
+Se identificaron 8 divergencias (D1-D8) entre implementaciones de distintas sesiones.
+Ninguna afecta resultados de IGD ni speedups medidos.
+
+### Corregidas en commit e35779d ✅
+
+| ID | Descripción |
+|----|-------------|
+| D1 | NSGA-II: `pop.copy_individual` muerto en copy-back (copiaba dentro de pop, no desde combined) |
+| D2 | NSGA-II: variables `p1/p2` declaradas sin usar en el loop de crossover + 7 comentarios obsoletos |
+| D4 | SPEA2: campo `k_nearest` expuesto pero ignorado; hardcodeado a `1` en `compute_spea2_fitness` |
+
+### Corregidas en commit 6cd8dac ✅ (sesión 2026-06-14 continuación)
+
+| ID | Descripción |
+|----|-------------|
+| D3 | NSGA-II/NSGA-III/MOEA/D: evaluación incondicional (Pattern B). Elimina dependencia de que operadores llamen `set_evaluated(false)`. |
+| D5 | MOCell: eliminado buffer `parents`; CX aplica directamente sobre `offspring[0,1]`. Offspring redimensionado a 2 slots. |
+| D6 | Todos los runners: `Problem::num_objectives()` → `prob.num_objectives()`. Funciona para tipos estáticos y dinámicos. |
+| D7 | SMPSO/MOCell: archivo externo refactorizado de `vector<vector<double>>` AoS a `Population<>` SoA. Copias con `copy_individual()` y `copy_n`. |
+
+### Pendiente (no crítico)
+
+| ID | Descripción |
+|----|-------------|
+| D8 | MOCell evals=0 vs todos los demás evals=N. Intencional (matchea jMetal MOCell). Documentado — no tocar. |
+
+**Auditoría arquitectónica COMPLETA. Framework en estado plenamente consistente.**
 
 ---
 
@@ -223,9 +218,20 @@ Repetir todos los benchmarks fuera de WSL2. Comandos:
 ```bash
 sudo cpupower frequency-set -g performance
 echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
-SKIP_JMETAL_BUILD=1 ./scripts/run_uf_comparison.sh results/uf_baremetal 30
-SKIP_JMETAL_BUILD=1 ./scripts/run_lz09_comparison.sh results/lz09_baremetal 30
-# ... (igual para todos los algoritmos)
+SKIP_JMETAL_BUILD=1 ./scripts/run_mo_comparison.sh     results/baremetal/nsga2  30
+SKIP_JMETAL_BUILD=1 ./scripts/run_smpso_comparison.sh  results/baremetal/smpso  30
+SKIP_JMETAL_BUILD=1 ./scripts/run_spea2_comparison.sh  results/baremetal/spea2  30
+SKIP_JMETAL_BUILD=1 ./scripts/run_ibea_comparison.sh   results/baremetal/ibea   30
+SKIP_JMETAL_BUILD=1 ./scripts/run_moead_comparison.sh  results/baremetal/moead  30
+SKIP_JMETAL_BUILD=1 ./scripts/run_nsga3_comparison.sh  results/baremetal/nsga3  30
+SKIP_JMETAL_BUILD=1 ./scripts/run_smsemoa_comparison.sh results/baremetal/smsemoa 30
+SKIP_JMETAL_BUILD=1 ./scripts/run_gde3_comparison.sh   results/baremetal/gde3   30
+SKIP_JMETAL_BUILD=1 ./scripts/run_agemoea_comparison.sh results/baremetal/agemoea 30
+SKIP_JMETAL_BUILD=1 ./scripts/run_mocell_comparison.sh results/baremetal/mocell  30
+SKIP_JMETAL_BUILD=1 ./scripts/run_paes_comparison.sh   results/baremetal/paes   30
+SKIP_JMETAL_BUILD=1 ./scripts/run_uf_comparison.sh     results/baremetal/uf     30
+SKIP_JMETAL_BUILD=1 ./scripts/run_lz09_comparison.sh   results/baremetal/lz09   30
+SKIP_JMETAL_BUILD=1 ./scripts/run_wfg_comparison.sh    results/baremetal/wfg    30
 ```
 Bloquea la escritura del paper — hacer antes de redactar.
 
