@@ -42,136 +42,96 @@ template <typename MT> struct PAES {
 
         // Initialize if needed
         auto& rng = Random::instance();
-        for (int j = 0; j < dim; ++j) {
-            if (!pop.evaluated(0)) {
-                pop.gene(0, j) = rng.uniform(pop.lower_bounds[j], pop.upper_bounds[j]);
-            }
-        }
-
-        // Evaluate initial solution
         if (!pop.evaluated(0)) {
+            for (int j = 0; j < dim; ++j)
+                pop.gene(0, j) = rng.uniform(pop.lower_bounds[j], pop.upper_bounds[j]);
             problem(pop, 0);
             pop.set_evaluated(0, true);
         }
 
         int evals = 1;
 
-        // Create adaptive grid archive
+        // Create adaptive grid archive and add initial solution
         AdaptiveGridArchive archive(self.archive_size, self.bisections, n_obj);
+        {
+            std::vector<double> init_genes(dim), init_obj(n_obj);
+            for (int j = 0; j < dim; ++j) init_genes[j] = pop.gene(0, j);
+            for (int o = 0; o < n_obj; ++o) init_obj[o] = pop.objective(0, o);
+            archive.add(init_genes, init_obj);
+        }
 
-        // Add initial solution to archive
-        std::vector<double> init_genes(dim);
-        std::vector<double> init_obj(n_obj);
-        for (int j = 0; j < dim; ++j)
-            init_genes[j] = pop.gene(0, j);
-        for (int o = 0; o < n_obj; ++o)
-            init_obj[o] = pop.objective(0, o);
-        archive.add(init_genes, init_obj);
-
-        // Working populations for current and mutant
+        // Working populations: current solution and its mutant
         Population<> current(1, dim, n_obj, pop.n_const);
         current.lower_bounds = pop.lower_bounds;
         current.upper_bounds = pop.upper_bounds;
-        current.copy_individual(0, 0); // Copy from pop[0] to current[0]
-        // Actually need to copy pop > current properly:
-        for (int j = 0; j < dim; ++j)
-            current.gene(0, j) = pop.gene(0, j);
-        for (int o = 0; o < n_obj; ++o)
-            current.objective(0, o) = pop.objective(0, o);
+        for (int j = 0; j < dim; ++j) current.gene(0, j) = pop.gene(0, j);
+        for (int o = 0; o < n_obj; ++o) current.objective(0, o) = pop.objective(0, o);
         current.flags[0] = pop.flags[0];
 
         Population<> mutant(1, dim, n_obj, pop.n_const);
         mutant.lower_bounds = pop.lower_bounds;
         mutant.upper_bounds = pop.upper_bounds;
 
+        // Pre-allocate work vectors outside the loop to avoid per-iteration heap allocs
+        std::vector<double> mut_genes(dim), mut_obj(n_obj), curr_obj(n_obj);
+
         while (evals < self.max_evals) {
             // === 1. Mutate current solution ===
-            for (int j = 0; j < dim; ++j) {
+            for (int j = 0; j < dim; ++j)
                 mutant.gene(0, j) = current.gene(0, j);
-            }
             mutant.set_evaluated(0, false);
-
-            // Apply mutation
             self.mutation.apply(mutant, 0);
 
-            // Evaluate mutant
+            // === 2. Evaluate mutant ===
             problem(mutant, 0);
             mutant.set_evaluated(0, true);
             evals++;
-            if (evals >= self.max_evals)
-                break;
 
-            // === 2. Compare current vs mutant ===
+            // === 3. Capture objective/gene vectors for archive operations ===
+            for (int j = 0; j < dim; ++j) mut_genes[j] = mutant.gene(0, j);
+            for (int o = 0; o < n_obj; ++o) mut_obj[o] = mutant.objective(0, o);
+            for (int o = 0; o < n_obj; ++o) curr_obj[o] = current.objective(0, o);
+
+            // === 4. Replacement (jMetal PAES.replacement) ===
             auto dom = self.compare_dominance(mutant, 0, current, 0);
 
-            std::vector<double> mut_genes(dim);
-            std::vector<double> mut_obj(n_obj);
-            for (int j = 0; j < dim; ++j)
-                mut_genes[j] = mutant.gene(0, j);
-            for (int o = 0; o < n_obj; ++o)
-                mut_obj[o] = mutant.objective(0, o);
-
             if (dom == Dominance::Dominates) {
-                // Mutant dominates current: accept mutant
-                for (int j = 0; j < dim; ++j)
-                    current.gene(0, j) = mutant.gene(0, j);
-                for (int o = 0; o < n_obj; ++o)
-                    current.objective(0, o) = mutant.objective(0, o);
+                // Mutant dominates current: accept mutant, unconditionally add to archive
+                for (int j = 0; j < dim; ++j) current.gene(0, j) = mutant.gene(0, j);
+                for (int o = 0; o < n_obj; ++o) current.objective(0, o) = mutant.objective(0, o);
                 current.flags[0] = mutant.flags[0];
-
-                // Update archive
                 archive.add(mut_genes, mut_obj);
             } else if (dom == Dominance::Equal) {
-                // Non-dominated: decide based on archive/grid density
-                // Test if mutant would be accepted by archive
+                // Non-dominated: try to add mutant to archive; if added, compare grid
+                // density — accept mutant as new current only if it occupies a less
+                // crowded cell than current (promotes diversity, jMetal archive.comparator).
                 bool added = archive.add(mut_genes, mut_obj);
-
                 if (added) {
-                    // Mutant was added to archive — check if it's in a less crowded region
-                    // Simplified: compare crowding in grid
-                    // If mutant improves diversity, accept it
-                    archive.compute_density_estimator();
-
-                    // Find grid locations
-                    int mut_loc = archive.find_grid_location_for(mut_obj);
-                    // We need the current's location too — but current should already be in archive
-                    // Since both are non-dominated and mutant was added,
-                    // check if mutant's grid cell is less crowded
-
-                    // Count current's grid cell
-                    std::vector<double> curr_obj(n_obj);
-                    for (int o = 0; o < n_obj; ++o)
-                        curr_obj[o] = current.objective(0, o);
-                    int curr_loc = archive.find_grid_location_for(curr_obj);
-
-                    // Note: find_grid_location_for is not exposed; we use a simpler heuristic:
-                    // Accept mutant with some probability if archive size grew or stayed same
-                    // In practice: always accept if it improved archive diversity
-                    double rand = rng.uniform();
-                    if (rand < 0.5) {
-                        for (int j = 0; j < dim; ++j)
-                            current.gene(0, j) = mutant.gene(0, j);
-                        for (int o = 0; o < n_obj; ++o)
-                            current.objective(0, o) = mutant.objective(0, o);
+                    // add() guarantees density_is_fresh() == true after return:
+                    // grid_occupancy_ is accurate via O(1) incremental update
+                    // (steady-state) or O(N) rebuild (bounds expansion only).
+                    int curr_loc  = archive.find_grid_location_for(curr_obj);
+                    int mut_loc   = archive.find_grid_location_for(mut_obj);
+                    int curr_dens = archive.grid_occupancy_[curr_loc];
+                    int mut_dens  = archive.grid_occupancy_[mut_loc];
+                    if (curr_dens > mut_dens) {
+                        for (int j = 0; j < dim; ++j) current.gene(0, j) = mutant.gene(0, j);
+                        for (int o = 0; o < n_obj; ++o) current.objective(0, o) = mutant.objective(0, o);
                         current.flags[0] = mutant.flags[0];
                     }
                 }
             }
-            // If mutant is dominated, reject it (keep current)
+            // Mutant dominated: keep current, do not add to archive
         }
 
-        // === Copy best (archive) back to population ===
-        // Fill population with archive members (up to pop_size)
-        int result_size = std::min(archive.size(), pop.pop_size);
+        // === Copy archive back to population (result = archive, like jMetal) ===
+        int result_size = archive.size();
+        pop.resize(result_size);
         for (int i = 0; i < result_size; ++i) {
-            const auto& genes = archive.genes(i);
-            const auto& objs = archive.objectives(i);
-            for (int j = 0; j < dim; ++j) {
-                pop.gene(i, j) = genes[j];
-            }
-            for (int o = 0; o < n_obj; ++o) {
-                pop.objective(i, o) = objs[o];
-            }
+            const auto& ag = archive.genes(i);
+            const auto& ao = archive.objectives(i);
+            for (int j = 0; j < dim; ++j) pop.gene(i, j) = ag[j];
+            for (int o = 0; o < n_obj; ++o) pop.objective(i, o) = ao[o];
             pop.set_evaluated(i, true);
         }
         pop.pop_size = result_size;
