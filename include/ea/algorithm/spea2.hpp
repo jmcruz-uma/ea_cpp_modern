@@ -79,7 +79,7 @@ template <Crossover CX, Mutation MT> struct SPEA2 {
             union_pop.pop_size = union_size;
 
             // === Compute fitness ===
-            compute_spea2_fitness(union_pop, fitness);
+            compute_spea2_fitness(union_pop, fitness, self.k_nearest);
 
             // === Environmental selection → new archive ===
             archive_count = spea2_environmental_selection(union_pop, fitness, archive, N);
@@ -145,7 +145,8 @@ private:
     /// R(i) = sum of strengths of solutions dominating i
     /// D(i) = 1 / (sigma_k + 2) where sigma_k is distance to k-th nearest neighbor
     /// Fitness(i) = R(i) + D(i)  (lower is better; < 1 means non-dominated)
-    static void compute_spea2_fitness(const Population<>& pop, std::vector<double>& fitness) {
+    static void compute_spea2_fitness(const Population<>& pop, std::vector<double>& fitness,
+                                      int k_nearest) {
         const int n = pop.pop_size;
         fitness.resize(n);
 
@@ -176,7 +177,7 @@ private:
 
         // Step 3: Compute density D(i) = 1 / (sigma_k + 2)
         // where sigma_k is the distance to the k-th nearest neighbor
-        int k = std::min(n - 1, 1); // k = 1 by default
+        int k = std::min(n - 1, k_nearest);
 
         for (int i = 0; i < n; ++i) {
             // Compute distances to all other solutions

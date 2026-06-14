@@ -132,22 +132,9 @@ template <Crossover CX, Mutation MT> struct NSGAII {
                 offspring.set_evaluated(i + 1, true);
             }
 
-            // Apply crossover: parents from pop, children into offspring
-            // SBX-style: crossover works on pop data, writes to child positions
-            // We need a temporary to hold crossover results, then copy to offspring
-            for (int i = 0; i < n; i += 2) {
-                int p1 = mating_pool[i];
-                int p2 = mating_pool[i + 1];
-
-                // Crossover on pop (reads from parents, writes to child positions i, i+1 in pop)
-                // But we don't want to corrupt pop! Use combined as scratch.
-                // Actually: crossover.apply takes parent indices and child_start index
-                // We'll use offspring population for both parents and children
-
-                // Simpler approach: copy parents to offspring first (done above),
-                // then apply crossover on offspring (parent_a = i, parent_b = i+1, child_start = i)
+            // Apply crossover
+            for (int i = 0; i < n; i += 2)
                 self.crossover.apply(offspring, i, i + 1, i);
-            }
 
             // Apply mutation on offspring
             for (int i = 0; i < n; ++i) {
@@ -183,17 +170,8 @@ template <Crossover CX, Mutation MT> struct NSGAII {
 
             // Copy selected back to population
             for (int i = 0; i < n; ++i) {
-                if (selected[i] != i) {
-                    pop.copy_individual(selected[i], i);
-                    // Wait, this copies from combined to pop, but combined indices are different
-                }
-                // Actually need to copy from combined[selected[i]] to pop[i]
-                for (int j = 0; j < dim; ++j) {
-                    pop.gene(i, j) = combined.gene(selected[i], j);
-                }
-                for (int o = 0; o < n_obj; ++o) {
-                    pop.objective(i, o) = combined.objective(selected[i], o);
-                }
+                std::copy_n(combined.genes_ptr(selected[i]),      dim,   pop.genes_ptr(i));
+                std::copy_n(combined.objectives_ptr(selected[i]), n_obj, pop.objectives_ptr(i));
                 pop.flags[i] = combined.flags[selected[i]];
             }
         }
