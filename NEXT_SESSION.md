@@ -20,7 +20,7 @@ Repos:
 | Algoritmo | Speedup mediano | Wilcoxon IGD |
 |-----------|:---------------:|:------------:|
 | NSGA-II | 3.57× | todos ns |
-| SMPSO | 3.87× | todos ns |
+| SMPSO | 4.28× | todos ns |
 | SPEA2 | 2.17× | todos ns |
 | IBEA | 12.41× | todos ns |
 | MOEA/D-DE | 7.87× | todos ns |
@@ -181,7 +181,29 @@ Ninguna afecta resultados de IGD ni speedups medidos.
 | D3 | NSGA-II/NSGA-III/MOEA/D: evaluación incondicional (Pattern B). Elimina dependencia de que operadores llamen `set_evaluated(false)`. |
 | D5 | MOCell: eliminado buffer `parents`; CX aplica directamente sobre `offspring[0,1]`. Offspring redimensionado a 2 slots. |
 | D6 | Todos los runners: `Problem::num_objectives()` → `prob.num_objectives()`. Funciona para tipos estáticos y dinámicos. |
-| D7 | SMPSO/MOCell: archivo externo refactorizado de `vector<vector<double>>` AoS a `Population<>` SoA. Copias con `copy_individual()` y `copy_n`. |
+| D5 | MOCell: eliminado buffer `parents`; CX aplica directamente sobre `offspring[0,1]`. Sin regresión de rendimiento (A/B test: 178ms→183ms, +3%, dentro de ruido WSL2). |
+| D7 | MOCell únicamente: archivo externo refactorizado de `vector<vector<double>>` a `Population<>`. Sin regresión. |
+
+### ⚠️ Revertido en commit 526ae72
+
+D7-SMPSO causó una **regresión real del ~20%** (ZDT1 mediana: 100ms→130ms, verificado A/B interleaved).
+Causa: `Population<>` embebido en struct SMPSO aumenta el tamaño del struct en ~116 bytes, degradando rendimiento en `compute_archive_crowding` (655 vs 552 líneas de assembly).
+**SMPSO archive revertido a `vector<vector<double>>`** en commit 526ae72.
+MOCell D7 NO revertido (sin impacto medible).
+
+### SMPSO re-benchmarked post-revert ✅ (commit 526ae72, sesión 2026-06-14)
+
+`results/smpso_post_d7` — 30 runs, ZDT1-4:
+
+| Problema | C++ med (ms) | Java med (ms) | Speedup | IGD p-val |
+|----------|:---:|:---:|:---:|:---:|
+| ZDT1 | 109 | 483 | 4.42× | 0.22 ns |
+| ZDT2 | 110 | 630 | 5.71× | 0.82 ns |
+| ZDT3 | 55 | 185 | 3.40× | 0.46 ns |
+| ZDT4 | 79 | 283 | 3.60× | 0.27 ns |
+| **mediana** | | | **4.28×** | todos ns |
+
+Speedup actualizado: **4.28×** (vs 3.87× previo). Mejora marginal por diferente estado JVM el día de medición.
 
 ### Pendiente (no crítico)
 
