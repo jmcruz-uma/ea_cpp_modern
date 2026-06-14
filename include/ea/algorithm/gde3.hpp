@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <ea/core/comparator.hpp>
+#include <ea/core/concepts.hpp>
 #include <ea/core/population.hpp>
 #include <ea/operator/crossover/de.hpp>
 #include <ea/operator/replacement/nsga2_replacement.hpp>
@@ -40,8 +41,8 @@ struct GDE3 {
 
     static constexpr std::string_view name() { return "GDE3"; }
 
-    template <typename Problem>
-    void run(this auto& self, Population<>& pop, Problem&& problem) {
+    template <EvalFunctor F>
+    void run(this auto& self, Population<>& pop, F&& problem) {
         const int dim   = pop.dim;
         const int n_obj = pop.n_obj;
         const int N     = self.pop_size;

@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cmath>
 #include <ea/core/comparator.hpp>
+#include <ea/core/concepts.hpp>
 #include <ea/core/population.hpp>
 #include <ea/indicator/hypervolume.hpp>
 #include <ea/util/random.hpp>
@@ -25,7 +26,7 @@
 
 namespace ea {
 
-template <typename CX, typename MT> struct SMSEMOA {
+template <Crossover CX, Mutation MT> struct SMSEMOA {
     CX crossover;
     MT mutation;
 
@@ -34,7 +35,7 @@ template <typename CX, typename MT> struct SMSEMOA {
 
     static constexpr std::string_view name() { return "SMS-EMOA"; }
 
-    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
+    template <EvalFunctor F> void run(this auto& self, Population<>& pop, F&& problem) {
         const int dim   = pop.dim;
         const int n_obj = pop.n_obj;
 

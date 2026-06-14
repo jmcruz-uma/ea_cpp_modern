@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <ea/core/concepts.hpp>
 #include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 #include <numeric>
@@ -36,7 +37,7 @@ namespace ea {
 ///
 /// @tparam CX  Crossover operator (arity=2, one child per pair).
 /// @tparam MT  Mutation operator (per-individual).
-template <typename CX, typename MT>
+template <Crossover CX, Mutation MT>
 struct MuLambdaES {
     CX crossover;
     MT mutation;
@@ -49,8 +50,8 @@ struct MuLambdaES {
     static constexpr std::string_view name() { return "MuLambdaES"; }
 
     /// Run without stats collection.
-    template <typename Problem>
-    void run(this auto& self, Population<>& pop, Problem&& problem) {
+    template <EvalFunctor F>
+    void run(this auto& self, Population<>& pop, F&& problem) {
         struct NoStats {
             void take(const Population<>&, uint64_t) {}
         } no_stats;
@@ -61,8 +62,8 @@ struct MuLambdaES {
     /// @param pop     Population<> initialised and with bounds set. Size == pop_size.
     /// @param problem Callable void(Population<>&, int idx) — evaluates individual.
     /// @param stats   Object with void take(const Population<>&, uint64_t evals) method.
-    template <typename Problem, typename Stats>
-    void run(this auto& self, Population<>& pop, Problem&& problem, Stats& stats) {
+    template <EvalFunctor F, typename Stats>
+    void run(this auto& self, Population<>& pop, F&& problem, Stats& stats) {
         const int mu  = self.pop_size;
         const int lam = self.offspring_size;
         const int dim = pop.dim;

@@ -67,7 +67,7 @@ struct MOEAD_DE {
     /// Run MOEA/D-DE on the given population.
     /// @param pop Population<> with genes initialized and bounds set.
     /// @param problem Callable: void(Population<>&, int) — evaluates individual
-    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
+    template <EvalFunctor F> void run(this auto& self, Population<>& pop, F&& problem) {
         const int n = self.pop_size;
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;

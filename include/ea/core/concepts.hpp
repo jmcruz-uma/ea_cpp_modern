@@ -12,6 +12,17 @@
 namespace ea {
 
 // ============================================================
+// Eval functor concept (primary interface for run() methods)
+// ============================================================
+
+/// A callable that evaluates a single individual in-place: f(pop, idx).
+/// Algorithms accept this instead of Problem<T> so lambdas and adapters work.
+template <typename F>
+concept EvalFunctor = requires(F& f, Population<>& pop, int idx) {
+    { f(pop, idx) } -> std::same_as<void>;
+};
+
+// ============================================================
 // Operator concepts
 // ============================================================
 

@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <ea/core/comparator.hpp>
+#include <ea/core/concepts.hpp>
 #include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 #include <iostream>
@@ -34,7 +35,7 @@ struct RandomSearch {
     /// Run Random Search on the given population.
     /// @param pop Population<> with bounds set. Will be resized to pop_size.
     /// @param problem Callable: void(Population<>&, int) — evaluates individual's objectives
-    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
+    template <EvalFunctor F> void run(this auto& self, Population<>& pop, F&& problem) {
         if (self.max_evals < self.pop_size) {
             std::cerr << "[ea::RandomSearch] Warning: max_evals (" << self.max_evals
                       << ") must be >= pop_size (" << self.pop_size << "). Adjusting max_evals to "

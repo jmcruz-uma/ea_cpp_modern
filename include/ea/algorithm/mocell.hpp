@@ -19,13 +19,14 @@
 #include <vector>
 
 #include <ea/core/comparator.hpp>
+#include <ea/core/concepts.hpp>
 #include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 
 namespace ea {
 
 /// MOCell — Multi-Objective Cellular Genetic Algorithm.
-template <typename CX, typename MT> struct MOCell {
+template <Crossover CX, Mutation MT> struct MOCell {
     CX crossover;
     MT mutation;
 
@@ -37,7 +38,7 @@ template <typename CX, typename MT> struct MOCell {
 
     static constexpr std::string_view name() { return "MOCell"; }
 
-    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
+    template <EvalFunctor F> void run(this auto& self, Population<>& pop, F&& problem) {
         const int n     = self.pop_size;
         const int dim   = pop.dim;
         const int n_obj = pop.n_obj;

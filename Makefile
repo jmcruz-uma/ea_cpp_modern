@@ -20,6 +20,7 @@ TEST_ISLAND       = $(BUILD_DIR)/test_island_model
 TEST_NEW_OPERATORS    = $(BUILD_DIR)/test_new_operators
 TEST_SEED_MANAGER     = $(BUILD_DIR)/test_seed_manager
 TEST_STATS_COLLECTOR  = $(BUILD_DIR)/test_stats_collector
+TEST_CONCEPTS         = $(BUILD_DIR)/test_concepts
 
 all: $(BUILD_DIR) $(BENCHMARK_FAIR) $(MU_LAMBDA_RUNNER) $(NSGA2_RUNNER) $(TEST_COMPILE)
 
@@ -56,8 +57,11 @@ $(TEST_SEED_MANAGER): $(TEST_DIR)/test_seed_manager.cpp
 $(TEST_STATS_COLLECTOR): $(TEST_DIR)/test_stats_collector.cpp
 	$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
 
+$(TEST_CONCEPTS): $(TEST_DIR)/test_concepts.cpp
+	$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
+
 # Quick test
-test: $(TEST_COMPILE) $(TEST_OPERATORS) $(TEST_ISLAND) $(TEST_NEW_OPERATORS) $(TEST_SEED_MANAGER) $(TEST_STATS_COLLECTOR)
+test: $(TEST_COMPILE) $(TEST_OPERATORS) $(TEST_ISLAND) $(TEST_NEW_OPERATORS) $(TEST_SEED_MANAGER) $(TEST_STATS_COLLECTOR) $(TEST_CONCEPTS)
 	@echo "=== Running tests ==="
 	$(TEST_COMPILE)
 	$(TEST_OPERATORS)
@@ -65,6 +69,7 @@ test: $(TEST_COMPILE) $(TEST_OPERATORS) $(TEST_ISLAND) $(TEST_NEW_OPERATORS) $(T
 	$(TEST_NEW_OPERATORS)
 	$(TEST_SEED_MANAGER)
 	$(TEST_STATS_COLLECTOR)
+	$(TEST_CONCEPTS)
 
 # (µ,λ)-ES runner — reads numeric.json + experiment.json, writes stats JSON
 mu-lambda-runner: $(MU_LAMBDA_RUNNER)

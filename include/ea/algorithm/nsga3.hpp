@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <ea/core/comparator.hpp>
+#include <ea/core/concepts.hpp>
 #include <ea/core/population.hpp>
 #include <ea/operator/replacement/nsga3_replacement.hpp>
 #include <ea/util/random.hpp>
@@ -27,7 +28,7 @@
 namespace ea {
 
 /// NSGA-III algorithm — many-objective optimization using reference points.
-template <typename CX, typename MT> struct NSGAIII {
+template <Crossover CX, Mutation MT> struct NSGAIII {
     CX crossover;
     MT mutation;
 
@@ -40,7 +41,7 @@ template <typename CX, typename MT> struct NSGAIII {
 
     static constexpr std::string_view name() { return "NSGA-III"; }
 
-    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
+    template <EvalFunctor F> void run(this auto& self, Population<>& pop, F&& problem) {
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
 

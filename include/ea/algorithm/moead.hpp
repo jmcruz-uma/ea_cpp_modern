@@ -63,7 +63,7 @@ namespace ea {
 ///    c. Evaluate offspring
 ///    d. Update ideal point
 ///    e. Replace neighbors that are improved by the offspring
-template <typename CX, typename MT> struct MOEAD {
+template <Crossover CX, Mutation MT> struct MOEAD {
     CX crossover;
     MT mutation;
 
@@ -90,7 +90,7 @@ template <typename CX, typename MT> struct MOEAD {
     /// Run MOEA/D on the given population.
     /// @param pop Population<> with genes initialized and bounds set.
     /// @param problem Callable: void(Population<>&, int) — evaluates individual's objectives
-    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
+    template <EvalFunctor F> void run(this auto& self, Population<>& pop, F&& problem) {
         const int n = self.pop_size;
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;

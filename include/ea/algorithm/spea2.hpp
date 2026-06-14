@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cmath>
 #include <ea/core/comparator.hpp>
+#include <ea/core/concepts.hpp>
 #include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 #include <limits>
@@ -19,7 +20,7 @@ namespace ea {
 /// SPEA2 algorithm — Strength Pareto Evolutionary Algorithm 2.
 /// Maintains an external archive of non-dominated solutions.
 /// Uses strength-based fitness and k-th nearest neighbor density.
-template <typename CX, typename MT> struct SPEA2 {
+template <Crossover CX, Mutation MT> struct SPEA2 {
     CX crossover;
     MT mutation;
 
@@ -31,7 +32,7 @@ template <typename CX, typename MT> struct SPEA2 {
     static constexpr std::string_view name() { return "SPEA2"; }
 
     /// Run SPEA2 on the given population.
-    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
+    template <EvalFunctor F> void run(this auto& self, Population<>& pop, F&& problem) {
         const int dim = pop.dim;
         const int n_obj = pop.n_obj;
         const int N = self.pop_size;

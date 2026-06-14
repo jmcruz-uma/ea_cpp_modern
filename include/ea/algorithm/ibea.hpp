@@ -35,6 +35,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <ea/core/concepts.hpp>
 #include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 #include <limits>
@@ -42,7 +43,7 @@
 
 namespace ea {
 
-template <typename CX, typename MT>
+template <Crossover CX, Mutation MT>
 struct IBEA {
     CX crossover;
     MT mutation;
@@ -88,7 +89,7 @@ struct IBEA {
         return vol;
     }
 
-    void run(this auto& self, Population<>& pop, auto&& problem) {
+    void run(this auto& self, Population<>& pop, EvalFunctor auto&& problem) {
         const int N          = self.pop_size;
         const int dim        = pop.dim;
         const int n_obj      = pop.n_obj;

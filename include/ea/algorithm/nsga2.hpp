@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <ea/core/comparator.hpp>
+#include <ea/core/concepts.hpp>
 #include <ea/core/population.hpp>
 #include <ea/operator/replacement/nsga2_replacement.hpp>
 #include <ea/util/random.hpp>
@@ -27,7 +28,7 @@ namespace ea {
 ///   nsga.pop_size = 100;
 ///   nsga.max_evals = 25000;
 ///   nsga.run(pop, problem);
-template <typename CX, typename MT> struct NSGAII {
+template <Crossover CX, Mutation MT> struct NSGAII {
     CX crossover;
     MT mutation;
     NSGAIIReplacement replacement;
@@ -40,7 +41,7 @@ template <typename CX, typename MT> struct NSGAII {
     /// Run NSGA-II on the given population.
     /// @param pop Population<> with genes initialized and bounds set. Must have pop_size individuals.
     /// @param problem Callable: void(Population<>&, int) — evaluates individual's objectives
-    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
+    template <EvalFunctor F> void run(this auto& self, Population<>& pop, F&& problem) {
         // === Validate parameters ===
         if (self.pop_size % 2 != 0) {
             std::cerr << "[ea::NSGAII] Warning: pop_size must be even (got " << self.pop_size

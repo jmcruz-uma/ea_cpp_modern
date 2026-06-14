@@ -14,6 +14,7 @@
 #include <cassert>
 #include <cmath>
 #include <ea/core/comparator.hpp>
+#include <ea/core/concepts.hpp>
 #include <ea/core/population.hpp>
 #include <ea/util/random.hpp>
 #include <limits>
@@ -23,7 +24,7 @@
 
 namespace ea {
 
-template <typename CX, typename MT> struct AGEMOEA {
+template <Crossover CX, Mutation MT> struct AGEMOEA {
     CX crossover;
     MT mutation;
 
@@ -32,7 +33,7 @@ template <typename CX, typename MT> struct AGEMOEA {
 
     static constexpr std::string_view name() { return "AGE-MOEA"; }
 
-    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
+    template <EvalFunctor F> void run(this auto& self, Population<>& pop, F&& problem) {
         const int n     = self.pop_size;
         const int dim   = pop.dim;
         const int n_obj = pop.n_obj;

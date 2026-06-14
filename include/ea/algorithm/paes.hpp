@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cmath>
 #include <ea/core/comparator.hpp>
+#include <ea/core/concepts.hpp>
 #include <ea/core/population.hpp>
 #include <ea/util/adaptive_grid.hpp>
 #include <ea/util/random.hpp>
@@ -22,7 +23,7 @@ namespace ea {
 /// PAES — Pareto Archived Evolution Strategy.
 /// (1+1)-ES with adaptive grid archive for diversity.
 /// Template param: MT — mutation operator only (no crossover in PAES).
-template <typename MT> struct PAES {
+template <Mutation MT> struct PAES {
     MT mutation;
 
     int max_evals = 25000;
@@ -32,7 +33,7 @@ template <typename MT> struct PAES {
     static constexpr std::string_view name() { return "PAES"; }
 
     /// Run PAES.
-    template <typename Problem> void run(this auto& self, Population<>& pop, Problem&& problem) {
+    template <EvalFunctor F> void run(this auto& self, Population<>& pop, F&& problem) {
         const int n_obj = pop.n_obj;
         const int dim = pop.dim;
 
