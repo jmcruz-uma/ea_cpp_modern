@@ -146,7 +146,7 @@ struct GDE3 {
 
             // ── Step 4: NSGA-II selection from combined (N..2N) → N ────────────
             // Matches jMetal: RankingAndCrowdingSelection.execute(tmpList) with N
-            auto selected = replacer.replace(combined, N);
+            auto selected = replacer.replace(combined, {}, N);
 
             for (int i = 0; i < N; ++i)
                 pop.copy_from_other(combined, selected[i], i);
