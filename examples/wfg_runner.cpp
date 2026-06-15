@@ -48,13 +48,11 @@ static constexpr int WFG_M = 2;
 static constexpr int WFG_K = 2;
 static constexpr int WFG_L = 4;
 
-static const char* DEFAULT_REF_DIR =
-    "/home/alumno/jMetal/resources/referenceFrontsCSV";
-
 // ── Cargar frente de referencia desde CSV ─────────────────────────────────────
 //
-// Formato: f1,f2 (sin cabecera), ~1113 puntos por archivo.
-// Ejemplo: /home/alumno/jMetal/resources/referenceFrontsCSV/WFG1.2D.csv
+// Formato: f1,f2 (sin cabecera), ~119–2600 puntos por archivo.
+// Directorio esperado: $HOME/jMetal/resources/referenceFrontsCSV/
+// Archivos: WFG1.2D.csv, WFG2.2D.csv, ..., WFG9.2D.csv
 
 static std::vector<std::vector<double>> load_ref_front(const std::string& path) {
     std::vector<std::vector<double>> ref;
@@ -129,9 +127,16 @@ void benchmark_problem(const std::string& name,
 }
 
 int main(int argc, char* argv[]) {
-    int         num_runs  = (argc > 1) ? std::stoi(argv[1])   : NUM_RUNS;
-    uint64_t    base_seed = (argc > 2) ? std::stoull(argv[2]) : BASE_SEED;
-    std::string ref_dir   = (argc > 3) ? argv[3]              : DEFAULT_REF_DIR;
+    int      num_runs  = (argc > 1) ? std::stoi(argv[1])   : NUM_RUNS;
+    uint64_t base_seed = (argc > 2) ? std::stoull(argv[2]) : BASE_SEED;
+    std::string ref_dir;
+    if (argc > 3) {
+        ref_dir = argv[3];
+    } else {
+        const char* home = std::getenv("HOME");
+        ref_dir = std::string(home ? home : ".") +
+                  "/jMetal/resources/referenceFrontsCSV";
+    }
 
     std::cerr << "=== ea-cpp NSGA-II WFG Benchmark ===\n";
     std::cerr << "pop=" << POP_SIZE << "  max_evals=" << MAX_EVALS

@@ -1,123 +1,243 @@
 # Benchmarks
 
-Guía reproducible de las comparativas del paper. Cada sección documenta
-prerequisitos, comandos exactos e interpretación de resultados.
+Reproducible guide for all performance comparisons. Each section documents
+prerequisites, exact commands, and how to interpret the results.
 
 ---
 
-## Comparativa monobjetivo: ea_cpp_original vs ea_cpp_modern
+## Setup
 
-Compara dos implementaciones del mismo (µ,λ)-ES sobre Rastrigin d=20:
-- **ea_cpp_original** — AoS clásico, sin abstracciones modernas
-- **ea_cpp_modern** — SoA + C++23, `Population<E>` templado
+### C++ compiler
 
-### Prerequisitos
-
-**ea_cpp_original** — compilar una vez:
+The scripts default to `g++-14`. Override with the `CXX_BENCH` environment variable:
 ```bash
-cd /home/alumno/ea_cpp_original
-g++-14 -O3 -DNDEBUG -I. ea_main.cpp -std=c++23 -march=native -o ea_main_gcc -lm
+export CXX_BENCH=g++-14   # default
+export CXX_BENCH=g++-16   # for C++26 migration experiments
 ```
 
-**ea_cpp_modern** — compilar una vez:
+### jMetal 7.4 (multi-objective comparison)
+
+Clone and build once:
 ```bash
-cd /home/alumno/ea_cpp_modern
-make
+git clone https://github.com/jMetal/jMetal.git $HOME/jMetal
+cd $HOME/jMetal && mvn clean install -DskipTests -q
 ```
 
-### Paso 1 — Ejecutar ambos sistemas
-
+The scripts default to `JMETAL_ROOT=$HOME/jMetal`. Override if you cloned elsewhere:
 ```bash
-./scripts/run_so_comparison.sh OUTDIR MAXEVALS NUMRUNS
+export JMETAL_ROOT=/path/to/your/jMetal
 ```
 
-| Argumento  | Descripción                          | Valor paper | Valor rápido |
-|------------|--------------------------------------|-------------|--------------|
-| `OUTDIR`   | Directorio de salida                 | `results/so_paper` | `/tmp/test_so` |
-| `MAXEVALS` | Evaluaciones por run                 | `10000000`  | `1000000`    |
-| `NUMRUNS`  | Número de runs independientes        | `30`        | `5`          |
+### ea-cpp-original (single-objective architectural comparison)
 
-Ejemplo rápido (≈20 s):
+Clone and build once:
 ```bash
+git clone https://github.com/Bio4Res/ea.git $HOME/ea_cpp_original
+cd $HOME/ea_cpp_original
+${CXX_BENCH:-g++-14} -O3 -DNDEBUG -I. ea_main.cpp -std=c++23 -march=native -o ea_main_gcc -lm
+```
+
+The scripts default to `ORIGINAL_ROOT=$HOME/ea_cpp_original`. Override if needed:
+```bash
+export ORIGINAL_ROOT=/path/to/your/ea_cpp_original
+```
+
+### Bare-metal Linux (recommended for publication results)
+
+```bash
+sudo cpupower frequency-set -g performance
+echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
+```
+
+Verify with `turbostat` or `watch sensors`. WSL2 results are indicative; bare-metal
+results are the definitive numbers for the paper.
+
+### Python (statistical analysis)
+
+```bash
+pip install scipy matplotlib
+```
+
+---
+
+## Multi-objective comparison: ea-cpp-modern vs jMetal 7.4
+
+JVM flags used: `-server -Xms512m -Xmx2g -XX:+UseG1GC -XX:+AlwaysPreTouch
+-XX:+DisableExplicitGC -Djava.awt.headless=true`
+
+### Summary (30 runs, WSL2, GCC 14)
+
+| Algorithm | Median speedup | IGD parity |
+|-----------|:--------------:|:----------:|
+| NSGA-II   | 3.57×          | ✅ all ns   |
+| SMPSO     | 4.28×          | ✅ all ns   |
+| SPEA2     | 2.17×          | ✅ all ns   |
+| IBEA      | 12.41×         | ✅ all ns   |
+| MOEA/D-DE | 7.87×          | ✅ all ns   |
+| NSGA-III  | 2.93×          | ✅ all ns   |
+| SMS-EMOA  | 3.92×          | ✅ all ns   |
+| GDE3      | 13.05×         | ✅ all ns   |
+| AGE-MOEA  | 5.02×          | ✅ 3/4 ns   |
+| MO-Cell   | 5.12×          | ✅ 3/4 ns   |
+| PAES      | 4.09×          | ✅ all ns   |
+
+### ZDT family — NSGA-II (pop=100, max\_evals=25000, d=30 except ZDT4 d=10)
+
+| Problem | C++ median (ms) | Java median (ms) | Speedup | IGD p |
+|---------|:---:|:---:|:---:|:---:|
+| ZDT1 | 109 | 483 | 4.42× | 0.22 ns |
+| ZDT2 | 110 | 630 | 5.71× | 0.82 ns |
+| ZDT3 |  55 | 185 | 3.40× | 0.46 ns |
+| ZDT4 |  79 | 283 | 3.60× | 0.27 ns |
+
+### WFG family — NSGA-II (pop=100, max\_evals=25000, k=2 l=4 M=2 d=6)
+
+Reference fronts: pre-computed CSVs from jMetal (~119–2600 points per problem).
+
+| Problem | C++ median (ms) | Java median (ms) | Speedup | IGD p |
+|---------|:---:|:---:|:---:|:---:|
+| WFG1 | 125 | 417 | 3.33× | 0.009 **  |
+| WFG2 | 123 | 392 | 3.19× | 0.70 ns   |
+| WFG3 | 108 | 398 | 3.69× | 0.36 ns   |
+| WFG4 | 109 | 413 | 3.80× | 0.61 ns   |
+| WFG5 | 104 | 416 | 4.01× | 0.21 ns   |
+| WFG6 | 113 | 412 | 3.65× | 0.82 ns   |
+| WFG7 | 111 | 416 | 3.76× | 0.43 ns   |
+| WFG8 | 134 | 443 | 3.30× | <0.0001 ***|
+| WFG9 | 123 | 434 | 3.52× | 0.18 ns   |
+| **median** | | | **3.65×** | 7/9 ns |
+
+**WFG8 note** (p<0.0001, C++ IGD better — 0.060 vs 0.125): `bParam` over distance variables
+uses `rSum` of previous variables. Java uses `float` internally; C++ uses `double`. The
+precision difference changes the exponent (range 0.02–50), altering the fitness landscape.
+C++ double gives NSGA-II a more differentiated surface → better convergence.
+
+**WFG1 note** (p=0.009, Java IGD slightly better): WFG1's `bPoly(y, 0.02)` across all
+variables creates a nearly flat landscape with high variance (σ=0.19 C++, σ=0.33 Java).
+The difference is likely a seed-coverage effect; both systems are in the same IGD order
+of magnitude.
+
+### UF family — NSGA-II (pop=100, max\_evals=25000, d=30)
+
+| Problem | C++ median (ms) | Java median (ms) | Speedup | IGD p |
+|---------|:---:|:---:|:---:|:---:|
+| UF1 | 161 | 510 | 3.16× | 0.57 ns |
+| UF2 | 165 | 601 | 3.65× | 0.89 ns |
+| UF3 | 185 | 579 | 3.14× | 0.33 ns |
+| UF4 | 152 | 560 | 3.67× | 0.97 ns |
+| UF5 | 181 | 616 | 3.41× | 0.58 ns |
+| UF6 | 186 | 623 | 3.35× | 1.00 ns |
+| UF7 | 164 | 590 | 3.61× | 0.58 ns |
+| **mean** | | | **3.43×** | all ns |
+
+**UF6 note**: C++ σ=98ms due to a single outlier (run 4, seed 45) in which NSGA-II found
+both segments of the discontinuous Pareto front → more non-dominated solutions → more
+expensive NDS pass. Without that run, σ=7ms. The outlier produces the best IGD — correct
+algorithmic behavior.
+
+### LZ09 family — NSGA-II / NSGA-III (pop=100/92, max\_evals=25000, d=30)
+
+LZ09F1–F5, F7–F9: NSGA-II (pop=100).
+LZ09F6: NSGA-III (divisions=12, pop=92) — 3-objective problem.
+
+| Problem | C++ median (ms) | Java median (ms) | Speedup | IGD p |
+|---------|:---:|:---:|:---:|:---:|
+| LZ09F1 | 140 | 648 | 4.61× | 0.70 ns |
+| LZ09F2 | 172 | 712 | 4.13× | 0.45 ns |
+| LZ09F3 | 166 | 657 | 3.96× | 0.64 ns |
+| LZ09F4 | 166 | 549 | 3.31× | 0.13 ns |
+| LZ09F5 | 177 | 563 | 3.19× | 0.18 ns |
+| LZ09F6 | 198 | 523 | 2.64× | 0.031 * |
+| LZ09F7 | 150 | 492 | 3.29× | 0.84 ns |
+| LZ09F8 | 161 | 491 | 3.04× | 0.98 ns |
+| LZ09F9 | 191 | 564 | 2.96× | 0.92 ns |
+| **mean** | | | **3.46×** | 8/9 ns |
+
+**LZ09F6 note** (p=0.031, Java NSGA-III slightly better — 0.118 vs 0.140): high variance
+in both (min ~0.10, max ~0.54); absolute difference is 0.022. Likely due to jMetal's more
+mature niching/normalization for 3-objective problems.
+
+### Reproducing the comparison
+
+Build jMetal once, then run each script with `SKIP_JMETAL_BUILD=1`:
+```bash
+./scripts/run_nsga2_comparison.sh    results/nsga2    30
+
+SKIP_JMETAL_BUILD=1 ./scripts/run_smpso_comparison.sh   results/smpso   30
+SKIP_JMETAL_BUILD=1 ./scripts/run_spea2_comparison.sh   results/spea2   30
+SKIP_JMETAL_BUILD=1 ./scripts/run_ibea_comparison.sh    results/ibea    30
+SKIP_JMETAL_BUILD=1 ./scripts/run_moead_comparison.sh   results/moead   30
+SKIP_JMETAL_BUILD=1 ./scripts/run_nsga3_comparison.sh   results/nsga3   30
+SKIP_JMETAL_BUILD=1 ./scripts/run_smsemoa_comparison.sh results/smsemoa 30
+SKIP_JMETAL_BUILD=1 ./scripts/run_gde3_comparison.sh    results/gde3    30
+SKIP_JMETAL_BUILD=1 ./scripts/run_agemoea_comparison.sh results/agemoea 30
+SKIP_JMETAL_BUILD=1 ./scripts/run_mocell_comparison.sh  results/mocell  30
+SKIP_JMETAL_BUILD=1 ./scripts/run_paes_comparison.sh    results/paes    30
+SKIP_JMETAL_BUILD=1 ./scripts/run_uf_comparison.sh      results/uf      30
+SKIP_JMETAL_BUILD=1 ./scripts/run_lz09_comparison.sh    results/lz09    30
+SKIP_JMETAL_BUILD=1 ./scripts/run_wfg_comparison.sh     results/wfg     30
+```
+
+Statistical analysis:
+```bash
+python3 scripts/analyze_mo_comparison.py results/nsga2
+```
+
+Each script generates `results/<name>/environment.md` with the exact hardware and
+compiler configuration at time of execution, for reproducibility documentation.
+
+---
+
+## Single-objective comparison: ea-cpp-modern vs ea-cpp-original
+
+This comparison isolates the **architectural** speedup (SoA + modern C++ vs AoS + virtual
+dispatch) independent of the language speedup (C++ vs JVM).
+
+Both systems implement the same (µ,λ)-ES on Rastrigin d=20 with identical parameters:
+
+| Parameter | Value |
+|---|---|
+| µ (parents) | 100 |
+| λ (offspring) | 99 |
+| Selection | Tournament k=2 |
+| Crossover | BLX-α, prob=0.9, α=0.1 |
+| Mutation | Gaussian, rate=0.6321, step=1.0 |
+| Replacement | Comma |
+| Problem | Rastrigin d=20, [−5.12, 5.12] |
+| RNG | mt19937\_64, seed=1..NUMRUNS |
+
+`ea-cpp-original` retains the AoS layout and virtual dispatch of its Java source
+([Bio4Res/ea](https://github.com/Bio4Res/ea)), compiled with the same C++23 flags.
+
+### Run
+
+```bash
+# Quick test (~20 s)
 ./scripts/run_so_comparison.sh /tmp/test_so 1000000 5
-```
 
-Ejemplo paper (≈15 min):
-```bash
+# Paper run (~15 min)
 ./scripts/run_so_comparison.sh results/so_paper 10000000 30
+
+python3 scripts/analyze_so_comparison.py results/so_paper --csv
 ```
 
-El script genera en `OUTDIR`:
-- `numeric.json`, `experiment.json` — configuración usada
-- `rastrigin-20-1-stats.json` — salida de ea_cpp_original (formato original)
-- `modern-rastrigin-20-1-stats.json` — salida de ea_cpp_modern (mismo formato)
-- `original_stdout.txt`, `modern_stdout.txt` — salida de consola
-
-### Paso 2 — Analizar resultados
-
+Override `ORIGINAL_ROOT` if ea-cpp-original is not at `$HOME/ea_cpp_original`:
 ```bash
-python3 scripts/analyze_so_comparison.py OUTDIR [--csv] [--plot]
+ORIGINAL_ROOT=/path/to/ea_cpp_original \
+    ./scripts/run_so_comparison.sh results/so_paper 10000000 30
 ```
 
-| Flag     | Efecto                                                        |
-|----------|---------------------------------------------------------------|
-| `--csv`  | Exporta `OUTDIR/comparison_results.csv` (una fila por run)   |
-| `--plot` | Genera `OUTDIR/comparison_plot.png` (requiere matplotlib)    |
+### Reference results (30 runs × 10M evals, WSL2)
 
-Ejemplo:
-```bash
-python3 scripts/analyze_so_comparison.py /tmp/test_so --csv --plot
-```
+| Metric | ea-cpp-original (AoS) | ea-cpp-modern (SoA) | Ratio |
+|---|---|---|---|
+| Median time (s) | 7.84 | 6.74 | **1.16×** |
+| Median fitness | 0.0 | 0.0 | = |
+| hits≈0 (of 30) | 30/30 | 30/30 | = |
 
-El script imprime:
-- Tiempo por run: media, mediana, Q1/Q3, speedup
-- Fitness final: mediana, media, hits≈0 (convergencia al óptimo global)
-- Fitness medio en hitos de evaluaciones (convergencia temporal)
-- Test de Wilcoxon sobre fitness final (requiere scipy)
-
-### Configuración del algoritmo
-
-Ambos sistemas usan exactamente la misma configuración (generada por el script):
-
-| Parámetro         | Valor  | Fuente                    |
-|-------------------|--------|---------------------------|
-| µ (padres)        | 100    | numeric.json → popsize    |
-| λ (offspring)     | 99     | numeric.json → offspring  |
-| Selección         | Torneo k=2 | numeric.json → selection |
-| Cruce BLX-α       | prob=0.9, α=0.1 | numeric.json → variation[0] |
-| Mutación Gaussian | rate=0.6321, step=1.0 | numeric.json → variation[1] |
-| Reemplazo         | Comma (elitista si λ<µ) | numeric.json → replacement |
-| Problema          | Rastrigin d=20, [-5.12, 5.12] | experiment.json |
-| RNG               | mt19937_64, seed=1..NUMRUNS | ambos repos |
-
-### Resultados de referencia (30 runs × 10M evals, WSL2)
-
-| Métrica               | ea_cpp_original | ea_cpp_modern | Ratio  |
-|-----------------------|-----------------|---------------|--------|
-| Tiempo mediana (s)    | 7.84            | 6.74          | **1.16×** |
-| Tiempo media (s)      | 7.70            | 7.78          | ≈1× (ruidoso) |
-| Fitness mediano       | 0.0             | 0.0           | =      |
-| hits≈0 (de 30)        | 30/30           | 30/30         | =      |
-
-> **Advertencia WSL2**: la media es inestable por throttling térmico
-> (outlier de 14.2s observado). Usar **mediana** como estimador robusto.
-> La pausa de 60s entre sistemas mitiga pero no elimina el efecto térmico.
+> **WSL2 note**: the mean is unstable due to thermal throttling (one outlier at 14.2s
+> was observed). Use **median** as the robust estimator. A 60 s cooldown between systems
+> mitigates but does not eliminate the thermal effect.
 >
-> **Los resultados definitivos del paper deben medirse en bare-metal Linux**
-> con frecuencia de CPU verificada (`turbostat` o `watch sensors`).
-> En bare-metal el speedup por SoA debería ser más pronunciado.
-
-### Dependencias Python opcionales
-
-```bash
-pip install scipy      # test de Wilcoxon
-pip install matplotlib # gráficas
-```
-
----
-
-## Próximas comparativas (pendientes)
-
-- **Multiobjetivo SO vs MO**: impacto en rendimiento al añadir objetivos (NSGA-II sobre ZDT1–ZDT4)
-- **ea_cpp_modern vs jMetal**: comparativa Java vs C++23 en NSGA-II, MOEA/D, SPEA2
-- **Medición energética**: `perf stat -e power/energy-pkg/` en bare-metal Linux con RAPL
+> **Bare-metal results are pending**: the SoA advantage is expected to be more pronounced
+> outside WSL2.

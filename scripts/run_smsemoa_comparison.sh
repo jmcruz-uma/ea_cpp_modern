@@ -26,7 +26,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODERN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-JMETAL_ROOT="/home/alumno/jMetal"
+JMETAL_ROOT="${JMETAL_ROOT:-$HOME/jMetal}"
+CXX_BENCH="${CXX_BENCH:-g++-14}"
 BENCH_DIR="${MODERN_ROOT}/benchmarks/jmetal"
 
 OUTDIR="${1:-${MODERN_ROOT}/results/smsemoa_comparison}"
@@ -40,8 +41,8 @@ SKIP_JAVA="${SKIP_JAVA:-0}"
 
 check_prereqs() {
     local missing=0
-    if ! command -v g++-14 &>/dev/null; then
-        echo "ERROR: g++-14 no encontrado."
+    if ! command -v ${CXX_BENCH} &>/dev/null; then
+        echo "ERROR: ${CXX_BENCH} no encontrado."
         missing=1
     fi
     if [[ "$SKIP_JAVA" == "0" ]]; then
@@ -60,7 +61,7 @@ check_prereqs() {
 build_cpp() {
     echo "[1/4] Compilando ea_cpp_modern (SMS-EMOA runner)..."
     mkdir -p "${MODERN_ROOT}/build"
-    g++-14 -std=c++23 -O3 -march=native -DNDEBUG \
+    ${CXX_BENCH} -std=c++23 -O3 -march=native -DNDEBUG \
         -I "${MODERN_ROOT}/include" \
         "${MODERN_ROOT}/examples/smsemoa_runner.cpp" \
         -o "${CPP_BIN}" -lm
@@ -179,7 +180,7 @@ measure_idle_temp
     uname -a
     echo ""
     echo "## Compilador C++"
-    g++-14 --version | head -1
+    ${CXX_BENCH} --version | head -1
     echo "Flags: -std=c++23 -O3 -march=native -DNDEBUG"
     echo ""
     echo "## Java"

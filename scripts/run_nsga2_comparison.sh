@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # =============================================================================
-# run_mo_comparison.sh
+# run_nsga2_comparison.sh
 # Comparativa multiobjetivo: ea_cpp_modern (NSGA-II, C++) vs jMetal 7.4 (Java)
 # Problemas: ZDT1, ZDT2, ZDT3, ZDT4
 #
 # Uso:
-#   ./scripts/run_mo_comparison.sh [OUTDIR] [NUMRUNS]
+#   ./scripts/run_nsga2_comparison.sh [OUTDIR] [NUMRUNS]
 #
 # Argumentos opcionales:
 #   OUTDIR    directorio de salida    (default: results/mo_comparison)
 #   NUMRUNS   número de runs medidos  (default: 30)
 #
 # Prerequisitos:
-#   - g++-14 con soporte C++23
+#   - ${CXX_BENCH} con soporte C++23
 #   - Java 17+ y Maven 3.6+ instalados
 #   - jMetal 7.4 construido (o usar SKIP_JMETAL_BUILD=1 si ya existe)
 #
@@ -20,17 +20,18 @@
 #   sudo apt-get install -y default-jdk maven
 #
 # Ejemplo rápido (1 run, sin JMetal):
-#   SKIP_JAVA=1 ./scripts/run_mo_comparison.sh /tmp/mo_test 1
+#   SKIP_JAVA=1 ./scripts/run_nsga2_comparison.sh /tmp/mo_test 1
 #
 # Ejemplo paper (30 runs):
-#   ./scripts/run_mo_comparison.sh results/mo_paper 30
+#   ./scripts/run_nsga2_comparison.sh results/mo_paper 30
 # =============================================================================
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODERN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-JMETAL_ROOT="/home/alumno/jMetal"
+JMETAL_ROOT="${JMETAL_ROOT:-$HOME/jMetal}"
+CXX_BENCH="${CXX_BENCH:-g++-14}"
 BENCH_DIR="${MODERN_ROOT}/benchmarks/jmetal"
 
 OUTDIR="${1:-${MODERN_ROOT}/results/mo_comparison}"
@@ -46,8 +47,8 @@ SKIP_JAVA="${SKIP_JAVA:-0}"
 
 check_prereqs() {
     local missing=0
-    if ! command -v g++-14 &>/dev/null; then
-        echo "ERROR: g++-14 no encontrado. Instalar con: sudo apt-get install g++-14"
+    if ! command -v ${CXX_BENCH} &>/dev/null; then
+        echo "ERROR: ${CXX_BENCH} no encontrado. Instalar con: sudo apt-get install ${CXX_BENCH}"
         missing=1
     fi
     if [[ "$SKIP_JAVA" == "0" ]]; then
@@ -66,7 +67,7 @@ check_prereqs() {
 build_cpp() {
     echo "[1/4] Compilando ea_cpp_modern (NSGA-II runner)..."
     mkdir -p "${MODERN_ROOT}/build"
-    g++-14 -std=c++23 -O3 -march=native -DNDEBUG \
+    ${CXX_BENCH} -std=c++23 -O3 -march=native -DNDEBUG \
         -I "${MODERN_ROOT}/include" \
         "${MODERN_ROOT}/examples/nsga2_runner.cpp" \
         -o "${CPP_BIN}" -lm
@@ -186,7 +187,7 @@ measure_idle_temp
     uname -a
     echo ""
     echo "## Compilador C++"
-    g++-14 --version | head -1
+    ${CXX_BENCH} --version | head -1
     echo "Flags: -std=c++23 -O3 -march=native -DNDEBUG"
     echo ""
     echo "## Java"

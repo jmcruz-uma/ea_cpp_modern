@@ -18,16 +18,17 @@
 #   ./scripts/run_so_comparison.sh results/so_paper 10000000 30
 #
 # Prerequisitos:
-#   - ea_cpp_original compilado:  cd /home/alumno/ea_cpp_original && \
-#       g++-14 -O3 -DNDEBUG -I. ea_main.cpp -std=c++23 -march=native -o ea_main_gcc -lm
-#   - ea_cpp_modern compilado:    cd /home/alumno/ea_cpp_modern && make
+#   - ea_cpp_original compilado:  cd ${ORIGINAL_ROOT} && \
+#       ${CXX_BENCH} -O3 -DNDEBUG -I. ea_main.cpp -std=c++23 -march=native -o ea_main_gcc -lm
+#   - ea_cpp_modern compilado:    cd <ea-cpp-modern-root> && make
 # =============================================================================
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODERN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-ORIGINAL_ROOT="/home/alumno/ea_cpp_original"
+ORIGINAL_ROOT="${ORIGINAL_ROOT:-$HOME/ea_cpp_original}"
+CXX_BENCH="${CXX_BENCH:-g++-14}"
 
 OUTDIR="${1:-${MODERN_ROOT}/results/so_comparison}"
 MAXEVALS="${2:-1000000}"
@@ -39,12 +40,12 @@ MODERN_BIN="${MODERN_ROOT}/build/mu_lambda_runner"
 # ── Validaciones ──────────────────────────────────────────────────────────────
 if [[ ! -x "$ORIGINAL_BIN" ]]; then
     echo "ERROR: no encontrado $ORIGINAL_BIN"
-    echo "Compila con: cd $ORIGINAL_ROOT && g++-14 -O3 -DNDEBUG -I. ea_main.cpp -std=c++23 -march=native -o ea_main_gcc -lm"
+    echo "Compila con: cd $ORIGINAL_ROOT && ${CXX_BENCH} -O3 -DNDEBUG -I. ea_main.cpp -std=c++23 -march=native -o ea_main_gcc -lm"
     exit 1
 fi
 if [[ ! -x "$MODERN_BIN" ]]; then
     echo "ERROR: no encontrado $MODERN_BIN"
-    echo "Compila con: cd $MODERN_ROOT && make"
+    echo "Compila con: cd $MODERN_ROOT && cd <ea-cpp-modern> && make"
     exit 1
 fi
 

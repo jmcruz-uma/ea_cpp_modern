@@ -1,181 +1,162 @@
-# ea-cpp
+# ea-cpp-modern
 
-High-performance evolutionary algorithm framework in **C++23** — jMetal operators and algorithms, C++-native architecture.
+High-performance multi-objective evolutionary algorithm framework in **C++23**, designed as a faithful re-implementation of [jMetal 7.4](https://github.com/jMetal/jMetal) with a zero-overhead C++ architecture.
 
 [![C++23](https://img.shields.io/badge/C%2B%2B-23-blue.svg)](https://en.cppreference.com/w/cpp/23)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![IGD](https://img.shields.io/badge/IGD-0.005%20(ZDT1)-brightgreen.svg)](benchmarks)
-[![Paper](https://img.shields.io/badge/paper-PDF-red.svg)](paper.pdf)
-[![arXiv](https://img.shields.io/badge/arXiv-submitted-orange.svg)](https://arxiv.org)
-[![CI](https://github.com/elCanosail/ea-cpp/actions/workflows/ci.yml/badge.svg)](https://github.com/elCanosail/ea-cpp/actions/workflows/ci.yml)
-[![clang-format](https://img.shields.io/badge/clang--format-18-blue.svg)](.clang-format)
-[![clang-format](https://img.shields.io/badge/clang--format-18-blue.svg)](https://clang.llvm.org/docs/ClangFormat.html)
 
-## Features
+## Speedup vs jMetal 7.4
 
-- **Zero-overhead architecture**: SoA Population, deducing this, concepts — no virtual/CRTP
-- **jMetal parity**: Same operators and algorithms, same IGD, **12x faster**
-- **76 headers**: Core, 21 crossover, 17 mutation, 8 selection, 4 replacement, 13 algorithms, 22 problems, 7+ indicators
-- **C++23 modern**: Template composition, compile-time dispatch, clean APIs
+30 independent runs, ZDT1–4 (where applicable), WSL2 Ubuntu 24.04, GCC 14, `-O3 -march=native`.
+Wilcoxon signed-rank test on IGD: all results statistically non-significant (p > 0.05) unless noted.
+
+| Algorithm | Median speedup | IGD parity |
+|-----------|:--------------:|:----------:|
+| NSGA-II   | 3.57×          | ✅ all ns   |
+| SMPSO     | 4.28×          | ✅ all ns   |
+| SPEA2     | 2.17×          | ✅ all ns   |
+| IBEA      | 12.41×         | ✅ all ns   |
+| MOEA/D-DE | 7.87×          | ✅ all ns   |
+| NSGA-III  | 2.93×          | ✅ all ns   |
+| SMS-EMOA  | 3.92×          | ✅ all ns   |
+| GDE3      | 13.05×         | ✅ all ns   |
+| AGE-MOEA  | 5.02×          | ✅ 3/4 ns   |
+| MO-Cell   | 5.12×          | ✅ 3/4 ns   |
+| PAES      | 4.09×          | ✅ all ns   |
+
+See [BENCHMARKS.md](BENCHMARKS.md) for full results across ZDT, WFG, UF, LZ09, and DTLZ families.
+
+## Requirements
+
+| Dependency | Version | Purpose |
+|---|---|---|
+| GCC | 14+ (C++23) | Framework compilation |
+| Java JDK | 17+ | jMetal comparison (optional) |
+| Maven | 3.6+ | jMetal build (optional) |
+| Python 3 | 3.8+ | Statistical analysis (optional) |
+| scipy | any | Wilcoxon test (optional) |
+
+Install on Ubuntu/Debian:
+```bash
+sudo apt-get install g++-14 default-jdk maven python3-scipy
+```
 
 ## Quick Start
 
 ```bash
-# Requirements: g++-14+ with C++23 support
-git clone https://github.com/elCanosail/ea-cpp.git
-cd ea-cpp
-
-# Run benchmark (NSGA-II on ZDT1)
-make benchmark
-
-# Run all tests
+git clone https://github.com/OWNER/ea-cpp-modern.git
+cd ea-cpp-modern
+make
 make test
-
-# Full benchmark suite (30 runs per config)
-make benchmark-full
 ```
+
+Run NSGA-II on ZDT1–4 (5 runs, seed 42):
+```bash
+./build/nsga2_runner 5 42
+```
+
+Output is CSV: `problem,run,seed,time_ms,igd`.
+
+## Reproducing the jMetal comparison
+
+Clone and build jMetal once:
+```bash
+git clone https://github.com/jMetal/jMetal.git $HOME/jMetal
+cd $HOME/jMetal && mvn clean install -DskipTests -q
+```
+
+Then run any comparison script from the repo root. The variable `JMETAL_ROOT` defaults to
+`$HOME/jMetal`; override if you cloned jMetal elsewhere:
+
+```bash
+# NSGA-II vs jMetal, 30 runs
+./scripts/run_nsga2_comparison.sh results/nsga2 30
+
+# All algorithms — commands from BENCHMARKS.md
+SKIP_JMETAL_BUILD=1 ./scripts/run_smpso_comparison.sh  results/smpso  30
+SKIP_JMETAL_BUILD=1 ./scripts/run_ibea_comparison.sh   results/ibea   30
+# ... etc.
+
+# Statistical analysis
+python3 scripts/analyze_mo_comparison.py results/nsga2
+```
+
+The compiler defaults to `g++-14`. Override with `CXX_BENCH=g++-16` for GCC 16.
 
 ## Architecture
 
+The framework is built around three design decisions that jointly account for the speedup:
+
+**1. Structure of Arrays (SoA) population**
+All genes, objectives, and auxiliary data live in flat contiguous arrays.
+No per-individual heap allocation; evaluation loops are SIMD-vectorizable.
+
+**2. Deducing `this` (C++23) instead of virtual/CRTP**
+Operators use `void apply(this OpType& self, Population& pop, ...)`.
+Zero vtable overhead, full inlining, no inheritance hierarchy.
+
+**3. C++20 Concepts for compile-time contracts**
+`Crossover`, `Mutation`, `Selection`, `Replacement`, `EvalFunctor` — the compiler
+rejects mismatched types with a clear diagnostic, not a runtime error.
+
 ```
-ea-cpp/
-├── include/ea/
-│   ├── core/          # Population (SoA), Encoding, Concepts, Comparators, Config
-│   ├── algorithm/     # 13 algorithms (NSGA-II, NSGA-III, MOEA/D, SPEA2, IBEA, SMPSO, ...)
-│   ├── operator/
-│   │   ├── crossover/ # 21 operators (SBX, BLX-αβ, DE, PMX, ERX, ...)
-│   │   ├── mutation/  # 17 operators (Polynomial, BitFlip, Swap, Inversion, ...)
-│   │   ├── selection/ # 8 operators (BinaryTournament, RankingAndCrowding, ...)
-│   │   └── replacement/ # 4 operators (NSGAII, NSGAIII, MuPlusLambda, ...)
-│   ├── problem/       # 22 benchmark problems (ZDT, DTLZ, WFG families)
-│   ├── indicator/     # 7 quality indicators (Hypervolume, IGD, GD, Spread, Epsilon, R2, Hausdorff)
-│   └── util/          # ReferencePoint, Aggregation, Random
-├── tests/             # Unit tests + regression tests + CI
-├── examples/          # Benchmarks + JSON config demos
-├── scripts/           # Automated benchmark suite + energy estimation
-├── paper.md           # Paper (markdown)
-├── paper.tex          # Paper (LaTeX)
-├── Makefile           # Build automation
-└── README.md          # This file
+include/ea/
+├── core/          — Population (SoA), Encoding, Concepts, Config
+├── algorithm/     — 11 MO algorithms
+├── operator/
+│   ├── crossover/ — 21 operators (SBX, BLX-αβ, DE, PMX, …)
+│   ├── mutation/  — 17 operators (Polynomial, BitFlip, Swap, …)
+│   ├── selection/ — 8 operators (BinaryTournament, Ranking+Crowding, …)
+│   └── replacement/ — NSGA-II/III, Mu+Lambda, MOEA/D
+├── problem/       — ZDT (6), DTLZ (7), WFG (9), UF (10), LZ09 (9)
+├── indicator/     — IGD, GD, Hypervolume, Spread, Epsilon, R2, Hausdorff
+└── util/          — ReferencePoint, Aggregation, Random (Xoshiro256**)
 ```
 
-## Benchmarks
+See [ARCHITECTURE.md](ARCHITECTURE.md) for patterns, porting rules, and the AoS→SoA rationale.
 
-NSGA-II on ZDT1 (100 pop, 25000 evals, 10 runs):
-
-| Metric | ea-cpp (C++23) | jMetal (Java 21) | Ratio |
-|--------|----------------|-------------------|-------|
-| Mean IGD | 0.005 ± 0.000 | 0.005 ± 0.000 | Parity |
-| Mean Time | 153 ms | 1831 ms | **12x faster** |
-| Time stddev | ±10 ms | ±156 ms | **15x more stable** |
-
-Extended benchmarks (5 runs):
-
-| Algorithm | Problem | IGD | Time (ms) |
-|-----------|---------|-----|-----------|
-| NSGAII | ZDT1 | 0.00019 | 162 |
-| NSGAII | ZDT2 | 0.00020 | 163 |
-| NSGAII | ZDT3 | 0.00948 | 161 |
-| NSGAII | ZDT6 | 0.00892 | 198 |
-| IBEA | ZDT1 | 0.20652 | 233 |
-| RandomSearch | ZDT1 | 0.05339 | 6265 |
-
-## Usage
-
-### Basic Example
+## Usage example
 
 ```cpp
 #include <ea/ea.hpp>
 
 int main() {
-    // Create problem
     ea::ZDT1 problem(30);
-
-    // Create population
     ea::Population pop(100, 30, 2);
     pop.lower_bounds = std::vector<double>(30, 0.0);
     pop.upper_bounds = std::vector<double>(30, 1.0);
 
-    // Initialize randomly
-    for (int i = 0; i < 100; ++i) {
-        for (int j = 0; j < 30; ++j) {
+    for (int i = 0; i < 100; ++i)
+        for (int j = 0; j < 30; ++j)
             pop.gene(i, j) = ea::Random::instance().uniform(0.0, 1.0);
-        }
-    }
 
-    // Configure and run NSGA-II
     ea::NSGAII<ea::SBXCrossover, ea::PolynomialMutation> nsga;
-    nsga.pop_size = 100;
+    nsga.pop_size  = 100;
     nsga.max_evals = 25000;
-    nsga.crossover.distribution_index = 20.0;
-    nsga.mutation.distribution_index = 20.0;
 
     nsga.run(pop, [&problem](ea::Population& p, int idx) {
         problem.evaluate(p, idx);
     });
-
-    return 0;
 }
 ```
 
-### JSON Configuration
+## Bare-metal validation
 
-```json
-{
-  "algorithm": "NSGAII",
-  "crossover": { "type": "sbx", "probability": 0.9, "distribution_index": 20.0 },
-  "mutation": { "type": "polynomial", "rate": -1.0, "distribution_index": 20.0 },
-  "pop_size": 100,
-  "max_evals": 25000
-}
-```
-
-See `examples/config_example.cpp` for full usage.
-
-## Tests
+For publication-quality results, run on bare-metal Linux with the CPU governor set to
+`performance` and Turbo Boost disabled:
 
 ```bash
-# Compile and run tests
-make test
-
-# Expected output:
-# ========================================
-# ea-cpp Operator Unit Tests
-# ========================================
-# TEST: SBXCrossover ... PASS
-# TEST: PolynomialMutation ... PASS
-# TEST: BinaryTournamentSelection ... PASS
-# Results: 3 passed, 0 failed
+sudo cpupower frequency-set -g performance
+echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
 ```
 
-## Version History
-
-| Version | Date | Features |
-|---------|------|----------|
-| v0.1.0 | 2026-05-16 | Framework base, 76 headers, jMetal parity |
-| v0.2.0 | 2026-05-17 | Robustez, tests, Spread indicator, CI GitHub Actions |
-| v0.3.0 | 2026-05-17 | IBEA, RandomSearch algorithms |
-| v0.4.0 | 2026-05-17 | Epsilon, R2, Hausdorff indicators |
-| v0.5.0 | 2026-05-17 | Makefile, README, benchmark script |
-| v0.6.0 | 2026-05-17 | JSON configuration without recompiling |
-| **v1.0.0** | **2026-05-17** | **Paper-ready release** |
-
-## Paper
-
-See `paper.md` (markdown) or `paper.tex` (LaTeX) for the full paper.
-
-**Key results:**
-- Algorithmic parity with jMetal (IGD 0.005)
-- 12× faster execution
-- 15× more temporally stable
-- 13 algorithms, 22 problems, 7+ indicators
+Then re-run all comparison scripts as shown in [BENCHMARKS.md](BENCHMARKS.md).
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
 
 ## Contact
 
-- Repository: https://github.com/elCanosail/ea-cpp
 - Issues: GitHub Issues
-- Paper review: See `REVIEW.md`
+- Email: jmcruz@uma.es

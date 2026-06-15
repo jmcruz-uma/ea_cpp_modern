@@ -162,9 +162,9 @@ The transition from AoS to SoA turns objective evaluation and NDS into
 SIMD-vectorizable loops. Combined with eliminating vtable dispatch, this
 accounts for the majority of the speedup observed vs jMetal.
 
-### Implication for the Paper
+### Separating Language and Architecture Effects
 
-The speedup ea_cpp_modern achieves over jMetal (3–13×, depending on algorithm)
+The speedup ea_cpp_modern achieves over jMetal (2.17–13.05×, depending on algorithm)
 has two separable components:
 
 1. **Language advantage** (C++ over JVM): no GC pauses, no boxing overhead,
@@ -174,10 +174,10 @@ has two separable components:
    cache-friendly layout, SIMD vectorization, zero-allocation operators.
    This is the contribution *beyond* a naive C++ port.
 
-A 3-way benchmark (jMetal → ea_cpp_original → ea_cpp_modern) would isolate
-these two effects precisely. As a lower bound, the language advantage alone
-is estimated at ~2–3× (typical C++/JVM ratio for compute-bound code);
-the remaining factor comes from the architectural redesign.
+The 3-way benchmark (jMetal → ea_cpp_original → ea_cpp_modern) isolates these
+two effects: ea_cpp_original achieves ~1.16× over jMetal on Rastrigin (WSL2,
+30 runs × 10M evals). The remaining factor in the multi-objective benchmarks
+comes from the architectural redesign. See [BENCHMARKS.md](BENCHMARKS.md).
 
 ---
 

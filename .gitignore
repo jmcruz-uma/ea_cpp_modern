@@ -1,8 +1,33 @@
 build/
-zdt1_front.csv
-*.csv
 *.class
-results/
+*.csv
 Doxyfile.bak
 docs/html/
 docs/latex/
+
+# Internal session documents (not for public consumption)
+NEXT_SESSION.md
+CPP26_UPGRADE_PLAN.md
+introduccion_jmetal.md
+TODO.md
+REVIEW.md
+
+# Paper drafts — publish via journal/arXiv, not GitHub
+paper.md
+paper.tex
+paper.pdf
+paper.aux
+paper.log
+paper.out
+
+# Compiled binaries accidentally placed in repo root
+test_compile
+test_replacement
+
+# Benchmark result data — all generated outputs (reproduced by scripts)
+results/**/*.csv
+results/**/*.log
+results/**/*.txt
+results/**/*.json
+results/**/environment.md
+results/**/benchmark_env.md
