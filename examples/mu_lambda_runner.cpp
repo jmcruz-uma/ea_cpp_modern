@@ -29,6 +29,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <variant>
 
 // -----------------------------------------------------------------------
 // Config structs
@@ -151,37 +152,32 @@ ESType build_es(const IslandConfig& cfg) {
 }
 
 // -----------------------------------------------------------------------
-// Problem factory
+// Problem — built once, stored in a variant, zero allocation in hot path
 // -----------------------------------------------------------------------
 
 struct ProblemVariant {
-    enum class Kind { Sphere, Rastrigin, Ackley, Rosenbrock } kind;
-    int dim; double range;
+    std::variant<ea::Sphere, ea::Rastrigin, ea::Ackley, ea::Rosenbrock> impl;
 
     void evaluate(ea::Population<>& pop, int idx) const {
-        switch (kind) {
-            case Kind::Sphere:     { ea::Sphere{dim, range}.evaluate(pop, idx);     break; }
-            case Kind::Rastrigin:  { ea::Rastrigin{dim, range}.evaluate(pop, idx);  break; }
-            case Kind::Ackley:     { ea::Ackley{dim, range}.evaluate(pop, idx);     break; }
-            case Kind::Rosenbrock: { ea::Rosenbrock{dim, range}.evaluate(pop, idx); break; }
-        }
+        std::visit([&](const auto& p) { p.evaluate(pop, idx); }, impl);
     }
-    double lower_bound() const { return -range; }
-    double upper_bound() const { return  range; }
+    double lower_bound() const {
+        return std::visit([](const auto& p) { return p.lower_bound(); }, impl);
+    }
+    double upper_bound() const {
+        return std::visit([](const auto& p) { return p.upper_bound(); }, impl);
+    }
 };
 
 ProblemVariant build_problem(const ExperimentConfig& cfg) {
     std::string name = cfg.problem;
     for (auto& c : name) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
 
-    ProblemVariant::Kind kind;
-    if      (name == "sphere")     kind = ProblemVariant::Kind::Sphere;
-    else if (name == "rastrigin")  kind = ProblemVariant::Kind::Rastrigin;
-    else if (name == "ackley")     kind = ProblemVariant::Kind::Ackley;
-    else if (name == "rosenbrock") kind = ProblemVariant::Kind::Rosenbrock;
+    if      (name == "sphere")     return {ea::Sphere{cfg.numvars, cfg.range}};
+    else if (name == "rastrigin")  return {ea::Rastrigin{cfg.numvars, cfg.range}};
+    else if (name == "ackley")     return {ea::Ackley{cfg.numvars, cfg.range}};
+    else if (name == "rosenbrock") return {ea::Rosenbrock{cfg.numvars, cfg.range}};
     else throw std::runtime_error("Unknown problem: " + cfg.problem);
-
-    return {kind, cfg.numvars, cfg.range};
 }
 
 // -----------------------------------------------------------------------
