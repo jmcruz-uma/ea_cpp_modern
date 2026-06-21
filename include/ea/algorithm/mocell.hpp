@@ -46,9 +46,14 @@ template <Crossover CX, Mutation MT> struct MOCell {
 
         if (pop.pop_size != n) pop.resize(n);
 
-        // Compute grid dimensions from pop_size (default 10×10 for pop=100)
-        const int rows = self.grid_rows;
-        const int cols = self.grid_cols;
+        // Grid dimensions must satisfy rows*cols == n. Auto-compute if they don't.
+        int rows = self.grid_rows;
+        int cols = self.grid_cols;
+        if (rows * cols != n) {
+            rows = static_cast<int>(std::round(std::sqrt(static_cast<double>(n))));
+            while (rows > 1 && n % rows != 0) --rows;
+            cols = rows > 0 ? n / rows : n;
+        }
 
         // ── Evaluate initial population ───────────────────────────────────────
         for (int i = 0; i < n; ++i) {
