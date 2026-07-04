@@ -1,6 +1,6 @@
 .PHONY: all test clean benchmark mu-lambda-runner nsga2-runner
 
-CXX ?= g++-14
+CXX := g++-14
 CXXFLAGS = -std=c++23 -O3 -march=native -DNDEBUG -I include
 LDFLAGS = -lm
 
